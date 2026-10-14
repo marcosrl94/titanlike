@@ -11,7 +11,8 @@ function solCard(id){
 function squadHTML(mode){   // mode: 'ally' (elegir compañero), 'swap' (relevar) o nada
   return `<div class="squad">`+S.squad.map(s=>{
     const R=ROSTER[s.id], m=maxHp(s), f=C&&C.fx[s.id]||{};
-    const st=[f.titan>0&&'Titán',f.up>0&&'Flanqueo',f.crit>0&&'Olfato',f.guard>0&&'Escudo',f.taunt>0&&'Señuelo'].filter(Boolean).join(' · ');
+    const aim = C && scr==='combat' && s.hp>0 ? C.titans.filter(t=>t.hp>0 && (t.intent===s.id || t.intent==='all')).length : 0;
+    const st=[aim&&`En el punto de mira${aim>1?' ×'+aim:''}`,f.titan>0&&'Titán',f.up>0&&'Flanqueo',f.crit>0&&'Olfato',f.guard>0&&'Escudo',f.taunt>0&&'Señuelo'].filter(Boolean).join(' · ');
     const can = mode && s.hp>0;
     const cl=['sol', s.hp<=0&&'dead', C&&C.active===s&&'active', can&&'pick'].filter(Boolean).join(' ');
     const pic = f.formT>0 ? `<span class="pt tf">${titanArt(POWERS[f.form].art)}</span>` : portrait(s.id);
@@ -64,6 +65,7 @@ const V = {
           ${ok?`<button class="btn" data-a="continue">Continuar · ${sagaOf(run.wave).n}, jornada ${dayOf(run.wave)}</button>`:''}
           <button class="btn ${ok?'ghost':''}" data-a="sagas">${ok?'Nueva expedición':'Salir de las murallas'}</button>
           <button class="btn ghost" data-a="gallery">Tus imágenes y música</button>
+          ${Object.keys(tipsSeen).length?'<button class="btn ghost sm" data-a="tipreset">Repetir consejos</button>':''}
         </div>
         <span class="lbl num">Sagas desbloqueadas: ${M.unlocked} de ${SAGAS.length} · Mejor marca: ${M.best} de ${TOTAL} jornadas</span>
         ${cloudOn() ? `<div class="row">${CLOUD.user ? `<span class="lbl">Sesión: ${esc(CLOUD.name||CLOUD.user.email||'')}</span><button class="btn ghost sm" data-a="board">Clasificación</button><button class="btn ghost sm" data-a="logout">Salir</button>` : `<button class="btn ghost sm" data-a="login">Entrar con Google</button><span class="lbl">Guarda tu progreso y entra en la clasificación</span>`}${CLOUD.msg?`<span class="lbl" style="color:var(--gold)">${esc(CLOUD.msg)}</span>`:''}</div>` : ''}
@@ -115,7 +117,8 @@ const V = {
       const inner=`${e!==1?`<span class="eff num ${e>1?'up':'down'}">×${String(e).replace('.',',')}</span>`:''}
         <span class="art" style="animation-delay:${ph-i*.7}s">${titanArt(t.id)}</span>
         <span class="plate"><h3>${t.n}</h3><span class="chip c-cls">${CLS[t.cls]}</span>
-        <span class="bar"><i style="width:${t.hp/t.max*100}%"></i></span><span class="lbl num hpn">${t.hp} / ${t.max} PV</span><span class="st">${st}</span></span>`;
+        <span class="bar"><i style="width:${t.hp/t.max*100}%"></i></span><span class="lbl num hpn">${t.hp} / ${t.max} PV</span><span class="st">${st}</span>
+        ${t.hp>0 && t.intent ? `<span class="int ${t.intent==='all'?'all':''}" title="${AI_TXT[aiOf(t)]}">Ataca a: ${t.intent==='all' ? 'todo el escuadrón' : esc(ROSTER[t.intent].n)}</span>` : ''}</span>`;
       return pk ? `<button class="${cl}" data-u="t${i}" data-a="titan" data-i="${i}">${inner}</button>` : `<div class="${cl}" data-u="t${i}">${inner}</div>`;
     }).join('');
     let orders='', hint='Los titanes se mueven…';

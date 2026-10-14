@@ -56,6 +56,7 @@ function nextTurn(){
   C.active=null; C.pending=null;
   if(!liveT().length) return setTimeout(win, 450);
   if(!alive().length) return setTimeout(lose, 700);
+  planAll();
   if(!C.queue.length){
     const u = alive().map(s=>({s, v:spdOf(s)+rnd(0,2)})).concat(liveT().map(t=>({t, v:t.spd+rnd(0,2)})));
     C.queue = u.sort((a,b)=>b.v-a.v);
@@ -89,6 +90,7 @@ function strike(s, t, mult, o={}){
   const exec = !!o.nape && !t.boss && (t.hp-d)/t.max < .25 && d < t.hp;
   if(exec) d = t.hp;
   t.hp = Math.max(0, t.hp-d);
+  t.lastHit = s.id; t.threat = t.threat || {}; t.threat[s.id] = (t.threat[s.id]||0) + d;
   ev({k:'slash', s:s.id, t:C.titans.indexOf(t), d, crit, exec, kill:t.hp<=0, hp:t.hp, max:t.max, boom:!!o.pierce,
       m:`${nm(s)} ${o.verb||'corta a'} ${t.n}: ${d}${crit?' (crítico)':''}${t.hp<=0?'. ¡Abatido!':''}`});
   return t.hp<=0;
@@ -127,7 +129,7 @@ function doAction(kind, target){
     }
   }
   ['up','guard','taunt','titan','crit','armor','ward','formT'].forEach(k=>{ if(f[k]>0) f[k]--; });
-  header(); busyUI();
+  planAll(); header(); busyUI();
   play(()=>{ render(); setTimeout(nextTurn, 140); });
 }
 // daño de titán a soldado
@@ -153,7 +155,9 @@ function titanAct(t){
   if(t.hard>0) t.hard--;
   if(t.mark>0) t.mark--;
   if(t.stun>0){ t.stun=0; return say(`${t.n} sigue en el suelo.`, 450); }
-  const choose = ()=>{ const a=alive(); if(!a.length) return null; return a.find(x=>C.fx[x.id].taunt>0) || pick(a); };
+  // primer golpe: a quien anunció su intención (salvo señuelo); los siguientes, al azar
+  const choose = first=>{ const a=alive(); if(!a.length) return null; const tz=a.find(x=>C.fx[x.id].taunt>0); if(tz) return tz;
+    if(first){ const s=a.find(x=>x.id===t.intent); if(s) return s; } return pick(a); };
   if(every(m.harden)){ t.hard=1; ev({k:'roar', t:ti, txt:'ENDURECIMIENTO', m:`${t.n} endurece la piel.`}); }
   if(every(m.aoe)){ ev({k:'roar', t:ti, txt:m.txt||'EMBESTIDA', m:`${t.n} golpea a todo el escuadrón.`}); alive().forEach(s=>wound(t,s,.6)); }
   else if(every(m.devour)){
@@ -161,7 +165,7 @@ function titanAct(t){
     ev({k:'roar', t:ti, txt:'DEVORA', m:`${t.n} se lanza a por ${nm(s)}.`}); wound(t,s,1.8);
   } else {
     const n = t.twice ? 2 : 1;
-    for(let i=0;i<n;i++){ const s=choose(); if(s) wound(t,s,t.twice?.7:1); }
+    for(let i=0;i<n;i++){ const s=choose(i===0); if(s){ wound(t,s,t.twice?.7:1); if(t.threat && t.threat[s.id]) t.threat[s.id]*=.4; } }
   }
   if(m.aura && alive().length){ ev({k:'roar', t:ti, txt:'CALOR', m:`El calor de ${t.n} abrasa al escuadrón.`}); alive().forEach(s=>wound(t,s,m.aura)); }
   if(t.blind>0) t.blind=0;
@@ -172,3 +176,24 @@ function titanAct(t){
       ev({k:'summon', t:slot, txt:'LLAMADA', m:`${t.n} llama a un ${n.n}.`}); }
   }
 }
+
+// ---- intenciones: cada titán anuncia a quién atacará en su próximo turno ----
+const TARGETING = {pequeno:'debil', grande:'ultimo', anormal:'poder', blindado:'amenaza'};
+const AI_TXT = {debil:'Va a por el soldado más herido si baja del 60 % de PV.', ultimo:'Responde a quien le acaba de cortar.', poder:'Busca a los portadores de poderes.', amenaza:'Persigue al que más daño le ha hecho; tras golpearlo, reparte.'};
+const aiOf = t => t.boss ? 'amenaza' : TARGETING[t.cls];
+function planIntent(t){
+  if(t.hp<=0){ t.intent=null; return; }
+  const a=alive(); if(!a.length){ t.intent=null; return; }
+  const nx=t.turns+1, m=t.m, due=n=>n && nx%n===0;
+  if(due(m.aoe)){ t.intent='all'; return; }
+  const tz=a.find(x=>C.fx[x.id].taunt>0); if(tz){ t.intent=tz.id; return; }
+  const by = due(m.devour) ? 'debil' : aiOf(t);
+  let s=null;
+  if(by==='debil'){ s=a.slice().sort((x,y)=>x.hp/maxHp(x)-y.hp/maxHp(y))[0]; if(!due(m.devour) && s.hp/maxHp(s)>.6) s=null; }
+  else if(by==='ultimo') s=a.find(x=>x.id===t.lastHit);
+  else if(by==='poder') s=a.find(x=>pwOf(x.id).length || C.fx[x.id].formT>0);
+  else if(by==='amenaza' && t.threat){ s=a.slice().sort((x,y)=>(t.threat[y.id]||0)-(t.threat[x.id]||0))[0]; if(!t.threat[s.id]) s=null; }
+  // sin preferencia clara: mantiene el objetivo que ya había anunciado para que no cambie sin motivo
+  t.intent = (s || a.find(x=>x.id===t.intent) || pick(a)).id;
+}
+function planAll(){ if(C) C.titans.forEach(planIntent); }

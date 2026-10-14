@@ -17,7 +17,7 @@ function header(){
 }
 function render(){
   header();
-  $('screen').innerHTML = `<div>${V[scr]()}</div>`;
+  $('screen').innerHTML = `<div>${tipHTML()}${V[scr]()}</div>`;
   if(scr!==lastScr){
     if(scr==='over'){ setTrack(null); sfx('lose'); }
     else if(scr==='victory'){ setTrack('map'); sfx('win'); }
@@ -29,6 +29,7 @@ function render(){
   else if(scr!=='over') setTrack('map');
 }
 function act(a, i){
+  if(a==='tipok' || a==='tipoff' || a==='tipreset') return tipAct(a, i);
   if(a!=='order' && a!=='titan' && a!=='sol') sfx('click');
   if(a==='sagas'){ picked=[]; scr='sagas'; return render(); }
   if(a==='saga'){ pendingSaga=+i; picked=[]; scr='starter'; return render(); }

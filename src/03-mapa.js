@@ -126,6 +126,8 @@ const CAMP = [
   {n:'Reabastecer', d:'Depósito de gas lleno y +1 de gas máximo.', f(){ S.gasMax++; S.gas=S.gasMax; }}
 ];
 // cada opción devuelve el texto del desenlace
+const has = id => S.squad.some(s=>s.id===id && s.hp>0);
+const who = id => S.squad.find(s=>s.id===id);
 const EVENTS = [
   {n:'Carro de suministros volcado', d:'Un carro de la Guarnición yace en la cuneta. Las bombonas siguen atadas, pero entre los árboles se mueve algo.',
    o:[{l:'Cargar el gas y salir', d:'Depósito lleno.', f(){ S.gas=S.gasMax; return 'Llenáis las bombonas y os vais antes de que nadie os oiga.'; }},
@@ -155,5 +157,59 @@ const EVENTS = [
   {n:'Desertor en el camino', d:'Un soldado sin capa os ofrece su equipo a cambio de que no digáis que lo habéis visto.',
    o:[{l:'Aceptar el trato', d:'Una mejora al azar.', f(){ return `Os deja el macuto y desaparece entre los árboles: ${randomUpg()}.`; }},
       {l:'Convencerlo de volver', d:'El soldado más débil sube 2 niveles con lo que le enseña.', f(){
-        const s=S.squad.slice().sort((a,b)=>a.lvl-b.lvl)[0]; levelUp(s); levelUp(s); return `Cabalga con vosotros un trecho y entrena a ${nm(s)} antes de marcharse. +2 niveles.`; }}]}
+        const s=S.squad.slice().sort((a,b)=>a.lvl-b.lvl)[0]; levelUp(s); levelUp(s); return `Cabalga con vosotros un trecho y entrena a ${nm(s)} antes de marcharse. +2 niveles.`; }}]},
+  // ---- eventos que dependen de quién va en el escuadrón ----
+  {n:'La despensa del oficial', when:()=>has('sasha'), d:'Sasha ha encontrado la despensa de un oficial de la Policía Militar. Hay una patata cocida encima de la mesa.',
+   o:[{l:'Que se la coma', d:'Sasha sube 2 niveles. El escándalo os cuesta 2 de gas.', f(){ const s=who('sasha'); levelUp(s); levelUp(s); S.gas=Math.max(0,S.gas-2); return 'Sasha se la come entera mirando al oficial a los ojos. Corréis sin parar hasta el bosque.'; }},
+      {l:'Repartir la comida', d:'Todo el escuadrón recupera el 20 % de sus PV.', f(){ healAll(.2); return 'Sasha reparte con lágrimas en los ojos. Nadie había comido caliente en una semana.'; }}]},
+  {n:'Entregad vuestro corazón', when:()=>has('erwin'), d:'Antes de la carga, Erwin reúne al escuadrón. Nadie sabe cuántos volverán.',
+   o:[{l:'Escuchar el discurso', d:'Todos suben 1 nivel y +1 de gas máximo.', f(){ S.squad.forEach(levelUp); S.gasMax++; S.gas=Math.min(S.gasMax,S.gas+1); return 'Nadie dice nada cuando termina. Todos se ajustan el equipo a la vez.'; }},
+      {l:'Pedirle que descanse', d:'Erwin recupera todos sus PV.', f(){ const s=who('erwin'); s.hp=maxHp(s); return 'Erwin duerme por primera vez en días. Nadie se atreve a despertarlo.'; }}]},
+  {n:'Un titán para estudiar', when:()=>has('hange'), d:'Hange quiere capturar vivo a un titán de 4 metros que duerme junto al camino.',
+   o:[{l:'Ayudar a capturarlo', d:'Una mejora al azar. Todos pierden el 15 % de sus PV.', f(){ hurtAll(.15); return `Hange anota durante horas. Al final reparte material de su laboratorio: ${randomUpg()}.`; }},
+      {l:'Convencerla de seguir', d:'Hange sube 2 niveles de pura frustración.', f(){ const s=who('hange'); levelUp(s); levelUp(s); return 'Hange protesta todo el camino. Por la noche entrena sola.'; }}]},
+  {n:'Cuartel abandonado', when:()=>has('levi'), d:'El único refugio en kilómetros es un cuartel lleno de polvo. Levi se niega a dormir así.',
+   o:[{l:'Limpiarlo de arriba abajo', d:'Todos suben 1 nivel. Gastáis 2 de gas.', f(){ S.squad.forEach(levelUp); S.gas=Math.max(0,S.gas-2); return 'Al amanecer el suelo brilla. Levi asiente una vez. Es lo más parecido a un elogio.'; }},
+      {l:'Dormir tal cual', d:'Cura el 30 %, pero Levi pierde el 20 % de sus PV del disgusto.', f(){ healAll(.3); const s=who('levi'); s.hp=Math.max(1,s.hp-Math.round(maxHp(s)*.2)); return 'Todos duermen menos Levi, que pasa la noche mirando una mancha.'; }}]},
+  {n:'Algo en el viento', when:()=>has('mike'), d:'Mike levanta la cabeza y olfatea. Hay titanes cerca, muchos.',
+   o:[{l:'Rodearlos', d:'Depósito de gas lleno y cura el 10 %.', f(){ S.gas=S.gasMax; healAll(.1); return 'Dais un rodeo de medio día. No os ve ninguno.'; }},
+      {l:'Tenderles una trampa', d:'Todos suben 2 niveles y pierden el 25 % de sus PV.', f(){ S.squad.forEach(s=>{ levelUp(s); levelUp(s); }); hurtAll(.25); return 'La trampa funciona a medias. Volvéis cubiertos de vapor y de experiencia.'; }}]},
+  {n:'Puñetazos en el establo', when:()=>has('eren') && has('jean'), d:'Eren y Jean llevan toda la tarde discutiendo. Ahora ruedan por el suelo del establo.',
+   o:[{l:'Dejar que se desahoguen', d:'Ambos suben 2 niveles y pierden el 20 % de sus PV.', f(){ ['eren','jean'].forEach(id=>{ const s=who(id); levelUp(s); levelUp(s); s.hp=Math.max(1,s.hp-Math.round(maxHp(s)*.2)); }); return 'Acaban sangrando y riéndose. Al día siguiente luchan espalda con espalda.'; }},
+      {l:'Separarlos', d:'Todo el escuadrón recupera el 15 %.', f(){ healAll(.15); return 'Mikasa levanta a Eren del cuello de la camisa. Se acabó la pelea.'; }}]},
+  {n:'La bufanda', when:()=>has('mikasa') && has('eren'), d:'Eren está herido. Mikasa no se separa de él en toda la noche.',
+   o:[{l:'Hacer guardia con ella', d:'Eren y Mikasa recuperan todos sus PV.', f(){ ['eren','mikasa'].forEach(id=>{ const s=who(id); s.hp=maxHp(s); }); return 'Por la mañana Mikasa se ajusta la bufanda y sale la primera.'; }},
+      {l:'Ponerla a entrenar', d:'Mikasa sube 3 niveles.', f(){ const s=who('mikasa'); levelUp(s); levelUp(s); levelUp(s); return 'Mikasa entrena hasta que no queda un árbol sin marcas de cuchilla.'; }}]},
+  {n:'El mapa de Armin', when:()=>has('armin'), d:'Armin pasa la noche dibujando un mapa con las rutas de los titanes.',
+   o:[{l:'Seguir su ruta', d:'+3 de gas y cura el 15 %.', f(){ S.gas=Math.min(S.gasMax,S.gas+3); healAll(.15); return 'La ruta de Armin os ahorra dos combates y un río.'; }},
+      {l:'Usarlo para entrenar', d:'Todos suben 1 nivel.', f(){ S.squad.forEach(levelUp); return 'Armin explica cada flanqueo con piedras sobre la mesa.'; }}]},
+  {n:'La aldea de Ragako', when:()=>has('connie'), d:'Es el pueblo de Connie. No queda nadie, y en su casa hay un titán tumbado que no puede moverse.',
+   o:[{l:'Quedarse a investigar', d:'Una mejora al azar. Connie pierde el 30 % de sus PV.', f(){ const s=who('connie'); s.hp=Math.max(1,s.hp-Math.round(maxHp(s)*.3)); return `Connie no dice una palabra. Entre las casas encontráis equipo de la Guarnición: ${randomUpg()}.`; }},
+      {l:'Seguir sin mirar atrás', d:'Connie sube 2 niveles.', f(){ const s=who('connie'); levelUp(s); levelUp(s); return 'Connie cabalga delante todo el día. Nadie le pregunta.'; }}]},
+  {n:'Una reina en el escuadrón', when:()=>has('historia'), d:'Un pueblo reconoce a Historia y os ofrece lo poco que tiene.',
+   o:[{l:'Aceptar la ayuda', d:'Todos recuperan el 35 % de sus PV.', f(){ healAll(.35); return 'Comida, vendas y camas limpias. Historia da las gracias casa por casa.'; }},
+      {l:'Rechazarla', d:'Historia sube 2 niveles y el escuadrón 1.', f(){ S.squad.forEach(levelUp); levelUp(who('historia')); return 'Historia insiste en que el pueblo lo necesita más. Nadie discute con ella.'; }}]},
+  // ---- eventos generales ----
+  {n:'Mercader de la Policía Militar', d:'Un soldado del interior vende material del Cuerpo de Exploración a precio de oro. Acepta gas.',
+   o:[{l:'Pagar 4 de gas', d:'Una mejora al azar.', f(){ if(S.gas<4) return 'No os llega el gas. El soldado se ríe y se va.'; S.gas-=4; return `Os vende una caja sin abrir: ${randomUpg()}.`; }},
+      {l:'Denunciarlo', d:'Todos suben 1 nivel por la reprimenda que os ahorráis.', f(){ S.squad.forEach(levelUp); return 'El capitán os felicita y os da el día libre para entrenar.'; }}]},
+  {n:'Tormenta', d:'Una tormenta cierra el camino. Se oyen pasos enormes entre los truenos.',
+   o:[{l:'Refugiarse en una cueva', d:'Cura el 25 %.', f(){ healAll(.25); return 'La tormenta pasa de largo, y los pasos también.'; }},
+      {l:'Avanzar de noche', d:'Todos suben 1 nivel y pierden el 10 % de sus PV.', f(){ S.squad.forEach(levelUp); hurtAll(.1); return 'Avanzáis a ciegas y al amanecer estáis muy lejos.'; }}]},
+  {n:'Cañón de la Guarnición', d:'Una batería de la Guarnición pide ayuda para mover un cañón hasta la muralla.',
+   o:[{l:'Ayudar', d:'+2 de gas máximo; todos pierden el 10 % de PV.', f(){ S.gasMax+=2; S.gas=Math.min(S.gasMax,S.gas+2); hurtAll(.1); return 'En agradecimiento os dejan dos bombonas nuevas.'; }},
+      {l:'Seguir', d:'Nada cambia.', f(){ return 'Seguís el camino. A lo lejos se oye el primer cañonazo.'; }}]},
+  {n:'Un titán dormido', d:'En mitad del camino duerme un titán de 10 metros. No hay forma de rodearlo sin hacer ruido.',
+   o:[{l:'Ir a por su nuca', d:'60 %: todos suben 2 niveles. 40 %: todos pierden el 25 %.', f(){
+        if(Math.random()<.6){ S.squad.forEach(s=>{ levelUp(s); levelUp(s); }); return 'Un solo corte limpio. El vapor tarda una hora en disiparse.'; }
+        hurtAll(.25); return 'Se despierta a mitad del salto. Salís vivos, que no es poco.'; }},
+      {l:'Esperar a que se vaya', d:'Cura el 15 %.', f(){ healAll(.15); return 'Tarda toda la tarde en marcharse. Aprovecháis para curar heridas.'; }}]},
+  {n:'Huérfanos en el camino', d:'Tres niños caminan solos hacia la muralla. Están a dos días de distancia.',
+   o:[{l:'Escoltarlos', d:'Todos suben 2 niveles; gastáis 3 de gas.', f(){ S.squad.forEach(s=>{ levelUp(s); levelUp(s); }); S.gas=Math.max(0,S.gas-3); return 'Llegan a la puerta. Uno de ellos dice que quiere alistarse.'; }},
+      {l:'Indicarles el camino', d:'+1 de gas.', f(){ S.gas=Math.min(S.gasMax,S.gas+1); return 'Les dais agua y una bengala. Esperáis hasta verlos desaparecer.'; }}]},
+  {n:'Bengala verde', d:'Una bengala verde sube a lo lejos: otro escuadrón ha encontrado algo.',
+   o:[{l:'Ir hacia ella', d:'50 %: una mejora. 50 %: todos pierden el 20 %.', f(){
+        if(Math.random()<.5) return `Es un depósito de suministros intacto: ${randomUpg()}.`;
+        hurtAll(.2); return 'Llegáis tarde. Solo quedan titanes y equipo roto.'; }},
+      {l:'Mantener la ruta', d:'Depósito de gas lleno.', f(){ S.gas=S.gasMax; return 'La disciplina también salva vidas. Llenáis el gas en un puesto de paso.'; }}]},
 ];
