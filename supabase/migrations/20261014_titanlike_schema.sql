@@ -1,0 +1,3 @@
+-- Aplicada al proyecto Supabase «titanlike» (bogzrcrunmgvmisfumpw) el 14/10/2026.
+-- Perfiles, progreso que solo puede crecer, clasificación e imágenes privadas por jugador.
+-- (ver el esquema completo en el proyecto; regenerable con: supabase db dump --schema public)

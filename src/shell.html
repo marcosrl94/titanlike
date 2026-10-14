@@ -1,0 +1,244 @@
+<title>Titanlike</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap">
+<style>
+/* Layout: parte de expedición en una columna. Muro de progreso arriba; escenario con titanes de pie sobre el horizonte; escuadrón y órdenes debajo. */
+:root{
+  color-scheme:dark;
+  --stone:#1b1f1c; --stone-2:#252a26; --stone-3:#353c36; --stone-4:#4a534b;
+  --bone:#ebe6d6; --muted:#9ca394;
+  --cloak:#3f7a52; --cloak-hi:#7cc08f;
+  --blood:#b5392f; --blood-hi:#e2685c; --flesh:#d79172; --flesh-2:#a8664c;
+  --steel:#a9c3d2; --gold:#d8b45f;
+  --sky-1:#27332f; --sky-2:#3a4a40; --sky-3:#59624a;
+  --display:"Grenze Gotisch","Georgia",serif;
+  --body:"Barlow","Segoe UI",system-ui,sans-serif;
+  --label:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--stone);color:var(--bone);font-family:var(--body);font-size:15px;line-height:1.45;padding-inline:16px;padding-block:14px 28px}
+#app{max-width:900px;margin-inline:auto;display:flex;flex-direction:column;gap:14px}
+#screen>div{display:flex;flex-direction:column;gap:14px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,[tabindex]:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+h1,h2,h3{font-family:var(--display);font-weight:700;margin:0;text-wrap:balance;letter-spacing:.01em}
+h2{font-size:32px;line-height:1.05}
+p{margin:0}
+.lbl{font-family:var(--label);text-transform:uppercase;letter-spacing:.09em;font-size:12px;color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+.dim{color:var(--muted)}
+
+.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-size:26px;line-height:1}
+.brand b{color:var(--cloak-hi)}
+.snd{margin-left:auto;display:flex;gap:6px}
+.snd .off{opacity:.45;text-decoration:line-through}
+.gas{display:flex;align-items:center;gap:8px}
+.gasbar{display:flex;gap:2px}
+.gasbar i{width:7px;height:16px;background:var(--stone-3)}
+.gasbar i.on{background:var(--steel)}
+.wall{display:grid;grid-template-columns:repeat(15,1fr);gap:3px}
+.sagabar{display:flex;gap:6px;margin-bottom:8px}
+.sagabar span{flex:1;height:4px;background:var(--stone-3)}
+.sagabar span.done{background:var(--cloak-hi)} .sagabar span.now{background:var(--gold)}
+.wall span{height:14px;background:var(--stone-3);border-bottom:3px solid var(--stone-4);position:relative}
+.wall span.done{background:var(--cloak);border-color:var(--cloak-hi)}
+.wall span.now{background:var(--gold);border-color:var(--bone)}
+.wall span.boss{height:22px;margin-top:-8px}
+.wall span.boss::after{content:"";position:absolute;inset:6px auto auto 50%;width:6px;height:6px;margin-left:-3px;background:var(--blood);border-radius:50%}
+.zone{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:4px}
+
+.panel{background:var(--stone-2);border:1px solid var(--stone-3);padding:16px;display:flex;flex-direction:column;gap:10px}
+.btn{background:var(--cloak);border:0;padding:11px 20px;font-family:var(--label);font-size:17px;letter-spacing:.08em;text-transform:uppercase;color:var(--bone)}
+.btn:hover{background:var(--cloak-hi);color:var(--stone)}
+.btn.ghost{background:transparent;border:1px solid var(--stone-4)}
+.btn.ghost:hover{background:var(--stone-3);color:var(--bone)}
+.btn.sm{padding:5px 10px;font-size:13px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* portada */
+.hero{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;align-items:end;border-bottom:1px solid var(--stone-3)}
+.hero .txt{display:flex;flex-direction:column;gap:14px;padding-block:22px;min-width:0}
+.hero h1{font-size:clamp(40px,9vw,70px);line-height:.95}
+.hero h1 em{font-style:normal;color:var(--blood-hi)}
+.hero p{max-width:52ch}
+.peek{position:relative;height:230px;overflow:hidden;min-width:0}
+.peek svg{position:absolute;left:50%;bottom:-118px;width:300px;margin-left:-150px;animation:risein 2.2s cubic-bezier(.2,.7,.2,1) both}
+.peek::after{content:"";position:absolute;left:0;right:0;bottom:0;height:74px;border-top:5px solid var(--stone-4);
+  background:repeating-linear-gradient(0deg,transparent 0 17px,var(--stone) 17px 18px),repeating-linear-gradient(90deg,var(--stone-3) 0 44px,var(--stone) 44px 45px)}
+@keyframes risein{from{transform:translateY(90px)}}
+@media (max-width:620px){.hero{grid-template-columns:1fr}.peek{height:170px;order:-1}}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:0;padding:0;list-style:none}
+.rules li{border-left:2px solid var(--cloak);padding-left:10px;color:var(--muted);min-width:0}
+.rules b{color:var(--bone);font-weight:600;display:block}
+
+/* sagas */
+.sagas{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.saga{position:relative;overflow:hidden}
+.saga .n{font-family:var(--label);font-size:13px;letter-spacing:.1em;color:var(--gold)}
+.saga:disabled{opacity:.45;cursor:not-allowed}
+.saga ul{margin:0;padding-left:16px;color:var(--muted);font-size:13px}
+.card.sel{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold) inset}
+.slot{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+/* los Nueve y escenas */
+.nine{display:grid;grid-template-columns:repeat(9,1fr);gap:6px}
+@media (max-width:620px){.nine{grid-template-columns:repeat(5,1fr)}}
+.nc{display:flex;flex-direction:column;align-items:center;gap:3px;font-family:var(--label);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:center;min-width:0}
+.nc .art{width:100%;animation:none;filter:brightness(0);opacity:.35}
+.nc.got{color:var(--gold)} .nc.got .art{filter:none;opacity:1}
+.chip.pwc{color:var(--gold)}
+.order.pw{border-color:var(--gold);background:var(--stone-2)}
+.order.pw b{color:var(--gold)}
+.pt.tf{background:var(--stone-2);border-color:var(--gold)}
+.pt.tf svg{object-fit:contain}
+.note p{color:var(--gold)}
+.scene{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:20px;align-items:center;background:var(--stone-2);border:1px solid var(--stone-3);padding:18px}
+@media (max-width:620px){.scene{grid-template-columns:1fr}.sart{max-width:180px}}
+.sart .art{animation:sway 4.2s ease-in-out infinite;width:100%}
+.sart svg,.sart img{display:block;width:100%;height:auto}
+.stx{display:flex;flex-direction:column;gap:10px;min-width:0}
+.stx p{max-width:60ch}
+.ln{opacity:0;animation:lnin .6s ease-out forwards}
+@keyframes lnin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* fichas y retratos */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.card{background:var(--stone-2);border:1px solid var(--stone-3);padding:14px;text-align:left;display:flex;flex-direction:column;gap:8px;min-width:0}
+button.card:hover{border-color:var(--gold);background:var(--stone-3)}
+.card h3{font-size:24px;line-height:1}
+.card p{color:var(--muted);font-size:14px}
+.card p b{color:var(--bone);font-weight:600}
+.card .kind{color:var(--gold)}
+.who{display:flex;gap:10px;align-items:center}
+.who>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.pt{display:block;width:62px;height:62px;flex:none;border:1px solid var(--stone-4);background:var(--stone-3);overflow:hidden}
+.pt.lg{width:84px;height:84px}
+.pt svg,.pt img{display:block;width:100%;height:100%;object-fit:cover}
+.stats{display:flex;gap:12px;font-family:var(--label);font-size:15px}
+.stats b{color:var(--muted);font-weight:500;margin-right:3px}
+.chip{display:inline-block;font-family:var(--label);font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:1px 7px;border:1px solid currentColor;white-space:nowrap}
+.s-veloz{color:var(--steel)} .s-fuerza{color:var(--blood-hi)} .s-tactico{color:var(--gold)} .s-preciso{color:var(--cloak-hi)}
+.c-cls{color:var(--flesh)}
+
+/* mapa */
+.mapwrap{background:var(--stone-2);border:1px solid var(--stone-3);padding:8px}
+.map{width:100%;height:auto;display:block}
+.map .edge{stroke:var(--stone-4);stroke-width:2;stroke-dasharray:4 6;fill:none}
+.map .edge.walk{stroke:var(--cloak-hi);stroke-dasharray:none;stroke-width:3}
+.map .edge.open{stroke:var(--gold)}
+.node circle{fill:var(--stone);stroke:var(--stone-4);stroke-width:2}
+.node .ic{stroke:var(--muted);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.node .q{font-family:var(--display);font-size:26px;fill:var(--muted);text-anchor:middle}
+.node text.nm{font-family:var(--label);font-size:11px;fill:var(--muted);text-anchor:middle;letter-spacing:.08em;text-transform:uppercase}
+.node.done circle{fill:var(--cloak);stroke:var(--cloak-hi)}
+.node.done .ic{stroke:var(--bone)} .node.done .q{fill:var(--bone)}
+.node.open{cursor:pointer}
+.node.open circle{stroke:var(--gold);stroke-width:3;animation:pulse 1.6s ease-in-out infinite}
+.node.open .ic{stroke:var(--bone)} .node.open .q,.node.open text.nm{fill:var(--bone)}
+.node.open:hover circle,.node.open:focus-visible circle{fill:var(--stone-4)}
+.node.b circle{stroke:var(--blood)} .node.b .ic{stroke:var(--blood-hi)}
+.node .dia{fill:var(--blood-hi);stroke:none}
+@keyframes pulse{50%{stroke-width:7}}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:0;padding:0;list-style:none;font-size:13px;color:var(--muted)}
+.legend b{color:var(--bone);font-weight:600}
+
+/* escenario */
+.stage{position:relative;border:1px solid var(--stone-3);padding:16px 16px 0;overflow:hidden;background:linear-gradient(180deg,var(--sky-1),var(--sky-2) 58%,var(--sky-3))}
+.stage::before{content:"";position:absolute;left:0;right:0;top:34%;height:30px;opacity:.5;border-top:3px solid var(--stone-4);
+  background:repeating-linear-gradient(90deg,var(--stone-3) 0 40px,var(--stone-2) 40px 42px)}
+.stage::after{content:"";position:absolute;left:0;right:0;bottom:0;height:64px;background:var(--stone-2);border-top:2px solid var(--stone-4)}
+.titans{position:relative;z-index:1;display:flex;justify-content:center;align-items:flex-end;gap:8px;min-height:250px}
+.titan{background:none;border:0;padding:0 2px 8px;display:flex;flex-direction:column;align-items:center;gap:4px;flex:1 1 0;max-width:230px;min-width:0;position:relative;text-align:center}
+.titan.boss{max-width:340px}
+.art{display:block;width:100%;transform-origin:50% 100%;animation:sway 4.2s ease-in-out infinite}
+.art svg,.art img{display:block;width:100%;height:auto}
+.z-pequeno .art{width:62%} .z-anormal .art{width:84%}
+.plate{background:var(--stone);border:1px solid var(--stone-4);padding:5px 8px;width:100%;display:flex;flex-direction:column;gap:3px;align-items:center;min-width:0}
+.plate h3{font-size:18px;line-height:1.05}
+.titan.boss .plate{border-color:var(--blood)}
+.titan.pick .plate{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold) inset}
+.titan.pick{cursor:pointer}
+.titan.pick:hover .art{filter:brightness(1.25)}
+.titan.dead .art{animation:none;transform:translateY(20px) scaleY(.45);opacity:.14;filter:grayscale(1)}
+.titan.dead .plate{opacity:.4}
+.eff{position:absolute;top:0;right:4px;font-family:var(--label);font-size:15px;padding:0 6px;z-index:2;color:var(--bone)}
+.eff.up{background:var(--cloak)} .eff.down{background:var(--blood)}
+.bar{width:100%;height:8px;background:var(--stone-3)}
+.bar i{display:block;height:100%;background:var(--blood-hi);transition:width .3s}
+.bar.hp i{background:var(--cloak-hi)}
+.st{font-family:var(--label);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);min-height:16px}
+.log{font-size:14px;color:var(--muted);min-height:64px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;border-left:2px solid var(--stone-4);padding-left:10px}
+.log div:last-child{color:var(--bone)}
+.squad{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.sol{background:var(--stone-2);border:1px solid var(--stone-3);padding:8px;display:flex;gap:10px;align-items:center;text-align:left;min-width:0;position:relative}
+.sol .inf{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+.sol.active{border-color:var(--cloak-hi);background:var(--stone-3);box-shadow:0 -3px 0 var(--cloak-hi) inset}
+.sol.pick{border-color:var(--gold);cursor:pointer}
+.sol.dead{opacity:.3;filter:grayscale(1)}
+.sol h3{font-size:19px;line-height:1;display:flex;justify-content:space-between;gap:6px;align-items:baseline}
+.sol h3 small{font-family:var(--label);font-size:13px;color:var(--muted);font-weight:500}
+.orders{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+.order{background:var(--stone-3);border:1px solid var(--stone-4);padding:10px 12px;text-align:left;display:flex;flex-direction:column;gap:2px;min-width:0}
+.order:hover:not(:disabled){border-color:var(--cloak-hi)}
+.order.sel{border-color:var(--gold)}
+.order:disabled{opacity:.4;cursor:not-allowed}
+.order b{font-family:var(--label);font-size:17px;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.order span{font-size:13px;color:var(--muted)}
+.hint{color:var(--gold);min-height:22px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.relics{display:flex;gap:6px;flex-wrap:wrap}
+.relics .chip{color:var(--muted)}
+.fallen{color:var(--muted);margin:0;padding-left:18px}
+.chart{width:100%;border-collapse:collapse;font-size:13px}
+.chart td{padding:3px 6px;border-bottom:1px solid var(--stone-3)}
+.tablewrap{overflow-x:auto}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.gal .card{align-items:flex-start}
+.gal input{max-width:100%;font-size:12px}
+.gal .art{width:84px;animation:none}
+
+/* efectos */
+#fx{position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden}
+#fx svg{position:absolute;inset:0;width:100%;height:100%}
+.wire{stroke:var(--steel);stroke-width:1.5;stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:draw .15s linear forwards,fade .25s .3s forwards}
+.slash{stroke:var(--bone);stroke-width:6;stroke-linecap:round;stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:draw .12s ease-out forwards,fade .3s .14s forwards}
+.slash.crit{stroke:var(--gold);stroke-width:9}
+.bolt{stroke:var(--gold);stroke-width:7;fill:none;stroke-linejoin:bevel;animation:fade .5s .1s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes fade{to{opacity:0}}
+.float{position:absolute;font-family:var(--display);font-weight:700;font-size:32px;color:var(--bone);text-shadow:0 2px 0 var(--stone),0 0 10px var(--stone);animation:rise .95s ease-out forwards;white-space:nowrap}
+.float.crit{font-size:48px;color:var(--gold)}
+.float.bad{color:var(--blood-hi)} .float.good{color:var(--cloak-hi)}
+.float.tag{font-family:var(--label);font-size:19px;letter-spacing:.14em;color:var(--gold)}
+@keyframes rise{0%{opacity:0;transform:translate(-50%,-30%) scale(.5)}14%{opacity:1;transform:translate(-50%,-70%) scale(1.2)}100%{opacity:0;transform:translate(-50%,-220%) scale(1)}}
+.flash{position:absolute;inset:0;animation:flash .4s ease-out forwards}
+@keyframes flash{from{opacity:var(--o,.6)}to{opacity:0}}
+.puff{position:absolute;width:30px;height:30px;margin:-15px;border-radius:50%;background:var(--bone);opacity:.55;filter:blur(7px);animation:puff 1.1s ease-out forwards}
+@keyframes puff{to{transform:translate(var(--dx),-110px) scale(2.6);opacity:0}}
+.shake{animation:shake .34s}
+@keyframes shake{20%{transform:translate(-7px,3px)}40%{transform:translate(7px,-3px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-1px)}}
+.lunge{animation:lunge .34s ease-out;z-index:3}
+@keyframes lunge{40%{transform:translateY(-18px) scale(1.05)}}
+.chomp{animation:chomp .38s ease-in;z-index:3}
+@keyframes chomp{45%{transform:translateY(24px) scale(1.09)}}
+.struck{animation:struck .32s}
+@keyframes struck{25%{filter:brightness(1.7)}50%{transform:translateX(-8px)}75%{transform:translateX(7px)}}
+.glow{animation:glow .7s}
+@keyframes glow{40%{box-shadow:0 0 0 3px var(--gold),0 0 24px var(--gold)}}
+.dying .art{animation:die .8s ease-in forwards}
+@keyframes die{to{transform:translateY(20px) scaleY(.45);opacity:.14;filter:grayscale(1)}}
+@keyframes sway{50%{transform:rotate(1.3deg) scaleY(1.018)}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
+</style>
+<div id="app">
+  <header class="top">
+    <div class="brand">Titan<b>like</b></div>
+    <div class="snd"><button class="btn ghost sm" id="bmus" data-s="m">Música</button><button class="btn ghost sm" id="bsfx" data-s="s">Efectos</button></div>
+    <div class="gas" id="gas" hidden><span class="lbl">Gas</span><div class="gasbar" id="gasbar"></div><span class="num lbl" id="gasn"></span></div>
+  </header>
+  <div id="prog" hidden>
+    <div class="sagabar" id="sagabar"></div>
+    <div class="wall" id="wall"></div>
+    <div class="zone"><span class="lbl" id="zname"></span><span class="lbl num" id="zwave"></span></div>
+  </div>
+  <main id="screen"></main>
+</div>
+<div id="fx" aria-hidden="true"><svg id="fxsvg"></svg></div>

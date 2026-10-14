@@ -1,0 +1,1 @@
+{"name":"titanlike","private":true,"type":"module","scripts":{"build":"node build.mjs","sim":"node scripts/sim.cjs 300"}}

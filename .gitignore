@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.vercel/
+# las imágenes de cada jugador no van al repositorio
+*imagenes*.json
+*.webp
+*.png
+public/
