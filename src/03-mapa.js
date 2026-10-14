@@ -41,15 +41,20 @@ const KITS = [0, 10, 22, 36];
 const KIT_PW = [0, 1, 2, 4];   // poderes de partida según la saga de inicio
 const startSize = g => g>=2 ? 4 : 3;   // soldados con los que se empieza una saga avanzada
 const startLvl = g => g*PER + 1 + 3*g;   // veteranía extra de quien ya ha recorrido las sagas anteriores
-function newRun(ids, saga=0, diff){
+// New Game+: vueltas completadas y reliquias (poderes ganados en campañas anteriores)
+const ngLevel = () => meta().ngLevel || 0;
+const relicsMax = n => Math.min(3, n);   // reliquias que se pueden llevar en la vuelta n+1
+function newRun(ids, saga=0, diff, ng){
   const w = saga*PER + 1;
   saveMeta({runs:(meta().runs||0)+1});
-  S = {v:4, diff: diff || (typeof CFG!=='undefined' && DIFF[CFG.diff] ? CFG.diff : 'explorador'), ng:0, wave:w, squad:ids.map(id=>({id, lvl:saga?startLvl(saga):w, hp:0})), fallen:[], rel:{}, pw:{}, q:[], loyal:{}, pity:0, after:null, scene:null, note:null, gas:10+2*saga, gasMax:10+2*saga, map:genMap(saga*3), rewards:null, picks:0, pend:null, kit:[], items:[]};
+  S = {v:4, diff: diff || (typeof CFG!=='undefined' && DIFF[CFG.diff] ? CFG.diff : 'explorador'), ng:(ng&&ng.level)||0, wave:w, squad:ids.map(id=>({id, lvl:saga?startLvl(saga):w, hp:0})), fallen:[], rel:{}, pw:{}, q:[], loyal:{}, pity:0, after:null, scene:null, note:null, gas:10+2*saga, gasMax:10+2*saga, map:genMap(saga*3), rewards:null, picks:0, pend:null, kit:[], items:[]};
   for(let i=0;i<KITS[saga];i++) S.kit.push(randomUpg());
   S.kitPw = KIT_PW[saga];
   S.squad.forEach(s=>{ s.hp=maxHp(s); bringPower(s.id); codex('s', s.id); });
   // quien empieza en una saga avanzada trae los poderes que de media se consiguen antes (medido en simulación)
   for(let i=0;i<S.kitPw;i++){ const miss=MINOR.filter(k=>!(k in S.pw)), who=S.squad.filter(hasRoom); if(miss.length&&who.length){ const s=pick(who); grant(pick(miss), s.id); s.hp=maxHp(s); } }
+  // reliquias del New Game+: las lleva quien tenga hueco; si no, quedan en la reserva
+  ((ng&&ng.relics)||[]).slice(0, relicsMax(S.ng)).forEach(k=>{ if(k in S.pw) return; const who=S.squad.find(hasRoom); grant(k, who ? who.id : 'reserva', true); if(who) who.hp=maxHp(who); });
   C=null; scr='map'; store.set('run', S);
   if(S.diff==='recluta') S.runNote = 'Modo Recluta: esta expedición no puntúa en la clasificación.';
   else if(typeof cloudStartRun==='function' && !skipRunStart) cloudStartRun(saga, false);
@@ -100,7 +105,8 @@ function win(){
   else rollDrop(t, bossId);
   if(owned().length>=3) ach('tres_poderes');
   if(S.daily && sagaEnd){ finishDaily(true); if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, PER+1, null); store.del('run'); scr='victory'; return render(); }
-  if(S.wave>=TOTAL){ S.ending=endingOf(); ach(S.ending==='retumbar' ? 'saga4' : S.ending); ach('saga4'); if(S.erenFell) ach('detener_eren'); if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, TOTAL+1, S.ending); const m=meta(); if(!m.endings.includes(S.ending)) saveMeta({endings:m.endings.concat(S.ending)}); store.del('run'); scr='victory'; return render(); }
+  if(S.wave>=TOTAL){ S.ending=endingOf(); ach(S.ending==='retumbar' ? 'saga4' : S.ending); ach('saga4'); if(S.erenFell) ach('detener_eren');
+    { const m=meta(); saveMeta({ngLevel:Math.max(m.ngLevel||0, (S.ng||0)+1), relics:[...new Set((m.relics||[]).concat(owned()))]}); if(S.ng>0) ach('vuelta'); if(S.ng>=2) ach('vuelta3'); } if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, TOTAL+1, S.ending); const m=meta(); if(!m.endings.includes(S.ending)) saveMeta({endings:m.endings.concat(S.ending)}); store.del('run'); scr='victory'; return render(); }
   S.sagaDone = sagaEnd;
   S.picks = (t==='e' || sagaEnd ? 2 : 1) + (S.mod==='botin' ? 1 : 0);
   S.rewards = seeded('r'+S.wave+'-'+S.map.pos, ()=>genRewards(t)); S.pend=null; S.after='reward';

@@ -17,7 +17,9 @@ const ACH = [
   {k:'detener_eren', n:'Hasta el final',          d:'Detén a Eren en el Retumbar.'},
   {k:'coordenada',   n:'La Coordenada',           d:'Consigue el final La Coordenada.'},
   {k:'nueve',        n:'Los Nueve',               d:'Consigue el final Los Nueve.'},
-  {k:'diaria',       n:'Parte del día',           d:'Termina una expedición del día.'}
+  {k:'diaria',       n:'Parte del día',           d:'Termina una expedición del día.'},
+  {k:'vuelta',       n:'Segunda vuelta',           d:'Completa una campaña en New Game+.'},
+  {k:'vuelta3',      n:'Más allá del mar, otra vez', d:'Completa la vuelta 3 o superior.'}
 ];
 const BASE_STARTERS = ['eren','mikasa','armin'];
 const starters = () => BASE_STARTERS.concat(ACH.filter(a=>a.unlock && meta().ach.includes(a.k)).map(a=>a.unlock));

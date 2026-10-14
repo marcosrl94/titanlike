@@ -20,6 +20,7 @@ function header(){
 }
 function render(){
   header();
+  document.body.classList.toggle('wide', scr==='combat' || scr==='map');
   $('screen').innerHTML = `<div>${tipHTML()}${V[scr]()}</div>`;
   if(!$('menu').hidden && typeof menuHTML==='function') $('menu').innerHTML = menuHTML();   // el menú refleja la sesión y los avisos
   if(scr!==lastScr){
@@ -36,7 +37,9 @@ function act(a, i){
   if(['cfg','cfganim','dcopy','dimport','derase','derase0','derase2'].includes(a)) return settingsAct(a, i);
   if(a==='tipok' || a==='tipoff' || a==='tipreset') return tipAct(a, i);
   if(a!=='order' && a!=='titan' && a!=='sol') sfx('click');
-  if(a==='sagas'){ picked=[]; scr='sagas'; return render(); }
+  if(a==='sagas'){ picked=[]; pendingNg=false; relicPick=[]; scr='sagas'; return render(); }
+  if(a==='ngstart'){ pendingSaga=0; pendingNg=true; picked=[]; relicPick=[]; scr='starter'; return render(); }
+  if(a==='relic'){ relicPick = relicPick.includes(i) ? relicPick.filter(x=>x!==i) : relicPick.length<relicsMax(ngLevel()) ? relicPick.concat(i) : relicPick; return render(); }
   if(a==='diff'){ if(DIFF[i]) setCfg('diff', i); return render(); }
   if(a==='saga'){ pendingSaga=+i; picked=[]; scr='starter'; return render(); }
   if(a==='gallery' || a==='home'){ scr = a==='home' ? 'title' : 'gallery'; return render(); }
@@ -61,8 +64,9 @@ function act(a, i){
     scr = S.pend ? S.pend.k : 'map'; return render();
   }
   if(a==='start'){ newRun([i], 0); return render(); }
-  if(a==='pickst'){ picked = picked.includes(i) ? picked.filter(x=>x!==i) : picked.length<startSize(pendingSaga) ? picked.concat(i) : picked; return render(); }
-  if(a==='go' && picked.length===startSize(pendingSaga)){ newRun(picked, pendingSaga); return render(); }
+  if(a==='pickst'){ const n = pendingNg ? 2 : startSize(pendingSaga); picked = picked.includes(i) ? picked.filter(x=>x!==i) : picked.length<n ? picked.concat(i) : picked; return render(); }
+  if(a==='go' && pendingNg && picked.length===2){ newRun(picked, 0, undefined, {level:ngLevel(), relics:relicPick}); pendingNg=false; return render(); }
+  if(a==='go' && !pendingNg && picked.length===startSize(pendingSaga)){ newRun(picked, pendingSaga); return render(); }
   if(a==='node'){ const [r,j]=i.split(',').map(Number); return enterNode(r,j); }
   if(a==='reward'){ const r=S.rewards[i];
     if(r.t==='upg'){ applyUpg(r.id); return tookReward(+i); }

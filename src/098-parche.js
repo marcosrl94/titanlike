@@ -1,5 +1,10 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-14.3', t:'New Game+ y combate a lo ancho', items:[
+    'New Game+: al completar la campaña se desbloquea la siguiente vuelta en «Nueva expedición». Sales desde Trost con dos reclutas y hasta tres reliquias (poderes de los Nueve ganados en campañas anteriores), y los enemigos suben un 12 % por vuelta. Encadenar vueltas es la forma de reunir los Nueve. Dos logros nuevos.',
+    'Combate y mapa a lo ancho de la pantalla: escenario a la izquierda, escuadrón y órdenes a la derecha. Desde 1280×720 todo cabe sin hacer scroll; en el móvil, las órdenes siguen fijas abajo.',
+    'La ficha de cada soldado (clic derecho o pulsación larga) muestra su esquiva y sus rasgos para las pruebas de habilidad.'
+  ]},
   {v:'2026-10-14.2', t:'Parche de equilibrio: el gas manda', items:[
     'Gas: depósito de 10 (12, 14 y 16 al empezar en sagas avanzadas, tope 20). Bombonas de reserva +2 (máximo 3), bengalas verdes +1 (máximo 2) y reabastecer en el campamento solo llena el depósito.',
     'Control: los cambiantes regeneran el ojo al instante y no se dejan cegar. Un titán cegado o derribado se pone alerta dos turnos y no admite otro control.',

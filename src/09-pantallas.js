@@ -1,5 +1,5 @@
 // ---------- Pantallas ----------
-let pendingRec = null, pendingSaga = 0, picked = [];
+let pendingRec = null, pendingSaga = 0, picked = [], pendingNg = false, relicPick = [];
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const chip = st => `<span class="chip s-${st}">${STYLE[st]}</span>`;
 // rasgos para las pruebas de habilidad: estilo +1 y rasgos propios
@@ -73,7 +73,7 @@ const V = {
           <button class="btn ghost" data-a="codex">Logros · ${M.ach.length}/${ACH.length}</button>
           <button class="btn ghost" data-a="gallery">Imágenes y música</button>
         </div>
-        <span class="lbl num">Sagas desbloqueadas: ${M.unlocked} de ${SAGAS.length} · Mejor marca: ${M.best} de ${TOTAL} jornadas</span>
+        <span class="lbl num">Sagas desbloqueadas: ${M.unlocked} de ${SAGAS.length} · Mejor marca: ${M.best} de ${TOTAL} jornadas${M.ngLevel?` · Campañas completadas: ${M.ngLevel}`:''}</span>
         ${accountHTML('title')}
       </div><div class="peek">${titanFig(TITANS.col.a)}</div></section>
       <ul class="rules">
@@ -92,6 +92,9 @@ const V = {
     const u=meta().unlocked, saved=!!store.get('run');
     return `<div><h2>Elige la saga</h2><p class="dim" style="max-width:64ch">Una campaña recorre las cuatro seguidas. Las que ya hayas desbloqueado se pueden empezar directamente, con tres veteranos equipados.</p></div>
       ${saved?'<p class="note-s">Tienes una expedición a medias: empezar otra la sustituye.</p>':''}
+      ${ngLevel() ? `<section class="panel ng"><span class="lbl">New Game+ · vuelta ${ngLevel()+1}</span>
+        <p>Vuelve a empezar desde Trost con ventaja y con más peligro: sales con <b>dos reclutas</b>, llevas hasta <b>${relicsMax(ngLevel())} reliquia${relicsMax(ngLevel())>1?'s':''}</b> (poderes de los Nueve de campañas anteriores) y los enemigos son un <b>${12*ngLevel()} % más fuertes</b>. Encadenando vueltas es como se reúnen los Nueve.</p>
+        <div class="row"><button class="btn" data-a="ngstart">Empezar la vuelta ${ngLevel()+1}</button><span class="lbl">Reliquias disponibles: ${(meta().relics||[]).length}</span></div></section>` : ''}
       <section class="panel"><span class="lbl">Dificultad</span>
         <div class="seg" role="radiogroup" aria-label="Dificultad">${Object.keys(DIFF).map(k=>`<button class="btn sm ${CFG.diff===k?'':'ghost'}" role="radio" aria-checked="${CFG.diff===k}" data-a="diff" data-i="${k}">${DIFF[k].n}</button>`).join('')}</div>
         <p class="dim" style="font-size:13.5px">${DIFF[CFG.diff]?DIFF[CFG.diff].d:DIFF.explorador.d} La expedición del día siempre es Explorador.</p></section>
@@ -102,6 +105,12 @@ const V = {
   },
   starter(){
     const g=pendingSaga;
+    if(g===0 && pendingNg){ const R=meta().relics||[], mx=relicsMax(ngLevel());
+      return `<div><span class="lbl">New Game+ · vuelta ${ngLevel()+1} · Saga 1</span><h2>Elige a dos reclutas</h2><p class="dim">Salen juntos desde Trost. Los enemigos son un ${12*ngLevel()} % más fuertes.</p></div>
+      <div class="row"><button class="btn" data-a="go" ${picked.length===2?'':'disabled'}>Partir · ${picked.length} de 2</button><button class="btn ghost" data-a="sagas">Volver</button></div>
+      <div class="cards">${starters().map(id=>`<button class="card ${picked.includes(id)?'sel':''}" data-a="pickst" data-i="${id}" aria-pressed="${picked.includes(id)}">${solCard(id)}</button>`).join('')}</div>
+      <section class="panel"><span class="lbl">Reliquias · ${relicPick.length} de ${mx}</span><p class="dim">Poderes de los Nueve que ganaste en campañas anteriores. Los lleva quien tenga hueco (Eren, hasta tres); el resto queda en la reserva para inyectarlo en un campamento.</p>
+        <div class="row">${R.map(k=>`<button class="btn sm ${relicPick.includes(k)?'':'ghost'}" data-a="relic" data-i="${k}" aria-pressed="${relicPick.includes(k)}">${POWERS[k].n}</button>`).join('')||'<span class="dim">Aún no tienes reliquias.</span>'}</div></section>`; }
     if(g===0) return `<div><span class="lbl">Saga 1 · ${SAGAS[0].n}</span><h2>Elige a tu primer recluta</h2></div>
       <div class="cards">${starters().map(id=>`<button class="card" data-a="start" data-i="${id}">${solCard(id)}</button>`).join('')}
         ${ACH.filter(a=>a.unlock && !starters().includes(a.unlock)).map(a=>`<div class="card locked"><div class="who">${portrait(a.unlock,true)}<div><h3>${ROSTER[a.unlock].n}</h3><span class="lbl">Bloqueado</span></div></div><p>Se desbloquea con el logro «${a.n}»: ${a.d}</p></div>`).join('')}</div>`;
@@ -118,10 +127,10 @@ const V = {
     const unranked = S.diff==='recluta' ? `<p class="note-s">${S.runNote||'Modo Recluta: esta expedición no puntúa en la clasificación.'}</p>` : !cloudOn() || S.runId ? '' : CLOUD.user
       ? `<p class="note-s">${S.runNote || 'Esta expedición empezó sin sesión y no puntúa en la clasificación. La próxima, sí.'}</p>`
       : `<div class="acc out slim"><div class="acc-t"><b>Esta expedición no puntúa</b><span>Entra con Google o con tu correo: tu progreso se guarda en la nube y las próximas expediciones entran en la clasificación.</span></div>${loginBtns()}${CLOUD.msg?`<p class="acc-msg" role="status">${esc(CLOUD.msg)}</p>`:''}</div>`;
-    return `${unranked}${D?`<section class="panel daily"><span class="lbl">Expedición del día · ${S.daily}</span><p><b>${D.n}.</b> ${D.d} Mismo mapa, titanes y recompensas para todos; termina al acabar la saga 1.</p></section>`:''}<div><span class="lbl">${sagaLbl(S.wave)}${S.diff&&S.diff!=='explorador'?` · ${diffOf().n}`:''}${S.ng?` · Vuelta ${S.ng+1}`:''}</span><h2>${z.n}</h2><p class="dim">${S.map.pos?'Elige el siguiente paso de la ruta.':'Elige por dónde entra el escuadrón.'} Al fondo espera el ${TITANS[z.boss].n}.${BOSS_PW[z.boss] && !(BOSS_PW[z.boss] in S.pw) ? ` Puede soltar el poder del ${POWERS[BOSS_PW[z.boss]].n}: <b class="num" style="color:var(--gold)">${Math.round(dropP()*100)} %</b>.` : ''}</p></div>
+    return `<div class="cg mg"><div class="cg-l">${unranked}${D?`<section class="panel daily"><span class="lbl">Expedición del día · ${S.daily}</span><p><b>${D.n}.</b> ${D.d} Mismo mapa, titanes y recompensas para todos; termina al acabar la saga 1.</p></section>`:''}<div><span class="lbl">${sagaLbl(S.wave)}${S.diff&&S.diff!=='explorador'?` · ${diffOf().n}`:''}${S.ng?` · Vuelta ${S.ng+1}`:''}</span><h2>${z.n}</h2><p class="dim">${S.map.pos?'Elige el siguiente paso de la ruta.':'Elige por dónde entra el escuadrón.'} Al fondo espera el ${TITANS[z.boss].n}.${BOSS_PW[z.boss] && !(BOSS_PW[z.boss] in S.pw) ? ` Puede soltar el poder del ${POWERS[BOSS_PW[z.boss]].n}: <b class="num" style="color:var(--gold)">${Math.round(dropP()*100)} %</b>.` : ''}</p></div>
       <div class="mapwrap">${mapSVG()}</div>
-      <ul class="legend">${Object.keys(NODE).map(k=>`<li><b>${NODE[k].n}.</b> ${NODE[k].d}</li>`).join('')}</ul>
-      <span class="lbl">Tu escuadrón</span>${squadHTML()}${relicsHTML()}`;
+      <ul class="legend">${Object.keys(NODE).map(k=>`<li><b>${NODE[k].n}.</b> ${NODE[k].d}</li>`).join('')}</ul></div>
+      <div class="cg-r"><span class="lbl">Tu escuadrón</span>${squadHTML()}${relicsHTML()}</div></div>`;
   },
   combat(){
     const a=C.active, P=C.pending, canAct = a && !C.busy, ph=-((performance.now()/1000)%4.2).toFixed(2);
@@ -149,11 +158,11 @@ const V = {
       if((S.items||[]).length) orders += `<div class="items"><span class="lbl">Objetos${C.itemUsed?' · ya usaste uno este turno':' · acción libre'}</span>${S.items.map((k,j)=>`<button class="btn ghost sm ${sel('it:'+k)}" data-a="order" data-i="it:${k}" title="${ITEMS[k].d}" ${C.itemUsed?'disabled':''}>${ITEMS[k].n}</button>`).join('')}</div>`;
       hint = P ? (P.tgt==='enemy'?'Elige un titán.':'Elige a un compañero.') : `Turno de ${R.n}.`;
     }
-    return `<div class="stage"><div class="titans">${tit}</div></div>
-      <div class="log" id="log" aria-live="polite">${C.log.map(l=>`<div>${l}</div>`).join('')}</div>
-      ${squadHTML(canAct && P && P.tgt==='ally' ? 'ally' : '')}
+    return `<div class="cg"><div class="cg-l"><div class="stage"><div class="titans">${tit}</div></div>
+      <div class="log" id="log" aria-live="polite">${C.log.map(l=>`<div>${l}</div>`).join('')}</div></div>
+      <div class="cg-r">${squadHTML(canAct && P && P.tgt==='ally' ? 'ally' : '')}
       <div class="dock"><div class="hint lbl"><span id="hint">${hint}</span><button class="btn ghost sm" data-a="speed" title="Velocidad de las animaciones">Animación: ${ANIM[CFG.anim].n}</button></div>
-      <div class="orders" id="orders">${orders}</div></div>${relicsHTML()}`;
+      <div class="orders" id="orders">${orders}</div></div>${relicsHTML()}</div></div>`;
   },
   reward(){
     const t=curNode().t, nx=SAGAS[sagaIx(S.wave)+1];
@@ -212,6 +221,7 @@ const V = {
     return `<section class="hero"><div class="txt"><span class="lbl">Parte de expedición</span>
       <h1>${won?(S.ending==='nueve'?'Los <em>Nueve</em>':S.ending==='coordenada'?'La <em>Coordenada</em>':'El Retumbar <em>se detiene</em>'):'Nadie <em>regresa</em>'}</h1>
       <p>${won?`${ENDINGS[S.ending].d} ${S.erenFell?'Eren se volvió contra vosotros y lo habéis detenido. ':''}${S.squad.map(nm).join(', ')} ${S.squad.length>1?'siguen':'sigue'} en pie tras ${TOTAL} jornadas. Poderes reunidos: ${owned().length} de 9.`:`La expedición acaba en la saga ${sagaIx(S.wave)+1}, «${sagaOf(S.wave).n}»: jornada ${dayOf(S.wave)} de ${PER}, en ${zoneOf(S.wave).n}.`}</p>
+      ${won?`<p class="note-s"><b>New Game+ desbloqueado.</b> Vuelta ${(S.ng||0)+2}: dos reclutas de salida, hasta ${relicsMax((S.ng||0)+1)} reliquia${relicsMax((S.ng||0)+1)>1?'s':''} de los Nueve y enemigos un ${12*((S.ng||0)+1)} % más fuertes. Está en «Nueva expedición».</p>`:''}
       <div class="row"><button class="btn" data-a="sagas">Nueva expedición</button><button class="btn ghost" data-a="home">Portada</button></div></div>
       <div class="peek">${titanFig(won?TITANS.fun.a:TITANS.col.a)}</div></section>
       ${cloudOn()&&!CLOUD.user?accountHTML('end'):''}
