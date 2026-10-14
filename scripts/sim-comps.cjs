@@ -17,7 +17,8 @@ function play(d){ C.ev=[]; d(); }
 const M={fights:0, rounds:0, gasStart:0, gasEnd:0, gas0:0, titanActs:0, missBlind:0, dmgTaken:0, blinds:0, heals:0, napes:0, skills:0, cuts:0, items:0};
 const _wound=wound; wound=function(t,s,mult){ const hp0=s.hp; M.titanActs++; if(t.blind>0) M.missBlind++; _wound(t,s,mult); M.dmgTaken+=Math.max(0,hp0-s.hp); };
 const _startWave=startWave; startWave=function(){ _startWave(); M.fights++; M.gasStart+=S.gas; };
-const _win=win; win=function(){ M.gasEnd+=S.gas; if(S.gas===0) M.gas0++; _win(); };
+const GD={}, RD={}; const _win=win; win=function(){ M.gasEnd+=S.gas; if(S.gas===0) M.gas0++; const t=curNode().t, n=C.titans.length, r=C.rounds; _win();
+  const g=S.lastGrade; if(g){ const k=t; (GD[k]=GD[k]||{})[g.g]=(GD[k][g.g]||0)+1; const rk=t+n; (RD[rk]=RD[rk]||[]).push(r); (GD.parts=GD.parts||{}); g.parts.forEach(p=>{ (GD.parts[p.k]=GD.parts[p.k]||[]).push(p.v); }); (GD.sc=GD.sc||[]).push(g.score); (GD.eff=GD.eff||[]).push(g.eff); } };
 const _nextTurn=nextTurn; nextTurn=function(){ if(C && !C.queue.length) M.rounds++; _nextTurn(); };
 function ai(){ const a=C.active,R=ROSTER[a.id],sk=R.sk,ts=liveT();
   const byDanger=ts.slice().sort((x,y)=>(y.boss?1000:0)+y.atk-((x.boss?1000:0)+x.atk));
@@ -81,6 +82,12 @@ function rep(label, saga, f){ for(const k in M) M[k]=0; const r=[]; for(let i=0;
     '| rondas/combate', (M.rounds/M.fights).toFixed(1), '| gas ini/fin', (M.gasStart/M.fights).toFixed(1)+'/'+(M.gasEnd/M.fights).toFixed(1), 'a 0:', (100*M.gas0/M.fights).toFixed(0)+'%',
     '| fallos por ceguera', (100*M.missBlind/Math.max(1,M.titanActs)).toFixed(0)+'%', '| daño/combate', (M.dmgTaken/M.fights).toFixed(0),
     '| acciones c/n/h/o', [M.cuts,M.napes,M.skills,M.items].map(x=>(x/M.fights).toFixed(1)).join('/'));
+  if(process.env.GR){ const med=a=>{ const b=a.slice().sort((x,y)=>x-y); return b[Math.floor(b.length/2)]; };
+    const order=['S+','S','A','B','C','D','E'];
+    ['c','e','b'].forEach(k=>{ const o=GD[k]||{}, tot=Object.values(o).reduce((a,b)=>a+b,0); console.log('   notas '+k, order.map(g=>g+' '+(100*(o[g]||0)/Math.max(1,tot)).toFixed(0)+'%').join(' ')); });
+    console.log('   rondas mediana', Object.keys(RD).sort().map(k=>k+':'+med(RD[k])+'('+RD[k].length+')').join(' '));
+    console.log('   partes medias', Object.entries(GD.parts||{}).map(([k,a])=>k+' '+(a.reduce((x,y)=>x+y,0)/a.length).toFixed(1)).join(' '), 'eff p25/50/90', (()=>{const b=(GD.eff||[0]).slice().sort((x,y)=>x-y);return [.25,.5,.9].map(q=>b[Math.floor(q*(b.length-1))].toFixed(2)).join('/');})(), 'score medio', ((GD.sc||[]).reduce((x,y)=>x+y,0)/Math.max(1,(GD.sc||[]).length)).toFixed(1));
+    for(const k in GD) delete GD[k]; for(const k in RD) delete RD[k]; }
   if(process.env.DET) console.log('   muertes por zona', JSON.stringify(zone), 'en jefe', JSON.stringify(boss)); }
 for(const c of comps){
   const sg = Math.max(...c.map(id=>ROSTER[id].sg));

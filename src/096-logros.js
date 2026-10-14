@@ -19,7 +19,10 @@ const ACH = [
   {k:'nueve',        n:'Los Nueve',               d:'Consigue el final Los Nueve.'},
   {k:'diaria',       n:'Parte del día',           d:'Termina una expedición del día.'},
   {k:'vuelta',       n:'Segunda vuelta',           d:'Completa una campaña en New Game+.'},
-  {k:'vuelta3',      n:'Más allá del mar, otra vez', d:'Completa la vuelta 3 o superior.'}
+  {k:'vuelta3',      n:'Más allá del mar, otra vez', d:'Completa la vuelta 3 o superior.'},
+  {k:'nota_s',       n:'Sobresaliente',           d:'Saca una S en un combate.'},
+  {k:'nota_splus',   n:'Matrícula de honor',      d:'Saca una S+ en un combate.'},
+  {k:'jefe_s',       n:'Sin despeinarse',         d:'Saca una S o más contra un cambiante.'}
 ];
 const BASE_STARTERS = ['eren','mikasa','armin'];
 const starters = () => BASE_STARTERS.concat(ACH.filter(a=>a.unlock && meta().ach.includes(a.k)).map(a=>a.unlock));

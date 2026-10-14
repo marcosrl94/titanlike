@@ -13,6 +13,8 @@ function menuHTML(){
     ${item('sagas', 'Nueva expedición', inRun() ? 'Sustituye a la expedición en curso' : '')}
     ${item('daily', 'Expedición del día', dailyDone() ? 'Ya la has jugado hoy' : `${dailyInfo().mod.n}: ${dailyInfo().mod.d}`, dailyDone() ? 'disabled' : '')}
     ${item('codex', 'Logros y códice', `${meta().ach.length} de ${ACH.length} logros`)}
+    ${item('ficha', 'Fichas de personaje', 'Estadísticas, rasgos e historial de cada soldado')}
+    ${item('comps', 'Escuadrones', `${statsOf().f} combates calificados${statsOf().g['S+']?' · '+statsOf().g['S+']+' S+':''}`)}
     
     ${item('gallery', 'Imágenes y música')}
     ${item('settings', 'Ajustes')}
@@ -34,6 +36,7 @@ function menuAct(m){
   if(m==='title'){ scr='title'; return render(); }
   if(m==='tips') return tipAct('tipreset');
   if(m==='patch') return showPatch(PATCHES);
+  if(m==='ficha') return act('ficha', fichaId);
   if(m==='settings'){ confirmErase=false; dataMsg=''; scr='settings'; return render(); }
   act(m==='sagas' ? 'sagas' : m==='continue' ? 'continue' : m, m==='board' ? 'general' : undefined);
 }
@@ -61,6 +64,7 @@ V.settings = function(){
     </section>
     <section class="panel"><span class="lbl">Accesibilidad</span>
       ${tog('flash','Destellos','Fogonazos de pantalla en rayos, golpes y explosiones.')}
+      ${tog('story','Viñetas de historia','Una escena breve al entrar en cada zona del mapa. Se pueden volver a ver en el códice.')}
       ${tog('dice','Dados animados','El d20 rueda en pantalla en cada corte, esquiva y prueba de habilidad. Desactivado, la tirada queda solo en el registro.')}
       ${tog('shake','Sacudidas de pantalla')}
       ${tog('calm','Reducir movimiento','Animaciones mínimas y sin balanceo de los titanes.')}

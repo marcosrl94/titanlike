@@ -5,6 +5,7 @@ const CFG_DEF = {
   preview: true, intent: true,   // previsión de daño e intenciones de los titanes
   shake: true, flash: true,      // sacudidas de pantalla y destellos
   dice: true,                    // dados animados en combate y eventos
+  story: true,                   // viñetas de historia al abrir cada zona
   calm: false,                   // reducir movimiento
   big: false,                    // texto más grande
   diff: 'explorador'             // dificultad con la que se empiezan las expediciones

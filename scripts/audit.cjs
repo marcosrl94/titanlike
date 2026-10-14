@@ -8,7 +8,7 @@ const D=__dirname+'/../src/';
 let src=['01-datos.js','02-combate.js','03-mapa.js','04-los-nueve.js','096-logros.js'].map(f=>fs.readFileSync(D+f,'utf8')).join('\n');
 const FXK=[...fs.readFileSync(D+'08-efectos.js','utf8').matchAll(/^  async (\w+)\(e\)/gm)].map(m=>m[1]);
 src+=`
-const FXK=${JSON.stringify(FXK)};
+const FXK=${JSON.stringify(FXK)}; const GRADE_ORDER_T=['S+','S','A','B','C','D','E'];
 function render(){} function header(){} function busyUI(){}
 skipRunStart=true;
 const BUGS={}; let CTX='';
@@ -119,6 +119,9 @@ T('orden: golpe antes que coraza rota y segunda fase', ()=>{ setup(['hange','mik
   const ks=LASTEV.map(e=>e.k+(e.fx?':'+e.fx:'')); return ks.indexOf('slash')<ks.indexOf('mark:break') && ks.indexOf('mark:break')<ks.indexOf('roar:phase') || ks.join(','); });
 T('entrada de jefe antes del primer turno', ()=>{ LASTEV=[]; setup(['mikasa','eren'],['bes'],{node:'b'}); return LASTEV[0] && LASTEV[0].k==='intro' || JSON.stringify(LASTEV[0]); });
 T('las tiradas de los eventos quedan registradas', ()=>{ setup(['mikasa','eren'],['t3']); S.pend={k:'event'}; const c=check('sigilo',12); return S.pend.dice && S.pend.dice[0].r===c.r || 'sin dados'; });
+T('la nota del combate es coherente', ()=>{ setup(['mikasa','eren'],['t5']); const t=C.titans[0]; giveTurn('mikasa'); doAction('cut', t); runUntil(null); const G=rateFight('c');
+  return G && isFinite(G.score) && GRADE_ORDER_T.includes(G.g) && G.parts.every(p=>p.v>=0 && p.v<=p.max) || JSON.stringify(G); });
+T('con bajas no hay S', ()=>{ setup(['mikasa','eren'],['t5']); S.squad[1].hp=0; C.rounds=1; C.taken=0; C.sacts=1; C.dealt=999; C.rolls=[20,20,20]; C.nat20=3; const G=rateFight('c'); return ['A','B','C','D','E'].includes(G.g) || G.g; });
 // ======== 3) fuzz: combates enteros con acciones al azar ========
 const RES={}; const N=+process.argv[2]||600; let fights=0, turns=0;
 const IDS=Object.keys(ROSTER);

@@ -1,5 +1,23 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-15.2', t:'Nota en cada combate, fichas de personaje y momentos en el mapa', items:[
+    'Cada combate ganado recibe una nota de E a S+: Rapidez (rondas contra el par del combate, 30 puntos), Daño recibido (30), Daño por acción (25; curar o cubrir cuenta media) y Suerte del d20 (tu media en cortes y esquivas, más los 20 naturales, menos las pifias; 15). Los remates a la nuca y acabar sin un rasguño suman; cada baja resta 15 y con bajas no hay S. Durante el combate se ve la ronda y el par.',
+    'Calibrada para que cueste: jugando bien, la S+ sale en uno de cada cincuenta combates. Tres logros nuevos para quien la saque.',
+    'Récords por jefe: tu mejor nota contra cada cambiante se guarda, y en Clasificación → Jefes compites con los demás (empate: menos rondas). Recluta no cuenta.',
+    'Escuadrones: qué composiciones has llevado, con su nota media, porcentaje de S, expediciones y mejor jornada. Con sesión, también las de todos los jugadores (datos anónimos y agregados).',
+    'Fichas de personaje: estadísticas por nivel, esquiva, rasgos, habilidad, poder propio e historial de cada soldado (combates, abatidos, daño, críticos, 20 naturales, caídas, distribución de notas y sus mejores escuadrones). Desde el menú o el códice.',
+    'Momentos: al entrar en cada zona, una escena breve en penumbra con dos líneas de narración. Se quedan en el códice para volver a verlas y se pueden desactivar en Ajustes.',
+    'La pantalla de sagas ya no desvela a los jefes. Arreglado también que la nube no guardaba las reliquias del New Game+ ni los logros de las vueltas.'
+  ]},
+  {v:'2026-10-15.2', t:'Notas de combate, récords por jefe, fichas y momentos', items:[
+    'Cada combate ganado recibe nota de E a S+: Rapidez (rondas contra el par, que se ve arriba a la derecha durante el combate), Daño recibido, Daño por acción (marcas, críticos, ventajas de estilo y habilidades bien usadas suben la media) y Suerte del d20 (media de tus tiradas, los 20 naturales suman y las pifias restan). Remates a la nuca y acabar sin un rasguño dan puntos extra; cada baja resta 15 y con bajas no hay S. Para orientarse: un buen jugador saca S+ en uno de cada cincuenta combates.',
+    'Clasificación · Jefes: la mejor nota de cada jugador contra cada cambiante en la temporada, con el escuadrón que la consiguió. Empate: gana quien lo hizo en menos rondas. Tres logros nuevos por sacar S y S+.',
+    'Escuadrones: todas las composiciones con las que has jugado, con nota media, porcentaje de S, expediciones, mejor jornada y campañas. En «De todos» se ve lo que juega el resto (datos anónimos y agregados).',
+    'Fichas de personaje: estadísticas por nivel, esquiva, estilo, habilidad, rasgos, poder propio y tu historial con cada soldado (combates, abatidos, daño, críticos, 20 naturales, caídas, reparto de notas y sus mejores escuadrones). Desde el menú o el códice.',
+    'Momentos: al entrar en cada zona aparece una viñeta breve en penumbra que marca el tono de lo que viene. Se pueden volver a ver en el códice y desactivar en Ajustes.',
+    'Sin spoilers: la pantalla de sagas y el mapa ya no dicen qué cambiante espera en cada zona hasta que te lo hayas encontrado.',
+    'Nube: ahora se guardan las reliquias del New Game+, los logros de vuelta y tus estadísticas (fichas, escuadrones y récords), que antes se perdían al cambiar de dispositivo.'
+  ]},
   {v:'2026-10-15.1', t:'Dados que ruedan, jefes con entrada propia y combate auditado', items:[
     'Dados: el d20 rueda en pantalla en cada corte (dorado en el crítico, rojo cuando resbala), en cada tirada de esquiva, con el bono de velocidad, y en las pruebas de habilidad de los eventos, que se quedan en la página con el resultado. Se pueden desactivar en Ajustes.',
     'Jefes: cada cambiante entra con franjas de cine, su nombre y su firma: vapor y calor del Colosal, cristal de la Hembra, lluvia de rocas de la Bestia, embestida del Acorazado, púas del Martillo de Guerra, el pilar de luz y el temblor del Fundador… Sus ataques especiales, la segunda fase y la coraza rota tienen efecto propio, y abatir a un jefe se celebra.',

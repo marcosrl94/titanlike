@@ -77,7 +77,7 @@ function enterNode(r, j){
 function advance(){
   const t = curNode().t, boss = t==='b';
   if(t==='v' || t==='k') S.squad.forEach(levelUp);   // la veteranía sube con cada jornada
-  S.pend=null; S.rewards=null; S.picks=0; S.sagaDone=false; S.note=null; S.wave++; C=null;
+  S.pend=null; S.rewards=null; S.picks=0; S.sagaDone=false; S.note=null; S.lastGrade=null; S.wave++; C=null;
   if(boss){ const z=S.map.z+1; S.map = seeded('map'+z, ()=>genMap(z)); }
   store.set('run', S); scr='map'; render();
 }
@@ -90,8 +90,10 @@ function saveBest(w){ if(w>meta().best) saveMeta({best:w}); }
 function win(){
   const t = curNode().t, sagaEnd = t==='b' && dayOf(S.wave)===PER, btr = S.pend && S.pend.btr, bossId = t==='b' ? C.titans[0].id : null;
   S.q = []; S.note = null;
+  const G = S.lastGrade = rateFight(t);   // nota del combate: se muestra en la recompensa
+  if(typeof recordFight==='function') recordFight(G);
   const lost = S.squad.filter(s=>s.hp<=0).length;
-  if(typeof cloudTelemetry==='function') cloudTelemetry('fight', {node:t, win:true, titans:C.titans.map(x=>x.id), rounds:C.rounds, taken:C.taken, gas:[C.gas0, S.gas], lost, squad:S.squad.map(x=>x.id+':'+x.lvl+':'+Math.round(x.hp/maxHp(x)*100)), pw:Object.keys(C.usedPw), acts:C.acts});
+  if(typeof cloudTelemetry==='function') cloudTelemetry('fight', {node:t, win:true, titans:C.titans.map(x=>x.id), rounds:C.rounds, taken:C.taken, gas:[C.gas0, S.gas], lost, squad:S.squad.map(x=>x.id+':'+x.lvl+':'+Math.round(x.hp/maxHp(x)*100)), pw:Object.keys(C.usedPw), acts:C.acts, comp:C.comp, grade:G.g, score:G.score, boss:G.boss});
   C.titans.forEach(x=>{ if(x.hp<=0) codex('t', x.id); });
   if(t==='b'){ ach('primer_jefe'); if(!lost) ach('impecable'); }
   if(C.start===4 && alive().length===1) ach('solo');
@@ -109,7 +111,7 @@ function win(){
   else rollDrop(t, bossId);
   if(owned().length>=3) ach('tres_poderes');
   if(S.daily && sagaEnd){ finishDaily(true); if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, PER+1, null); store.del('run'); scr='victory'; return render(); }
-  if(S.wave>=TOTAL){ if(typeof cloudTelemetry==='function') cloudTelemetry('end', {win:true, squad:S.squad.map(x=>x.id+':'+x.lvl), fallen:S.fallen, rel:S.rel, pw:S.pw, gasMax:S.gasMax}); S.ending=endingOf(); ach(S.ending==='retumbar' ? 'saga4' : S.ending); ach('saga4'); if(S.erenFell) ach('detener_eren');
+  if(S.wave>=TOTAL){ const ck = typeof recordRun==='function' ? recordRun(true) : null; if(typeof cloudTelemetry==='function') cloudTelemetry('end', {win:true, comp:ck, squad:S.squad.map(x=>x.id+':'+x.lvl), fallen:S.fallen, rel:S.rel, pw:S.pw, gasMax:S.gasMax}); S.ending=endingOf(); ach(S.ending==='retumbar' ? 'saga4' : S.ending); ach('saga4'); if(S.erenFell) ach('detener_eren');
     { const m=meta(); saveMeta({ngLevel:Math.max(m.ngLevel||0, (S.ng||0)+1), relics:[...new Set((m.relics||[]).concat(owned()))]}); if(S.ng>0) ach('vuelta'); if(S.ng>=2) ach('vuelta3'); } if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, TOTAL+1, S.ending); const m=meta(); if(!m.endings.includes(S.ending)) saveMeta({endings:m.endings.concat(S.ending)}); store.del('run'); scr='victory'; return render(); }
   S.sagaDone = sagaEnd;
   S.picks = (t==='e' || sagaEnd ? 2 : 1) + (S.mod==='botin' ? 1 : 0);
@@ -117,7 +119,8 @@ function win(){
   nextScene();
 }
 function lose(){
-  if(typeof cloudTelemetry==='function') cloudTelemetry('end', {win:false, node:C&&curNode()?curNode().t:null, titans:C?C.titans.map(x=>x.id):[], rounds:C?C.rounds:0, squad:S.squad.map(x=>x.id+':'+x.lvl), fallen:S.fallen, rel:S.rel, pw:S.pw, gasMax:S.gasMax, items:S.items});
+  const ck = typeof recordRun==='function' ? recordRun(false) : null;
+  if(typeof cloudTelemetry==='function') cloudTelemetry('end', {win:false, comp:ck, node:C&&curNode()?curNode().t:null, titans:C?C.titans.map(x=>x.id):[], rounds:C?C.rounds:0, squad:S.squad.map(x=>x.id+':'+x.lvl), fallen:S.fallen, rel:S.rel, pw:S.pw, gasMax:S.gasMax, items:S.items});
   if(S.daily) finishDaily(false);
   if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, S.wave, null);
   S.squad.forEach(s=>S.fallen.push(s.id)); saveBest(S.wave-1);

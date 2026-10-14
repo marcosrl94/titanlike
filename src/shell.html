@@ -301,6 +301,85 @@ button.card:hover{border-color:var(--gold);background:var(--stone-3)}
 @keyframes glow{40%{box-shadow:0 0 0 3px var(--gold),0 0 24px var(--gold)}}
 .dying .art{animation:die .8s ease-in forwards}
 @keyframes die{to{transform:translateY(20px) scaleY(.45);opacity:.14;filter:grayscale(1)}}
+/* ---- momentos: viñetas en penumbra ---- */
+#sheet:has(.moment-in){align-items:center}
+.sheet-in.moment-in{max-width:880px;width:100%;padding:0;overflow:hidden;cursor:pointer;background:#07090a;border-color:#000}
+.moment{position:relative}
+.m-art{position:relative;aspect-ratio:800/360;overflow:hidden;background:#000}
+.m-art svg{width:100%;height:100%;display:block;animation:kenburns 14s ease-out both;filter:saturate(.85) contrast(1.05)}
+@keyframes kenburns{from{transform:scale(1.12) translate(1.5%,1%)}to{transform:scale(1) translate(0,0)}}
+.m-art .grain{position:absolute;inset:-50%;opacity:.13;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");animation:grain .5s steps(4) infinite}
+@keyframes grain{25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-2%,-1%)}}
+.m-art .vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,transparent 45%,rgba(0,0,0,.75) 100%),linear-gradient(transparent 60%,rgba(7,9,10,.9))}
+.m-txt{padding:4px 22px 6px;margin-top:-56px;position:relative}
+.m-txt h2{font-size:clamp(26px,4vw,40px);margin:2px 0 6px;text-shadow:0 2px 12px #000;animation:lnin .8s .3s both}
+.m-txt p{max-width:62ch;color:var(--bone);opacity:.85;margin:0 0 6px;animation:lnin .8s .6s both}
+.m-txt .lbl{color:var(--gold);animation:lnin .6s .1s both}
+.moment-in .row{padding:6px 22px 18px}
+.m-art .shaft{animation:shaft 6s ease-in-out infinite}
+@keyframes shaft{50%{opacity:.2}}
+.m-art .smk{filter:blur(14px);animation:smk 9s ease-in-out infinite alternate}
+@keyframes smk{to{transform:translate(30px,-18px) scale(1.15)}}
+.m-art .emb{animation:emb 6s linear infinite}
+@keyframes emb{0%{transform:translateY(0);opacity:0}15%{opacity:.9}100%{transform:translateY(-260px) translateX(30px);opacity:0}}
+.m-art .flr{stroke-dasharray:900;stroke-dashoffset:900;animation:draw 2.4s .4s ease-out forwards}
+.m-art .beam{animation:beam 7s ease-in-out infinite alternate}
+@keyframes beam{from{transform:rotate(-18deg)}to{transform:rotate(18deg)}}
+.m-art .mbolt{filter:drop-shadow(0 0 8px #fff);animation:mbolt 5s steps(1) infinite}
+@keyframes mbolt{0%,6%,12%{opacity:1}3%,9%,14%,100%{opacity:0}}
+body.calm .m-art svg,body.calm .m-art *{animation:none!important}
+.gal.moments{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.card.mo .m-thumb{display:block;aspect-ratio:800/360;border-radius:6px;overflow:hidden;background:#0b0d0e;margin-bottom:6px}
+.card.mo .m-thumb svg{width:100%;height:100%;display:block}
+@media (max-width:620px){.m-txt{margin-top:-30px;padding:4px 14px}.moment-in .row{padding:6px 14px 14px}}
+/* ---- notas de combate (E a S+) ---- */
+.grade{display:inline-grid;place-items:center;min-width:30px;height:26px;padding:0 6px;border-radius:6px;font-family:var(--label);font-weight:700;font-size:16px;letter-spacing:0;line-height:1;border:1.5px solid currentColor;vertical-align:middle;background:rgba(0,0,0,.25)}
+.grade.g-Sp{color:#ffe08a;border-color:#ffe08a;background:linear-gradient(135deg,rgba(255,224,138,.25),rgba(216,180,95,.05));text-shadow:0 0 8px rgba(255,224,138,.8)}
+.grade.g-S{color:var(--gold)} .grade.g-A{color:var(--cloak-hi)} .grade.g-B{color:var(--steel)} .grade.g-C{color:var(--bone)} .grade.g-D{color:#e09a5c} .grade.g-E{color:var(--blood-hi)}
+.grade.big{min-width:96px;height:96px;font-size:56px;font-weight:800;letter-spacing:-.03em;border-width:3px;border-radius:14px;animation:stamp .55s cubic-bezier(.2,1.6,.4,1) both}
+.grade.big.g-Sp{animation:stamp .55s cubic-bezier(.2,1.6,.4,1) both,shine 1.6s .6s ease-in-out infinite}
+@keyframes stamp{0%{transform:scale(2.6) rotate(-14deg);opacity:0}60%{opacity:1}100%{transform:scale(1) rotate(-4deg)}}
+@keyframes shine{50%{box-shadow:0 0 26px rgba(255,224,138,.7)}}
+.grade-p{display:grid;grid-template-columns:auto 1fr;gap:12px 22px;align-items:center}
+.grade-p .gl{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;min-width:130px}
+.grade-p .gl b{font-family:var(--display);font-size:20px}
+.grade-p .rec{color:var(--gold);max-width:180px}
+.gparts{display:flex;flex-direction:column;gap:6px}
+.gp{display:grid;grid-template-columns:130px 1fr 58px minmax(0,1.3fr);gap:10px;align-items:center;font-size:14px}
+.gp b small{color:var(--steel);font-size:11px;margin-left:1px}
+.gp .dim{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gbar{height:8px;border-radius:99px;background:var(--stone-3);overflow:hidden}
+.gbar i{display:block;height:100%;background:linear-gradient(90deg,var(--cloak),var(--cloak-hi));border-radius:99px;animation:gfill .8s .2s ease-out both}
+@keyframes gfill{from{width:0}}
+.gp.bonus b{color:var(--cloak-hi)} .gp.bonus.neg b{color:var(--blood-hi)}
+@media (max-width:620px){.grade-p{grid-template-columns:1fr}.gp{grid-template-columns:96px 1fr 46px}.gp .dim{grid-column:1/-1;margin-top:-4px}}
+.stage .rnd{position:absolute;top:10px;right:12px;z-index:4;background:rgba(27,31,28,.88);border:1px solid var(--stone-4);border-radius:999px;padding:3px 10px;font-size:12px}
+.stage .rnd.ok{color:var(--cloak-hi)} .stage .rnd.late{color:var(--blood-hi)}
+.stage.poke.multi .rnd{top:auto;bottom:10px}
+/* fichas, escuadrones y jefes */
+.ficha-nav .spacer{flex:1}
+.ficha .f-hd{display:flex;gap:18px;align-items:center;margin-bottom:14px}
+.ficha .f-hd .pt{width:110px;height:110px;flex:none}
+.ficha .f-hd h2{margin:2px 0 6px}
+.ficha .f-hd p{max-width:62ch;margin:8px 0 0}
+.f-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.f-grid .panel p{margin:6px 0}
+.f-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 12px;margin:8px 0 12px}
+.f-stats div{display:flex;flex-direction:column} .f-stats b{font-family:var(--label);font-weight:700;font-size:22px} .f-stats span{font-size:12px;color:var(--steel)}
+.gdist{display:flex;gap:8px;align-items:flex-end;height:96px}
+.gdist div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;height:100%}
+.gdist .gcol{width:100%;max-width:26px;background:var(--stone-4);border-radius:4px 4px 0 0;min-height:2px}
+.gdist .grade{min-width:24px;height:20px;font-size:13px}
+.gdist small{font-size:11px;color:var(--steel)}
+.traits{list-style:none;padding:0;margin:6px 0;display:flex;flex-wrap:wrap;gap:6px 14px}
+.crow{display:flex;align-items:center;gap:6px;min-width:0}
+.crow .pt{width:28px;height:28px;flex:none;border-width:1px}
+.crow span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.panel .crow{padding:5px 0;border-bottom:1px solid var(--stone-3)} .panel .crow span{white-space:normal} .panel .crow:last-child{border-bottom:0}
+.panel .crow .num{margin-left:auto}
+table.comps td:first-child{min-width:170px} table.comps .crow span{white-space:normal;font-size:13px}
+.bosspick{display:flex;flex-wrap:wrap;gap:6px}
+button.card.cx{cursor:pointer;text-align:left}
 /* ---- efectos nuevos: --k es la velocidad de animación (1 normal, .5 rápida) ---- */
 #fx{--k:1}
 .bolt.big{stroke-width:11;filter:drop-shadow(0 0 10px var(--gold))}

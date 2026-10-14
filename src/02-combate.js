@@ -57,7 +57,11 @@ function genWave(w, type){
 }
 function startWave(){
   const type = curNode().t;
-  C = {titans:seeded('w'+S.wave+'-'+S.map.pos, ()=>genWave(S.wave, type)), start:S.squad.filter(s=>s.hp>0).length, queue:[], active:null, pending:null, log:[], ev:[], fx:{}, busy:false, used:{}, usedPw:{}, cd:{}, rounds:0, taken:0, gas0:S.gas, acts:{}};
+  C = {titans:seeded('w'+S.wave+'-'+S.map.pos, ()=>genWave(S.wave, type)), start:S.squad.filter(s=>s.hp>0).length, queue:[], active:null, pending:null, log:[], ev:[], fx:{}, busy:false, used:{}, usedPw:{}, cd:{}, rounds:0, taken:0, gas0:S.gas, acts:{},
+    // estadísticas para la nota del combate
+    dealt:0, sacts:0, rolls:[], drolls:[], crits:0, nat20:0, nat1:0, execs:0};
+  C.by = {}; S.squad.forEach(s=>{ C.by[s.id]={d:0,k:0,c:0,n:0,t:0,a:0}; }); C.comp = compKey(S.squad.filter(s=>s.hp>0));
+  C.hp0 = S.squad.filter(s=>s.hp>0).reduce((a,s)=>a+maxHp(s),0); C.ref = S.squad.filter(s=>s.hp>0).reduce((a,s)=>a+atkOf(s),0)/Math.max(1,C.start);
   C.titans.forEach(t=>{ if(t.m.coraza) t.plate = Math.round(t.max*t.m.coraza); });   // coraza del Acorazado: puntos de armadura
   const btr = S.pend && S.pend.btr;
   if(btr){ const b=C.titans[0]; b.n=`${ROSTER[btr.id].n} · ${b.n}`; b.max=b.hp=Math.round(b.max*(btr.id==='eren' ? 1+.15*btr.pws.length : 1.2)); b.atk*=1.1; }
@@ -121,7 +125,9 @@ function strike(s, t, mult, o={}){
   if(crit) d *= 1.5; if(fumble) d *= .5;
   d = Math.max(1, Math.round(d));
   const exec = !!o.nape && !t.boss && (t.hp-d)/t.max < .25 && d < t.hp;
-  if(exec){ d = t.hp; S.napes=(S.napes||0)+1; if(S.napes>=5) ach('nuca5'); }
+  if(exec){ d = t.hp; S.napes=(S.napes||0)+1; if(S.napes>=5) ach('nuca5'); C.execs++; }
+  { const B=C.by[s.id]; if(B){ B.d+=Math.min(d,t.hp); if(crit) B.c++; if(r===20 && !(f.crit>0)) B.n++; if(d>=t.hp) B.k++; } }
+  C.dealt += Math.min(d, t.hp); if(!(f.crit>0)) C.rolls.push(r); if(crit) C.crits++; if(r===20 && !(f.crit>0)) C.nat20++; if(r===1 && !(f.crit>0)) C.nat1++;
   t.hp = Math.max(0, t.hp-d);
   t.lastHit = s.id; t.threat = t.threat || {}; t.threat[s.id] = (t.threat[s.id]||0) + d;
   // primero el golpe; después lo que provoca (coraza rota, segunda fase)
@@ -152,6 +158,9 @@ function doAction(kind, target){
   if(kind.startsWith('it:')){ useItem(s, kind.slice(3), target); C.itemUsed=true; planAll(); header(); busyUI();
     // si el objeto abate al último enemigo, el combate termina ya (antes se quedaba esperando una orden sin objetivos)
     return play(()=>{ if(!liveT().length) return setTimeout(nextTurn, 140); C.busy=false; render(); }); }
+  // las acciones de apoyo cuentan media para el daño por acción (curar o cubrir no hunde la nota)
+  if(C.by[s.id]) C.by[s.id].a++;
+  C.sacts += SUPPORT.includes(kind==='skill' ? s.id : kind) ? .5 : 1;
   if(kind==='cut') strike(s, target, 1);
   else if(kind==='nape'){ S.gas-=1; strike(s, target, 1.6, {nape:true, verb:isHuman(target)?'apunta y remata a':'va a la nuca de'}); }
   else if(kind.startsWith('pw:')) usePower(s, kind.slice(3), target);
@@ -194,7 +203,7 @@ function wound(t, s, mult){   // devuelve al soldado alcanzado (el escudo puede 
   if(t.blind>0){ ev({k:'miss', t:ti, s:tgt.id, txt:'FALLA', m:`${t.n} ${TITANS[t.id].a.k?'dispara a ciegas':'manotea a ciegas'} y falla.`}); return null; }
   if(f.evade>0){ f.evade=0; ev({k:'miss', t:ti, s:tgt.id, txt:'ESQUIVA', m:`${nm(tgt)} esquiva a ${t.n}.`}); return null; }
   // tirada de esquiva: d20 + bono de velocidad; 20 siempre esquiva
-  const r=d20(), mod=Math.max(0, Math.floor((spdOf(tgt)-10)/3)), die=`d20 ${r}${mod?'+'+mod:''}`;
+  const r=d20(), mod=Math.max(0, Math.floor((spdOf(tgt)-10)/3)), die=`d20 ${r}${mod?'+'+mod:''}`; C.drolls.push(r);
   if(r+mod>=20){ ev({k:'miss', t:ti, s:tgt.id, txt:'ESQUIVA', die, roll:r, mod, m:`${nm(tgt)} esquiva a ${t.n} <small class="die">${die} · esquiva</small>`}); return null; }
   if(guard || f.guard>0) d*=.5;
   if(f.titan>0) d*=.5;
@@ -202,7 +211,7 @@ function wound(t, s, mult){   // devuelve al soldado alcanzado (el escudo puede 
   if(f.ward>0) d*=.6;
   d *= Math.max(.6, 1-.10*rel('cristal'));
   d = Math.max(1, Math.round(d));
-  tgt.hp = Math.max(0, tgt.hp-d); C.taken += d;
+  tgt.hp = Math.max(0, tgt.hp-d); C.taken += d; if(C.by[tgt.id]) C.by[tgt.id].t += d;
   ev({k:'bite', t:ti, s:tgt.id, d, die, roll:r, mod, big:mult>=1.5, hp:tgt.hp, max:maxHp(tgt), dead:tgt.hp<=0, m:`${t.n} ${t.v||'golpea a'} ${nm(tgt)}: ${d} <small class="die">${die}</small>${tgt.hp<=0?'. Ha caído.':''}`});
   return tgt;
 }
@@ -300,7 +309,7 @@ function useItem(s, k, target){
   switch(k){
     case 'humo': liveT().forEach(t=>{ t.blind=1; });   // el humo no se esquiva: ciega a todos, también a jefes y titanes alerta, sin dejarlos alerta
        ev({k:'roarAll', txt:'HUMO', m:`${nm(s)} lanza una bengala de humo. Los titanes no ven nada.`}); break;
-    case 'carga': { const d=Math.min(target.hp, itemDmg()); target.hp-=d;
+    case 'carga': { const d=Math.min(target.hp, itemDmg()); target.hp-=d; C.dealt+=d;
       ev({k:'slash', s:s.id, t:C.titans.indexOf(target), d, crit:false, exec:false, kill:target.hp<=0, boss:target.boss, hp:target.hp, max:target.max, boom:true, m:`${nm(s)} detona una carga en ${target.n}: ${d}${target.hp<=0?'. ¡Abatido!':''}`});
       if(target.plate>0){ target.plate=Math.max(0,target.plate-d); if(!target.plate && target.hp>0){ target.exposed=2; ev({k:'mark', fx:'break', t:C.titans.indexOf(target), txt:'¡CORAZA ROTA!', m:`La coraza de ${target.n} salta en pedazos.`}); } }
       checkPhase(target); break; }
@@ -322,4 +331,36 @@ function checkPhase(t){
   if(m.kick) m.kick=Math.max(2, m.kick-1);
   if(!m.aoe && !m.devour && !m.summon && !m.harden && !m.throw && !m.kick && !m.coraza) m.harden=3;
   ev({k:'roar', t:C.titans.indexOf(t), fx:'phase', txt:'SEGUNDA FASE', m:`${t.n} se enfurece: golpea más fuerte y más deprisa.`});
+}
+
+// ---- nota del combate (E a S+): rapidez, daño recibido, eficacia, suerte del d20 y estilo ----
+// par de rondas según el tipo de combate y cuántos enemigos hay (calibrado con el simulador)
+function parOf(type, n){ return type==='b' ? (C && C.titans[0] && C.titans[0].m.summon ? PAR.bs : PAR.b) : (type==='e' ? PAR.e : PAR.n) + PAR.k*(Math.min(3,n)-1); }
+const SUPPORT = ['jean','connie','reiner','historia','mike','pw:carguero','pw:acorazado','pw:martillo','pw:ataque'];
+const PAR = {n:2.3, e:3.3, k:.95, b:3.6, bs:5};
+const GRADES = [['S+',95],['S',87],['A',76],['B',63],['C',50],['D',36],['E',0]];
+const compKey = sq => sq.map(s=>s.id).sort().join('+');
+const clamp01 = x => Math.max(0, Math.min(1, x));
+function gradeOf(sc){ return GRADES.find(g=>sc>=g[1])[0]; }
+function rateFight(type){
+  const par = parOf(type, C.titans.length), r = C.rounds;
+  const all = C.rolls.concat(C.drolls), avg = all.length ? all.reduce((a,b)=>a+b,0)/all.length : 10.5;
+  const lost = C.start - alive().length, eff = C.sacts ? C.dealt/C.sacts/Math.max(1,C.ref) : 0, ratio = C.taken/Math.max(1,C.hp0);
+  const parts = [
+    {k:'rapidez', n:'Rapidez', max:30, v:30*clamp01((par*1.6 - r)/par), d:`${r} ronda${r===1?'':'s'} · par ${par.toFixed(1).replace('.',',')}`},
+    {k:'aguante', n:'Daño recibido', max:30, v:30*clamp01(1 - ratio/.6), d:`${Math.round(ratio*100)} % de la vida del escuadrón`},
+    {k:'eficacia', n:'Daño por acción', max:25, v:25*clamp01(Math.log2(Math.max(1,eff))/3), d:`×${eff.toFixed(2).replace('.',',')} sobre un corte normal`},
+    {k:'suerte', n:'Suerte del d20', max:15, v:Math.max(0, 10*clamp01((avg-6)/9) + Math.min(5, 2.5*C.nat20) - 2*C.nat1), d:`media ${avg.toFixed(1).replace('.',',')} en ${all.length} tirada${all.length===1?'':'s'}${C.nat20?` · ${C.nat20} × 20 natural`:''}${C.nat1?` · ${C.nat1} pifia${C.nat1>1?'s':''}`:''}`}
+  ];
+  const bonus = [];
+  if(C.execs) bonus.push({n:`Remates a la nuca ×${C.execs}`, v:Math.min(6, 2*C.execs)});
+  if(!C.taken) bonus.push({n:'Sin un rasguño', v:5});
+  if(lost) bonus.push({n:`${lost} baja${lost>1?'s':''}`, v:-15*lost});
+  let score = Math.round(parts.reduce((a,p)=>a+p.v,0) + bonus.reduce((a,b)=>a+b.v,0));
+  score = Math.max(0, Math.min(110, score));
+  let g = gradeOf(score);
+  // con bajas no hay S; si cae medio escuadrón, como mucho C
+  if(lost && GRADES.findIndex(x=>x[0]===g) < 2) g='A';
+  if(lost*2 >= C.start && GRADES.findIndex(x=>x[0]===g) < 4) g='C';
+  return {g, score, par, rounds:r, parts:parts.map(p=>({...p, v:Math.round(p.v)})), bonus, avg, lost, eff, taken:C.taken, type, boss: type==='b' ? C.titans[0].id : null};
 }

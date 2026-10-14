@@ -110,7 +110,8 @@ async function cloudPull(){
       store.set('meta', Object.assign(m, {unlocked:Math.max(m.unlocked, r.unlocked), best:Math.max(m.best, r.best),
         nine:[...new Set(m.nine.concat(r.nine))], endings:[...new Set(m.endings.concat(r.endings))], runs:Math.max(m.runs||0, r.runs),
         ach:[...new Set(m.ach.concat((r.extra&&r.extra.ach)||[]))], codex:mergeCodex(m.codex, r.extra&&r.extra.codex),
-        ngLevel:Math.max(m.ngLevel||0, r.ng_level||0), relics:[...new Set((m.relics||[]).concat((r.extra&&r.extra.relics)||[]))]})); }
+        ngLevel:Math.max(m.ngLevel||0, r.ng_level||0), relics:[...new Set((m.relics||[]).concat((r.extra&&r.extra.relics)||[]))],
+        stats: r.extra && r.extra.stats && (r.extra.stats.f||0) > ((m.stats&&m.stats.f)||0) ? r.extra.stats : m.stats})); }
     cloudPush(true);
     const ls = await sb.storage.from('player-images').list(uid, {search:'pack.json'});   // evita un 400 si aún no hay paquete
     if(ls.data && ls.data.some(o=>o.name==='pack.json')){ const img = await sb.storage.from('player-images').download(uid + '/pack.json'); if(img.data) mergePack(await img.data.text()); }
@@ -123,7 +124,7 @@ function cloudPush(now){
   if(!CLOUD.user) return;
   clearTimeout(pushT);
   pushT = setTimeout(async ()=>{ const m=meta();
-    const {error} = await CLOUD.sb.rpc('sync_progress_v2', {p_unlocked:m.unlocked, p_best:m.best, p_nine:m.nine, p_endings:m.endings, p_runs:m.runs||0, p_extra:{ach:m.ach, codex:m.codex, relics:m.relics||[]}});
+    const {error} = await CLOUD.sb.rpc('sync_progress_v2', {p_unlocked:m.unlocked, p_best:m.best, p_nine:m.nine, p_endings:m.endings, p_runs:m.runs||0, p_extra:{ach:m.ach, codex:m.codex, relics:m.relics||[], stats:m.stats||{}}});
     // las sagas desbloqueadas en la cuenta las fija el servidor al cerrar expediciones
     if(error){ CLOUD.msg='No se pudo guardar el progreso en la nube.'; render(); } }, now ? 0 : 800);
 }
@@ -135,6 +136,21 @@ async function cloudBoard(){
   CLOUD.board = error ? [] : data; if(error) CLOUD.msg='No se pudo cargar la clasificación.';
   if(!CLOUD.season){ const r = await CLOUD.sb.from('season_current').select('name,started_at').maybeSingle(); if(r && r.data) CLOUD.season = r.data; }   // temporada en curso: la tabla solo cuenta sus partidas
   render();
+}
+// récords por jefe y escuadrones de todos
+function cloudBossRecord(G, comp){
+  if(!CLOUD.user || !G.boss) return;
+  CLOUD.sb.rpc('submit_boss_record', {p_boss:G.boss, p_score:G.score, p_grade:G.g, p_rounds:Math.max(1,G.rounds), p_comp:comp, p_diff:S.diff==='veterano'?'veterano':'explorador', p_ng:S.ng||0}).then(()=>{ CLOUD.bossBoard=null; }, ()=>{});
+}
+async function cloudBossBoard(boss){
+  CLOUD.bossBoard = null; CLOUD.bossSel = boss; render();
+  const {data, error} = await CLOUD.sb.from('boss_board').select('display_name,user_id,score,grade,rounds,comp,diff,ng').eq('boss', boss).limit(30);
+  CLOUD.bossBoard = error ? [] : data; render();
+}
+async function cloudComps(){
+  CLOUD.comps = null; render();
+  const {data, error} = await CLOUD.sb.from('comp_stats').select('*').limit(200);
+  CLOUD.comps = error ? [] : (data||[]).filter(r=>r.comp); render();
 }
 async function cloudRename(n){
   n = (n||'').trim().slice(0,32); if(!n || !CLOUD.user) return;

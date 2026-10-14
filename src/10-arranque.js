@@ -23,6 +23,7 @@ function render(){
   document.body.classList.toggle('wide', scr==='combat' || scr==='map');
   $('screen').innerHTML = `<div>${tipHTML()}${V[scr]()}</div>`;
   if(scr==='event') rollDice($('screen'));
+  if(scr==='map') maybeMoment();
   if(!$('menu').hidden && typeof menuHTML==='function') $('menu').innerHTML = menuHTML();   // el menú refleja la sesión y los avisos
   if(scr!==lastScr){
     if(scr==='over'){ setTrack(null); sfx('lose'); }
@@ -56,7 +57,11 @@ function act(a, i){
   if(a==='login') return cloudLogin();
   if(a.startsWith('mail') && mailAct(a, i)) return;
   if(a==='logout') return cloudLogout();
-  if(a==='board'){ CLOUD.tab = i || CLOUD.tab || 'general'; scr='board'; cloudBoard(); return; }
+  if(a==='board'){ CLOUD.tab = i || CLOUD.tab || 'general'; scr='board'; if(CLOUD.tab==='jefes') return cloudBossBoard(CLOUD.bossSel || BOSSES[0]); cloudBoard(); return; }
+  if(a==='bossb') return cloudBossBoard(i);
+  if(a==='moment') return showMoment(+i, 'Momento', true);
+  if(a==='ficha'){ fichaId=i; scr='ficha'; window.scrollTo(0,0); return render(); }
+  if(a==='comps'){ compsTab=i||'mine'; scr='comps'; if(compsTab==='all') return cloudComps(); return render(); }
   if(a==='rename'){ const f=document.getElementById('nm'); return cloudRename(f && f.value); }
   if(a==='continue'){
     S=migrateRun(store.get('run')); C=null;
