@@ -100,9 +100,10 @@ const V = {
       <div class="cards">${starters().map(id=>`<button class="card" data-a="start" data-i="${id}">${solCard(id)}</button>`).join('')}
         ${ACH.filter(a=>a.unlock && !starters().includes(a.unlock)).map(a=>`<div class="card locked"><div class="who">${portrait(a.unlock,true)}<div><h3>${ROSTER[a.unlock].n}</h3><span class="lbl">Bloqueado</span></div></div><p>Se desbloquea con el logro «${a.n}»: ${a.d}</p></div>`).join('')}</div>`;
     const pool=Object.keys(ROSTER).filter(id=>ROSTER[id].sg<=g && !ROSTER[id].rare);
-    return `<div><span class="lbl">Saga ${g+1} · ${SAGAS[g].n}</span><h2>Forma un escuadrón de tres</h2>
-      <p class="dim">Empiezan en nivel ${g*PER+1} y con ${KITS[g]} mejoras al azar, como si vinieran de la saga anterior.</p></div>
-      <div class="row"><button class="btn" data-a="go" ${picked.length===3?'':'disabled'}>Partir · ${picked.length} de 3</button><button class="btn ghost" data-a="sagas">Cambiar de saga</button></div>
+    const n=startSize(g);
+    return `<div><span class="lbl">Saga ${g+1} · ${SAGAS[g].n}</span><h2>Forma un escuadrón de ${n===4?'cuatro':'tres'}</h2>
+      <p class="dim">Empiezan en nivel ${startLvl(g)}, con ${KITS[g]} mejoras al azar y ${KIT_PW[g]} poder${KIT_PW[g]>1?'es':''} de los Nueve, como si vinieran de las sagas anteriores.</p></div>
+      <div class="row"><button class="btn" data-a="go" ${picked.length===n?'':'disabled'}>Partir · ${picked.length} de ${n}</button><button class="btn ghost" data-a="sagas">Cambiar de saga</button></div>
       <div class="cards">${pool.map(id=>`<button class="card ${picked.includes(id)?'sel':''}" data-a="pickst" data-i="${id}" aria-pressed="${picked.includes(id)}">${solCard(id)}</button>`).join('')}</div>`;
   },
   map(){
@@ -121,7 +122,7 @@ const V = {
     const tit = C.titans.map((t,i)=>{
       const pk = canAct && P && P.tgt==='enemy' && t.hp>0;
       const e = a && t.hp>0 ? eff(a,t) : 1;
-      const st=[t.mark>0&&'Marcado',t.stun>0&&'Derribado',t.blind>0&&'Cegado',t.hard>0&&'Endurecido'].filter(Boolean).join(' · ');
+      const st=[t.mark>0&&'Marcado',t.stun>0&&'Derribado',t.blind>0&&'Cegado',t.hard>0&&'Endurecido',!(t.stun>0||t.blind>0)&&t.alert>0&&`Alerta ${t.alert}`].filter(Boolean).join(' · ');
       const cl=['titan','z-'+t.cls, t.boss&&'boss', t.phase&&'enraged', t.hp<=0&&'dead', pk&&'pick'].filter(Boolean).join(' ');
       const inner=`${e!==1?`<span class="eff num ${e>1?'up':'down'}">×${String(e).replace('.',',')}</span>`:''}
         <span class="art" style="animation-delay:${ph-i*.7}s">${titanArt(t.id)}</span>
@@ -133,11 +134,11 @@ const V = {
     }).join('');
     let orders='', hint='Los titanes se mueven…';
     if(canAct){
-      const R=ROSTER[a.id], sk=R.sk, skOff = S.gas<sk.gas || (sk.once&&C.used[a.id]);
+      const R=ROSTER[a.id], sk=R.sk, cd=C.cd[a.id]||0, skOff = S.gas<sk.gas || (sk.once&&C.used[a.id]) || cd>0;
       const sel=k=>P&&P.kind===k?'sel':'';
       orders=`<button class="order ${sel('cut')}" data-a="order" data-i="cut"><b>Corte</b><span>Ataque básico. No gasta gas.</span></button>
         <button class="order ${sel('nape')}" data-a="order" data-i="nape" ${S.gas<1?'disabled':''}><b>A la nuca · 1 gas</b><span>Daño ×1,6. Remata a titanes normales por debajo del 25 %.</span></button>
-        <button class="order ${sel('skill')}" data-a="order" data-i="skill" ${skOff?'disabled':''}><b>${sk.n}${sk.gas?` · ${sk.gas} gas`:''}</b><span>${sk.d}</span></button>`
+        <button class="order ${sel('skill')}" data-a="order" data-i="skill" ${skOff?'disabled':''}><b>${sk.n}${sk.gas?` · ${sk.gas} gas`:''}${cd>0?` · recarga ${cd}`:''}</b><span>${cd>0?`Disponible dentro de ${cd} turno${cd>1?'s':''}. `:''}${sk.d}${sk.cd&&!cd?` Recarga: ${sk.cd} turno${sk.cd>1?'s':''}.`:''}</span></button>`
         + pwOf(a.id).map(k=>`<button class="order pw ${sel('pw:'+k)}" data-a="order" data-i="pw:${k}" ${C.usedPw[k]?'disabled':''}><b>Transformarse · ${POWERS[k].n.replace(/^Titán (de )?/,'')}</b><span>${C.usedPw[k]?'Ya usado en este combate.':POWERS[k].d}</span></button>`).join('');
       if((S.items||[]).length) orders += `<div class="items"><span class="lbl">Objetos${C.itemUsed?' · ya usaste uno este turno':' · acción libre'}</span>${S.items.map((k,j)=>`<button class="btn ghost sm ${sel('it:'+k)}" data-a="order" data-i="it:${k}" title="${ITEMS[k].d}" ${C.itemUsed?'disabled':''}>${ITEMS[k].n}</button>`).join('')}</div>`;
       hint = P ? (P.tgt==='enemy'?'Elige un titán.':'Elige a un compañero.') : `Turno de ${R.n}.`;
@@ -193,7 +194,7 @@ const V = {
         <label class="btn ghost sm file" for="au-${k}" tabindex="0">${MY[k]?'Cambiar audio':'Cargar audio'}</label><input class="vh" type="file" accept="audio/*" id="au-${k}" data-au="${k}">
         ${MY[k]?`<button class="btn ghost sm" data-a="rmau" data-i="${k}">Quitar</button>`:''}</div>`).join('')}</div>
       <span class="lbl">Soldados</span><div class="gal">${Object.keys(ROSTER).map(id=>cell(id,ROSTER[id].n,portrait(id,true))).join('')}</div>
-      <span class="lbl">Titanes</span><div class="gal">${Object.keys(TITANS).map(id=>cell(id,TITANS[id].n,`<span class="art">${titanArt(id)}</span>`)).join('')}</div>`;
+      <span class="lbl">Titanes y enemigos</span><div class="gal">${Object.keys(TITANS).map(id=>cell(id,TITANS[id].n,`<span class="art">${titanArt(id)}</span>`)).join('')}</div>`;
   },
   end(won){
     const f=S.fallen.map(id=>`<li>${ROSTER[id].n}</li>`).join('');
@@ -250,7 +251,7 @@ const V = {
     return `<div><h2>Logros y códice</h2><p class="dim">${M.ach.length} de ${ACH.length} logros. Algunos desbloquean reclutas iniciales para la saga 1.</p></div>
       <div><button class="btn ghost" data-a="home">Volver</button></div>
       <div class="achs">${ACH.map(a=>{ const got=M.ach.includes(a.k); return `<div class="ach ${got?'got':''}"><b>${a.n}</b><span>${a.d}</span>${a.unlock?`<span class="lbl">${got?'Desbloquea':'Desbloqueará'} a ${ROSTER[a.unlock].n}</span>`:''}</div>`; }).join('')}</div>
-      <span class="lbl">Titanes · ${Object.keys(c.t||{}).length} de ${Object.keys(TITANS).length} vistos</span>
+      <span class="lbl">Titanes y enemigos · ${Object.keys(c.t||{}).length} de ${Object.keys(TITANS).length} vistos</span>
       <div class="gal">${Object.keys(TITANS).map(id=>{ const seen=codexSeen('t',id); return `<div class="card cx ${seen?'':'unk'}"><span class="art">${titanArt(id)}</span><b>${seen?TITANS[id].n:'Sin descubrir'}</b>${seen?`<span class="lbl num">${CLS[TITANS[id].cls]} · abatidos: ${c.t[id]||0}</span>${TITANS[id].boss?`<span class="dim" style="font-size:13px">${BOSS_PW[id]?'Puede soltar el '+POWERS[BOSS_PW[id]].n+'.':'Jefe final.'}</span>`:''}`:''}</div>`; }).join('')}</div>
       <span class="lbl">Soldados · ${Object.keys(c.s||{}).length} de ${Object.keys(ROSTER).length} reclutados</span>
       <div class="gal">${Object.keys(ROSTER).map(id=>{ const seen=codexSeen('s',id); return `<div class="card cx ${seen?'':'unk'}">${portrait(id,true)}<b>${seen?ROSTER[id].n:'Sin reclutar'}</b>${seen?`<span class="lbl">${STYLE[ROSTER[id].st]} · ${ROSTER[id].sk.n}</span>`:''}</div>`; }).join('')}</div>`;

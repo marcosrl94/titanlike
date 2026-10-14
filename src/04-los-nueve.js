@@ -3,12 +3,12 @@ const POWERS = {
   ataque:   {n:'Titán de Ataque', art:'atq', tgt:'none', d:'3 turnos con daño ×2; recibe la mitad.'},
   colosal:  {n:'Titán Colosal', art:'col', tgt:'none', d:'Explosión: daño ×1,8 a todos los titanes, ignorando resistencias. Pierde el 15 % de sus PV.'},
   acorazado:{n:'Titán Acorazado', art:'aco', tgt:'none', d:'4 turnos: recibe los golpes del escuadrón y solo sufre una cuarta parte.'},
-  hembra:   {n:'Titán Hembra', art:'hem', tgt:'enemy', d:'Patada endurecida: daño ×2,2 y derriba, también a los jefes.'},
+  hembra:   {n:'Titán Hembra', art:'hem', tgt:'enemy', d:'Patada endurecida: daño ×2,2 y derriba, también a los jefes (si no están alerta).'},
   bestia:   {n:'Titán Bestia', art:'bes', tgt:'none', d:'Lluvia de rocas: daño ×1,3 a todos los titanes.'},
   mandibula:{n:'Titán Mandíbula', art:'man', tgt:'enemy', d:'Mordisco: daño ×2,8 que ignora resistencias y endurecimiento.'},
-  carguero: {n:'Titán Carguero', art:'car', tgt:'none', d:'Suministros: depósito de gas lleno y cura el 20 % a todo el escuadrón.'},
+  carguero: {n:'Titán Carguero', art:'car', tgt:'none', d:'Suministros: +4 de gas y cura el 20 % a todo el escuadrón.'},
   martillo: {n:'Titán Martillo de Guerra', art:'mar', tgt:'none', d:'Armas de cristal: 3 turnos con +35 % de daño y −40 % de daño recibido para todos.'},
-  fundador: {n:'Titán Fundador', art:'fun', tgt:'none', d:'El Grito: derriba y marca a los titanes normales; marca a los jefes.'}
+  fundador: {n:'Titán Fundador', art:'fun', tgt:'none', d:'El Grito: derriba (si no están alerta) y marca a los titanes normales; marca a los jefes.'}
 };
 const NINE = Object.keys(POWERS);
 const EREN3 = ['ataque','fundador','martillo'];
@@ -56,12 +56,12 @@ function usePower(s, k, target){
     case 'colosal': liveT().forEach(t=>strike(s,t,1.8,{pierce:true, verb:'abrasa a'}));
       { const d=Math.min(s.hp-1, Math.round(maxHp(s)*.15)); if(d>0){ s.hp-=d; ev({k:'hurt', s:s.id, d, hp:s.hp, max:maxHp(s)}); } } break;
     case 'acorazado': f.guard=5; f.armor=5; f.form=k; f.formT=5; break;
-    case 'hembra': strike(s,target,2.2,{verb:'patea a'}); if(target.hp>0){ target.stun=1; ev({k:'mark', t:ti, txt:'DERRIBADO'}); } break;
+    case 'hembra': strike(s,target,2.2,{verb:'patea a'}); applyCC(target,'stun',{boss:true}); break;
     case 'bestia': liveT().forEach(t=>strike(s,t,1.3,{verb:'lanza rocas a'})); break;
     case 'mandibula': strike(s,target,2.8,{pierce:true, verb:'muerde a'}); break;
-    case 'carguero': S.gas=S.gasMax; alive().forEach(a=>{ const h=Math.min(maxHp(a)-a.hp, Math.round(maxHp(a)*.2)); a.hp+=h; if(h) ev({k:'heal', s:a.id, d:h, hp:a.hp, max:maxHp(a)}); }); break;
+    case 'carguero': S.gas=Math.min(S.gasMax, S.gas+4); alive().forEach(a=>{ const h=Math.min(maxHp(a)-a.hp, Math.round(maxHp(a)*.2)); a.hp+=h; if(h) ev({k:'heal', s:a.id, d:h, hp:a.hp, max:maxHp(a)}); }); break;
     case 'martillo': alive().forEach(a=>{ C.fx[a.id].up=3; C.fx[a.id].ward=3; }); ev({k:'buff', ids:alive().map(a=>a.id), txt:'CRISTAL', m:'Armas de cristal para todo el escuadrón.'}); break;
-    case 'fundador': liveT().forEach(t=>{ if(t.boss) t.mark=3; else { t.stun=1; t.mark=2; } }); ev({k:'roarAll', txt:'EL GRITO', m:'El Grito recorre el campo. Los titanes se detienen.'}); break;
+    case 'fundador': liveT().forEach(t=>{ if(t.boss) t.mark=3; else { applyCC(t,'stun',{quiet:true}); t.mark=2; } }); ev({k:'roarAll', txt:'EL GRITO', m:'El Grito recorre el campo. Los titanes se detienen.'}); break;
   }
 }
 

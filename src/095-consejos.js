@@ -10,13 +10,14 @@ const TIPS = {
   camp:   {t:'Campamento', d:'Una sola acción: descansar, entrenar o reabastecer gas. Si guardaste un poder en la reserva, aquí puedes inyectarlo.'},
   items:  {t:'Objetos', d:'Los objetos son una acción libre: puedes usar uno por turno sin perder la orden del soldado. Sobre cada titán ves el daño previsto de la orden elegida y si lo abatiría.'},
   phase:  {t:'Segunda fase', d:'Al bajar del 50 % de PV, los jefes se enfurecen: pegan algo más fuerte, son más rápidos y repiten antes sus ataques especiales.'},
+  alert:  {t:'Alerta', d:'Un titán cegado o derribado se pone en guardia: durante sus 2 turnos siguientes no se deja cegar ni derribar otra vez. Los cambiantes ni siquiera se dejan cegar: regeneran el ojo al instante. El control da un respiro, no anula al enemigo.'},
   power:  {t:'Poderes de los Nueve', d:'Quien hereda un poder gana un 25 % de PV y puede transformarse una vez por combate. Cada soldado lleva uno; Eren, hasta tres.'}
 };
 let tipsSeen = store.get('tips') || {};
 function currentTip(){
   if(tipsSeen.off) return null;
   const k = scr==='map' ? 'map'
-    : scr==='combat' && C && C.active && !C.busy ? (C.titans.some(t=>t.phase) && !tipsSeen.phase ? 'phase' : C.titans.some(t=>t.boss) && !tipsSeen.boss ? 'boss' : (S.items||[]).length && !tipsSeen.items ? 'items' : ['combat','intent','eff'].find(x=>!tipsSeen[x]))
+    : scr==='combat' && C && C.active && !C.busy ? (C.titans.some(t=>t.alert>0) && !tipsSeen.alert ? 'alert' : C.titans.some(t=>t.phase) && !tipsSeen.phase ? 'phase' : C.titans.some(t=>t.boss) && !tipsSeen.boss ? 'boss' : (S.items||[]).length && !tipsSeen.items ? 'items' : ['combat','intent','eff'].find(x=>!tipsSeen[x]))
     : scr==='reward' ? 'reward' : scr==='event' ? 'event' : scr==='camp' ? 'camp'
     : scr==='scene' && S && S.scene && S.scene.k==='drop' ? 'power' : null;
   return k && !tipsSeen[k] ? k : null;

@@ -10,23 +10,23 @@ const ROSTER = {
   eren:   {n:'Eren',   st:'fuerza',  hp:95,  atk:16, spd:10, sg:0,
            sk:{n:'Furia', gas:1, tgt:'enemy', d:'Daño ×1,5; ×2,2 si le quedan menos de la mitad de los PV.'}},
   mikasa: {n:'Mikasa', st:'veloz',   hp:85,  atk:19, spd:16, sg:0,
-           sk:{n:'Corte doble', gas:2, tgt:'enemy', d:'Dos cortes al 75 % sobre el mismo titán.'}},
+           sk:{n:'Corte doble', gas:2, tgt:'enemy', d:'Dos cortes al 90 % sobre el mismo titán, cada uno con su propia opción de crítico.'}},
   armin:  {n:'Armin',  st:'tactico', hp:82,  atk:14, spd:12, sg:0,
            sk:{n:'Plan de Armin', gas:1, tgt:'enemy', d:'Corta y marca a un titán: recibe +50 % de daño durante 3 turnos.'}},
   sasha:  {n:'Sasha',  st:'preciso', hp:70,  atk:15, spd:14, sg:0,
-           sk:{n:'Flecha al ojo', gas:1, tgt:'enemy', d:'Daño ×1,2 y ciega: su próximo ataque falla.'}},
+           sk:{n:'Flecha al ojo', gas:1, tgt:'enemy', d:'Daño ×1,2 y ciega a un titán normal: su próximo ataque falla y después se pone alerta 2 turnos. Los cambiantes regeneran el ojo al instante.'}},
   jean:   {n:'Jean',   st:'tactico', hp:80,  atk:15, spd:13, sg:0,
-           sk:{n:'Flanqueo', gas:2, tgt:'none', d:'Todo el escuadrón gana +35 % de daño durante 2 turnos.'}},
+           sk:{n:'Flanqueo', gas:2, cd:2, tgt:'none', d:'Todo el escuadrón gana +35 % de daño durante 2 turnos.'}},
   connie: {n:'Connie', st:'veloz',   hp:70,  atk:14, spd:17, sg:0,
-           sk:{n:'Señuelo', gas:1, tgt:'none', d:'Atrae a los titanes 2 turnos y esquiva el primer golpe.'}},
+           sk:{n:'Señuelo', gas:1, cd:2, tgt:'none', d:'Atrae a los titanes 2 turnos y esquiva el primer golpe.'}},
   hange:  {n:'Hange',  st:'tactico', hp:75,  atk:14, spd:12, sg:0,
            sk:{n:'Lanza trueno', gas:3, tgt:'enemy', d:'Daño ×2,6 que ignora las resistencias del titán.'}},
   reiner: {n:'Reiner', st:'fuerza',  hp:115, atk:15, spd:8,  sg:0,
-           sk:{n:'Escudo humano', gas:2, tgt:'none', d:'3 turnos: recibe los golpes del escuadrón a mitad de daño.'}},
+           sk:{n:'Escudo humano', gas:2, cd:3, tgt:'none', d:'3 turnos: recibe los golpes del escuadrón a mitad de daño.'}},
   annie:  {n:'Annie',  st:'preciso', hp:80,  atk:18, spd:15, sg:0,
-           sk:{n:'Barrido', gas:2, tgt:'enemy', d:'Daño ×1,3 y derriba: el titán pierde su próximo turno.'}},
+           sk:{n:'Barrido', gas:2, tgt:'enemy', d:'Daño ×1,3 y derriba a un titán normal: pierde su próximo turno y luego se pone alerta 2 turnos.'}},
   historia:{n:'Historia',st:'preciso',hp:65, atk:11, spd:12, sg:0,
-           sk:{n:'Primeros auxilios', gas:1, tgt:'ally', d:'Cura a un compañero el 40 % de sus PV.'}},
+           sk:{n:'Primeros auxilios', gas:1, cd:1, tgt:'ally', d:'Cura a un compañero el 30 % de sus PV.'}},
   levi:   {n:'Levi',   st:'veloz',   hp:90,  atk:24, spd:20, sg:0, rare:true,
            sk:{n:'Torbellino', gas:3, tgt:'none', d:'Corta a todos los titanes al 100 %.'}},
   erwin:  {n:'Erwin',  st:'tactico', hp:85,  atk:13, spd:11, sg:0, rare:true,
@@ -36,7 +36,7 @@ const ROSTER = {
   nanaba: {n:'Nanaba', st:'veloz',   hp:78,  atk:17, spd:17, sg:1,
            sk:{n:'Pasada rasante', gas:2, tgt:'none', d:'Dos cortes al 110 % sobre titanes al azar.'}},
   mike:   {n:'Mike',   st:'fuerza',  hp:105, atk:18, spd:11, sg:1, rare:true,
-           sk:{n:'Olfato', gas:2, tgt:'none', d:'Huele el punto débil: 2 turnos en los que todo el escuadrón asesta críticos.'}},
+           sk:{n:'Olfato', gas:2, cd:2, tgt:'none', d:'Huele el punto débil: 2 turnos en los que todo el escuadrón asesta críticos.'}},
   floch:  {n:'Floch',  st:'preciso', hp:75,  atk:16, spd:13, sg:2,
            sk:{n:'Salva de lanzas', gas:3, tgt:'none', d:'Daño ×1,2 a todos los titanes, ignorando resistencias.'}},
   gabi:   {n:'Gabi',   st:'preciso', hp:68,  atk:20, spd:15, sg:3,
@@ -63,14 +63,22 @@ const TITANS = {
   bes: {n:'Titán Bestia', cls:'grande', hp:335, atk:14, spd:10, boss:1, m:{aoe:2, txt:'LLUVIA DE ROCAS'}, a:{R:14,sh:44,bel:20,arm:92,hy:36,h:'#4a3f33',fur:1}},
   aco: {n:'Titán Acorazado', cls:'blindado', hp:340, atk:15, spd:9, boss:1, m:{aoe:3, txt:'EMBESTIDA'}, a:{R:15,sh:48,bel:18,arm:64,hy:30,h:'#d9c27a',armor:1}},
   son: {n:'Titán Sonriente', cls:'anormal', hp:350, atk:15, spd:13, boss:1, m:{devour:3}, a:{R:24,sh:40,bel:20,arm:58,hy:44,h:'#c9b48a',tilt:-7}},
-  rod: {n:'Titán de Rod Reiss', cls:'grande', hp:470, atk:11, spd:3, boss:1, m:{aura:.3}, a:{R:12,sh:54,bel:40,arm:50,hy:44,flay:1,bald:1}},
-  aco2:{n:'Titán Acorazado, segundo asalto', cls:'blindado', hp:360, atk:16, spd:10, boss:1, m:{aoe:3, harden:4, txt:'EMBESTIDA'}, a:{R:15,sh:48,bel:18,arm:64,hy:30,h:'#d9c27a',armor:1,up:1}},
-  col2:{n:'Titán Colosal de Bertolt', cls:'grande', hp:420, atk:15, spd:6, boss:1, m:{aoe:2, aura:.2, txt:'EXPLOSIÓN DE VAPOR'}, a:{R:19,sh:52,bel:22,arm:60,hy:36,flay:1,bald:1,up:1}},
-  mar: {n:'Titán Martillo de Guerra', cls:'blindado', hp:360, atk:16, spd:12, boss:1, m:{aoe:3, harden:2, txt:'PÚAS DE CRISTAL'}, a:{R:15,sh:40,bel:16,arm:62,hy:30,sk:'#e4e0d2',bald:1,armor:1}},
-  man: {n:'Titán Mandíbula', cls:'pequeno', hp:300, atk:15, spd:22, boss:1, twice:true, m:{devour:4}, a:{R:23,sh:34,bel:18,arm:50,hy:56,h:'#d9c27a',tilt:8,armor:1}},
+  rod: {n:'Titán de Rod Reiss', cls:'grande', hp:520, atk:11, spd:3, boss:1, m:{aura:.3}, a:{R:12,sh:54,bel:40,arm:50,hy:44,flay:1,bald:1}},
+  aco2:{n:'Titán Acorazado, segundo asalto', cls:'blindado', hp:400, atk:16, spd:10, boss:1, m:{aoe:3, harden:4, txt:'EMBESTIDA'}, a:{R:15,sh:48,bel:18,arm:64,hy:30,h:'#d9c27a',armor:1,up:1}},
+  col2:{n:'Titán Colosal de Bertolt', cls:'grande', hp:470, atk:15, spd:6, boss:1, m:{aoe:2, aura:.2, txt:'EXPLOSIÓN DE VAPOR'}, a:{R:19,sh:52,bel:22,arm:60,hy:36,flay:1,bald:1,up:1}},
+  mar: {n:'Titán Martillo de Guerra', cls:'blindado', hp:410, atk:16, spd:12, boss:1, m:{aoe:3, harden:2, txt:'PÚAS DE CRISTAL'}, a:{R:15,sh:40,bel:16,arm:62,hy:30,sk:'#e4e0d2',bald:1,armor:1}},
+  man: {n:'Titán Mandíbula', cls:'pequeno', hp:350, atk:16, spd:22, boss:1, twice:true, m:{devour:4}, a:{R:23,sh:34,bel:18,arm:50,hy:56,h:'#d9c27a',tilt:8,armor:1}},
   atq: {n:'Titán de Ataque', cls:'grande', hp:100, atk:15, spd:10, a:{R:15,sh:42,bel:17,arm:62,hy:30,h:'#3a2a1e',bob:1}},
   car: {n:'Titán Carguero', cls:'anormal', hp:100, atk:12, spd:14, a:{R:20,sh:46,bel:28,arm:40,hy:66,h:'#22201f',tilt:-4,armor:1}},
-  fun: {n:'Titán Fundador', cls:'grande', hp:520, atk:16, spd:8, boss:1, m:{aoe:2, harden:5, summon:3, txt:'EL RETUMBAR'}, a:{R:14,sh:50,bel:14,arm:70,hy:28,sk:'#d8d2c0',h:'#2e2a26',bob:1}}
+  // Marley: ejército humano (saga 4, Liberio). v: verbo del ataque; a.k: tipo de dibujo
+  sol: {n:'Soldado de Marley', cls:'pequeno', hp:58, atk:13, spd:15, v:'dispara a', a:{k:'soldier'}},
+  tir: {n:'Tirador de élite', cls:'anormal', hp:64, atk:15, spd:19, v:'dispara a', a:{k:'sniper'}},
+  art: {n:'Artillería antititán', cls:'grande', hp:118, atk:20, spd:5, v:'cañonea a', a:{k:'cannon'}},
+  pz:  {n:'Unidad Panzer', cls:'blindado', hp:108, atk:14, spd:9, twice:true, v:'ametralla a', a:{k:'panzer'}},
+  // el Retumbar: titanes de las murallas y portadores del pasado
+  mur: {n:'Titán de las murallas', cls:'grande', hp:145, atk:17, spd:4, a:{R:19,sh:50,bel:22,arm:58,hy:38,flay:1,bald:1}},
+  pas: {n:'Portador del pasado', cls:'anormal', hp:92, atk:14, spd:13, a:{R:16,sh:40,bel:17,arm:60,hy:34,sk:'#b9b3a6',h:'#2e2a26',bob:1}},
+  fun: {n:'Titán Fundador', cls:'grande', hp:500, atk:16, spd:8, boss:1, m:{aoe:3, harden:5, summon:3, txt:'EL RETUMBAR'}, a:{R:14,sh:50,bel:14,arm:70,hy:28,sk:'#d8d2c0',h:'#2e2a26',bob:1}}
 };
 const SAGAS = [
   {n:'La caída de Trost', d:'El muro Rose cede. Reclutas recién licenciados contra titanes de verdad.', start:['eren','mikasa','armin'], zones:[
@@ -83,12 +91,12 @@ const SAGAS = [
     {n:'Llanura de los gigantes', boss:'son', pool:['t7','t15','an1','an3','cu']}]},
   {n:'Regreso a Shiganshina', d:'La operación para recuperar el muro María y llegar al sótano.', zones:[
     {n:'Distrito de Orvud', boss:'rod', pool:['t7','t10','t15','an2','bl']},
-    {n:'Shiganshina', boss:'aco2', pool:['t10','t15','an3','cu','bl']},
-    {n:'Muro María', boss:'col2', pool:['t15','an2','an3','cu','bl']}]},
-  {n:'Marley', d:'Al otro lado del mar el enemigo ya no son solo titanes.', zones:[
-    {n:'Liberio', boss:'mar', pool:['pm','t7','an3','cu','bl']},
-    {n:'Fuerte Salta', boss:'man', pool:['pm','t15','an3','cu','bl']},
-    {n:'El Retumbar', boss:'fun', pool:['pm','t15','an2','cu','bl']}]}
+    {n:'Shiganshina', boss:'aco2', pool:['t10','t15','pm','an3','bl']},
+    {n:'Muro María', boss:'col2', pool:['t15','pm','an2','cu','bl']}]},
+  {n:'Marley', d:'Al otro lado del mar el enemigo es un ejército. Y luego, el Retumbar.', zones:[
+    {n:'Liberio', boss:'mar', pool:['sol','sol','tir','art','pz']},
+    {n:'Fuerte Salta', boss:'man', pool:['mur','pas','pas','pz','art']},
+    {n:'El Retumbar', boss:'fun', pool:['mur','mur','pas']}]}
 ];
 const PER = 15, TOTAL = SAGAS.length*PER;
 const NODE = {
@@ -99,14 +107,15 @@ const NODE = {
   b:{n:'Jefe', d:'Un titán cambiante. Abre la siguiente zona.'}
 };
 const UPG = {
-  cuchillas:{n:'Cuchillas ultraduras', d:'+15 % de daño para todo el escuadrón.', stack:true},
-  capa:     {n:'Capas de exploración', d:'+15 % de PV máximos para todos.', stack:true},
-  cristal:  {n:'Placas endurecidas', d:'El escuadrón recibe un 12 % menos de daño (máximo 5).', stack:true, max:5},
-  caballos: {n:'Caballos de refresco', d:'+3 de velocidad para todos.', stack:true},
-  bengala:  {n:'Bengalas verdes', d:'+2 de gas al empezar cada combate.', stack:true},
-  vendas:   {n:'Carro de enfermería', d:'Cura un 15 % extra tras cada combate (máximo 4).', stack:true, max:4},
-  lanzas:   {n:'Lanzas trueno', d:'+30 % de daño contra los titanes cambiantes (jefes).', stack:true},
-  bombona:  {n:'Bombonas de reserva', d:'+3 de gas máximo y depósito lleno.', stack:true},
+  cuchillas:{n:'Cuchillas ultraduras', d:'+15 % de daño para todo el escuadrón (máximo 5).', stack:true, max:5},
+  capa:     {n:'Capas de exploración', d:'+15 % de PV máximos para todos (máximo 5).', stack:true, max:5},
+  cristal:  {n:'Placas endurecidas', d:'El escuadrón recibe un 10 % menos de daño (máximo 4).', stack:true, max:4},
+  caballos: {n:'Caballos de refresco', d:'+3 de velocidad para todos (máximo 3).', stack:true, max:3},
+  bengala:  {n:'Bengalas verdes', d:'+1 de gas al empezar cada combate (máximo 2).', stack:true, max:2},
+  vendas:   {n:'Carro de enfermería', d:'Cura un 10 % extra tras cada combate (máximo 3).', stack:true, max:3},
+  lanzas:   {n:'Lanzas trueno', d:'+30 % de daño contra los titanes cambiantes (máximo 3).', stack:true, max:3},
+  bombona:  {n:'Bombonas de reserva', d:'+2 de gas máximo y depósito lleno (máximo 3).', stack:true, max:3},
   raciones: {n:'Raciones de campaña', d:'Cura ahora el 45 % de los PV de todo el escuadrón.'},
+  recarga:  {n:'Bombona de repuesto', d:'+4 de gas ahora.'},
   shadis:   {n:'Instrucción de Shadis', d:'Todo el escuadrón sube 1 nivel ahora.'}
 };

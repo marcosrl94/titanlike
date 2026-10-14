@@ -20,7 +20,7 @@ function ai(){ const a=C.active,R=ROSTER[a.id],sk=R.sk,ts=liveT();
     if(S.items.includes('bombona') && S.gas<2) return doAction('it:bombona');
   }
   const pw=pwOf(a.id).find(k=>!C.usedPw[k]); if(pw && (C.titans.some(t=>t.boss) || Math.random()<.35)){ USE[pw]=(USE[pw]||0)+1; return doAction('pw:'+pw, best); }
-  if(S.gas>=sk.gas && !(sk.once&&C.used[a.id]) && Math.random()<.6){
+  if(S.gas>=sk.gas && !(sk.once&&C.used[a.id]) && !(C.cd[a.id]>0) && Math.random()<.6){
     if(sk.tgt==='ally'){ const w=alive().sort((x,y)=>x.hp/maxHp(x)-y.hp/maxHp(y))[0]; if(w.hp<maxHp(w)*.6) return doAction('skill',w); }
     else if(sk.tgt==='none'){ const f=C.fx[a.id]; if(!(f.titan||f.up||f.guard||f.taunt||f.crit)) return doAction('skill'); }
     else if(!(a.id==='armin'&&best.mark)) return doAction('skill',best);
@@ -49,7 +49,7 @@ function rep(label, f){ const r=[]; for(let i=0;i<N;i++) r.push(f());
   const boss={}; r.forEach(x=>{ if(x<=TOTAL && x%5===0) boss[x]=(boss[x]||0)+1; });
   console.log(label, 'superan saga 1-4 (%):', reach.slice(1).map((v,i)=>reach[i]?(100*v/reach[i]).toFixed(0):'-').join(' / '), '| total', (100*reach[4]/N).toFixed(1)+'%', '| caen en jefe:', JSON.stringify(boss)); }
 for(const st of ['eren','mikasa','armin']) rep(st.padEnd(8), ()=>run([st],0));
-for(const sg of [1,2,3]) rep('saga '+(sg+1)+' ', ()=>{ const p=Object.keys(ROSTER).filter(id=>ROSTER[id].sg<=sg&&!ROSTER[id].rare).sort(()=>Math.random()-.5).slice(0,3); return run(p,sg); });
+for(const sg of [1,2,3]) rep('saga '+(sg+1)+' ', ()=>{ const p=Object.keys(ROSTER).filter(id=>ROSTER[id].sg<=sg&&!ROSTER[id].rare).sort(()=>Math.random()-.5).slice(0,startSize(sg)); return run(p,sg); });
 `;
 src+=`
 for(const k in stat){ const a=stat[k]; console.log('al empezar jornada',k,'n',a.length,'escuadrón',(a.reduce((x,y)=>x+y[0],0)/a.length).toFixed(1),'mejoras',(a.reduce((x,y)=>x+y[1],0)/a.length).toFixed(1),'gasMax',(a.reduce((x,y)=>x+y[2],0)/a.length).toFixed(1),'poderes',(a.reduce((x,y)=>x+y[3],0)/a.length).toFixed(2),'en uso',(a.reduce((x,y)=>x+y[4],0)/a.length).toFixed(2),'nivel',(a.reduce((x,y)=>x+y[5],0)/a.length).toFixed(1)); }`;

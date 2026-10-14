@@ -55,7 +55,38 @@ function titanFig(a){
       <rect x="${cx-mw/2}" y="${my}" width="${mw}" height="${th}" rx="2" fill="var(--bone)" stroke="var(--blood)" stroke-width="1.6"/><path d="${teeth}" stroke="var(--blood)" stroke-width="1"/>
     </g>${extra}</svg>`;
 }
-const titanArt = id => CUSTOM[id] ? `<img src="${CUSTOM[id]}" alt="" style="${fitStyle(id)}">` : titanFig(TITANS[id].a);
+const titanArt = id => CUSTOM[id] ? `<img src="${CUSTOM[id]}" alt="" style="${fitStyle(id)}">` : TITANS[id].a.k ? marleyFig(TITANS[id].a.k) : titanFig(TITANS[id].a);
+// ejército de Marley: soldados, tirador, artillería antititán y unidad Panzer (dibujos propios, a escala humana)
+function marleyFig(k){
+  const U='#5b6b5a', D='#3a4638', ST='var(--stone)', BN='var(--bone)', SK='var(--flesh)';
+  const man = (x, y, o={}) => `<g transform="translate(${x} ${y})">
+    <path d="M-9 30 L-9 58 M9 30 L9 58" stroke="${D}" stroke-width="9" stroke-linecap="round"/>
+    <rect x="-12" y="8" width="24" height="30" rx="6" fill="${U}"/><rect x="-12" y="30" width="24" height="4" fill="${D}"/>
+    <circle cx="0" cy="-3" r="9" fill="${SK}"/><path d="M-10 -5 Q0 -16 10 -5 L12 -2 L-12 -2Z" fill="${D}"/>
+    ${o.rifle ? `<path d="M-18 24 L30 2" stroke="${ST}" stroke-width="4" stroke-linecap="round"/><path d="M-6 20 L12 11" stroke="${SK}" stroke-width="5" stroke-linecap="round"/>` : ''}</g>`;
+  if(k==='soldier') return `<svg viewBox="0 0 120 150" aria-hidden="true">${man(60, 92, {rifle:1})}</svg>`;
+  if(k==='sniper') return `<svg viewBox="0 0 120 150" aria-hidden="true"><g transform="translate(60 100)">
+    <path d="M-14 36 L-26 50 M12 36 L14 50" stroke="${D}" stroke-width="9" stroke-linecap="round"/>
+    <rect x="-13" y="10" width="26" height="30" rx="6" fill="${U}"/>
+    <circle cx="2" cy="0" r="9" fill="${SK}"/><path d="M-8 -2 Q2 -13 12 -2 L14 1 L-10 1Z" fill="${D}"/>
+    <path d="M-30 30 L56 4" stroke="${ST}" stroke-width="4" stroke-linecap="round"/><rect x="18" y="8" width="14" height="5" rx="2" fill="${BN}" transform="rotate(-17 25 10)"/>
+    <path d="M-8 22 L14 14" stroke="${SK}" stroke-width="5" stroke-linecap="round"/></g></svg>`;
+  if(k==='cannon') return `<svg viewBox="0 0 120 150" aria-hidden="true">
+    <path d="M20 148 L70 148 L58 118 L34 118Z" fill="${D}"/>
+    <path d="M44 120 L108 70" stroke="${ST}" stroke-width="13" stroke-linecap="round"/><path d="M44 120 L108 70" stroke="${BN}" stroke-width="2" opacity=".3"/>
+    <path d="M60 86 l22 -12 l10 20 l-22 12Z" fill="#4a534b" stroke="${ST}" stroke-width="2"/>
+    <circle cx="46" cy="126" r="20" fill="${ST}" stroke="${BN}" stroke-width="3"/><path d="M46 106 V146 M26 126 H66 M32 112 L60 140 M60 112 L32 140" stroke="${BN}" stroke-width="2"/>
+    <circle cx="46" cy="126" r="5" fill="${BN}"/>${man(14, 92)}</svg>`;
+  if(k==='panzer') return `<svg viewBox="0 0 120 150" aria-hidden="true">
+    <rect x="12" y="102" width="96" height="32" rx="8" fill="#6a6f62" stroke="${ST}" stroke-width="2"/>
+    <rect x="34" y="84" width="46" height="22" rx="5" fill="#5a6055" stroke="${ST}" stroke-width="2"/>
+    <path d="M80 92 H112 M80 98 H110" stroke="${ST}" stroke-width="4" stroke-linecap="round"/>
+    <path d="M20 110 h80 M22 126 h76" stroke="${ST}" stroke-width="1.5" stroke-dasharray="2 6" opacity=".7"/>
+    <circle cx="30" cy="136" r="11" fill="${ST}" stroke="${BN}" stroke-width="2"/><circle cx="60" cy="136" r="11" fill="${ST}" stroke="${BN}" stroke-width="2"/><circle cx="90" cy="136" r="11" fill="${ST}" stroke="${BN}" stroke-width="2"/>
+    <circle cx="30" cy="136" r="3" fill="${BN}"/><circle cx="60" cy="136" r="3" fill="${BN}"/><circle cx="90" cy="136" r="3" fill="${BN}"/>
+    <rect x="44" y="90" width="10" height="7" fill="${ST}"/></svg>`;
+  return '';
+}
 // el jugador puede poner sus propias imágenes: se reducen y se guardan solo en este navegador
 // paquete de imágenes: {titanlike:1, img:{id: dataURL}}; las claves 'id@a' son versiones adultas
 function mergePack(t){

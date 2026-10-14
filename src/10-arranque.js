@@ -60,8 +60,8 @@ function act(a, i){
     scr = S.pend ? S.pend.k : 'map'; return render();
   }
   if(a==='start'){ newRun([i], 0); return render(); }
-  if(a==='pickst'){ picked = picked.includes(i) ? picked.filter(x=>x!==i) : picked.length<3 ? picked.concat(i) : picked; return render(); }
-  if(a==='go' && picked.length===3){ newRun(picked, pendingSaga); return render(); }
+  if(a==='pickst'){ picked = picked.includes(i) ? picked.filter(x=>x!==i) : picked.length<startSize(pendingSaga) ? picked.concat(i) : picked; return render(); }
+  if(a==='go' && picked.length===startSize(pendingSaga)){ newRun(picked, pendingSaga); return render(); }
   if(a==='node'){ const [r,j]=i.split(',').map(Number); return enterNode(r,j); }
   if(a==='reward'){ const r=S.rewards[i];
     if(r.t==='upg'){ applyUpg(r.id); return tookReward(+i); }
@@ -80,6 +80,7 @@ function act(a, i){
   if(a==='order'){
     if(C.pending && C.pending.kind===i){ C.pending=null; return render(); }
     if(i.startsWith('it:') && C.itemUsed) return;
+    if(i==='skill' && (C.cd[C.active.id]>0 || S.gas<ROSTER[C.active.id].sk.gas)) return;
     const tgt = i==='skill' ? ROSTER[C.active.id].sk.tgt : i.startsWith('pw:') ? POWERS[i.slice(3)].tgt : i.startsWith('it:') ? ITEMS[i.slice(3)].tgt : 'enemy';
     if(tgt==='none') return doAction(i);
     if(tgt==='enemy' && liveT().length===1) return doAction(i, liveT()[0]);
@@ -121,7 +122,7 @@ function infoFor(el){
       <p>${t.hp} / ${t.max} PV · ataque ${Math.round(t.atk)} · velocidad ${t.spd}</p>
       <p>${AI_TXT[aiOf(t)]}${t.intent?` Ahora apunta a ${t.intent==='all'?'todo el escuadrón':ROSTER[t.intent].n}.`:''}</p>
       ${a?`<p>${ROSTER[a.id].n} (${STYLE[ROSTER[a.id].st]}) le hace ×${String(e).replace('.',',')}.</p>`:''}
-      ${[t.mark>0&&'Marcado: recibe +50 %.',t.stun>0&&'Derribado: pierde su turno.',t.blind>0&&'Cegado: falla el próximo ataque.',t.hard>0&&'Endurecido: recibe el 40 %.'].filter(Boolean).map(x=>`<p>${x}</p>`).join('')}`; }
+      ${[t.mark>0&&'Marcado: recibe +50 %.',t.stun>0&&'Derribado: pierde su turno.',t.blind>0&&'Cegado: falla el próximo ataque.',t.hard>0&&'Endurecido: recibe el 40 %.',t.alert>0&&`Alerta: no se deja cegar ni derribar durante ${t.alert} turno${t.alert>1?'s':''} más.`].filter(Boolean).map(x=>`<p>${x}</p>`).join('')}`; }
   if(u[0]==='s'){ const s=S.squad.find(x=>x.id===u.slice(1)); if(!s) return null; const R=ROSTER[s.id];
     return `<b>${R.n}</b><span class="lbl">${STYLE[R.st]} · nivel ${s.lvl}</span><p>${s.hp} / ${maxHp(s)} PV · ataque ${Math.round(atkOf(s))} · velocidad ${spdOf(s)}</p>
       <p><b>${R.sk.n}.</b> ${R.sk.d}</p>${pwOf(s.id).map(k=>`<p><b>${POWERS[k].n}.</b> ${POWERS[k].d}</p>`).join('')}`; }
