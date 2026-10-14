@@ -19,7 +19,7 @@ function squadHTML(mode){   // mode: 'ally' (elegir compañero), 'swap' (relevar
     const can = mode && s.hp>0;
     const cl=['sol', s.hp<=0&&'dead', C&&C.active===s&&'active', can&&'pick'].filter(Boolean).join(' ');
     const pic = f.formT>0 ? `<span class="pt tf">${titanArt(POWERS[f.form].art)}</span>` : portrait(s.id);
-    const tags = pwOf(s.id).map(k=>`<span class="chip pwc">${POWERS[k].n.replace(/^Titán (de )?/,'')}</span>`).join('');
+    const tags = pwOf(s.id).map(k=>`<span class="chip pwc">${POWERS[k].n.replace(/^Titán (de )?/,'')}</span>`).join('') + (S.vow && S.vow[s.id] ? `<span class="chip vow" title="Juró por ${ROSTER[S.vow[s.id]].n}: +10 % de daño">Por ${ROSTER[S.vow[s.id]].n}</span>` : '');
     const inner=`${pic}<span class="inf"><h3>${R.n}<small class="num">Nv ${s.lvl}</small></h3>
       <span class="row" style="gap:6px">${chip(R.st)}${tags}<span class="st">${st}</span></span>
       <span class="bar hp"><i style="width:${s.hp/m*100}%"></i></span><span class="lbl num hpn">${s.hp} / ${m} PV</span></span>`;
@@ -259,6 +259,11 @@ const V = {
       return wrap('Tras el combate', `${ROSTER[sc.id].n} sigue vivo`, portrait(sc.id,true), `<p>${B.post}</p>`,
         `<div class="cards"><button class="card" data-a="scn" data-i="rescue"><h3>Sacarlo y perdonarlo</h3><p>Vuelve al escuadrón con el 30 % de sus PV y no volverá a traicionaros.</p></button>
          <button class="card" data-a="scn" data-i="take"><h3>Quitarle el poder</h3><p>${have?'Ya tenéis ese poder. ':`El escuadrón hereda el ${POWERS[k].n}. `}${ROSTER[sc.id].n} queda preso y no vuelve.</p></button></div>`); }
+    if(sc.k==='duelo'){ const names=sc.ids.map(id=>ROSTER[id].n), heirs=sc.heirs.filter(([id])=>has(id));
+      return wrap('Entregaron su corazón', names.join(', '), `<div class="row">${sc.ids.map(id=>portrait(id,true)).join('')}</div>`,
+        `<p>${names.length>1?'No vuelven':'No vuelve'} del combate. El escuadrón ${names.length>1?'los entierra':'lo entierra'} junto al camino antes de seguir.</p>${heirs.length?`<p class="dim">${heirs.map(([id,d])=>`${ROSTER[id].n} no deja de mirar la tumba de ${ROSTER[d].n}.`).join(' ')}</p>`:''}`,
+        `<div class="cards">${heirs.length?`<button class="card" data-a="scn" data-i="vow"><h3>Jurar por ${names.length>1?'ellos':names[0]}</h3><p>${heirs.map(([id])=>ROSTER[id].n).join(' y ')} ${heirs.length>1?'suben':'sube'} 2 niveles y ${heirs.length>1?'hacen':'hace'} un 10 % más de daño el resto de la expedición. Puede abrir un epílogo.</p></button>`:''}
+         <button class="card" data-a="scn" data-i="seguir"><h3>Seguir adelante</h3><p>Recuperáis el aliento: +3 de gas y un 10 % de PV para todos.</p></button></div>`); }
     if(sc.k==='story'){ const T=STORY_SCENES[sc.id];
       return wrap('Tras el combate', T.title, T.art(), `<p>${T.body}</p>`,
         `<div class="cards">${T.o.map((o,i)=>{ const ok=!o.ok||o.ok(); return `<button class="card" data-a="scn" data-i="st:${i}" ${ok?'':'disabled'}><h3>${o.l}</h3><p>${o.d}${ok?'':' <b>No hay hueco en el escuadrón.</b>'}</p></button>`; }).join('')}</div>`); }

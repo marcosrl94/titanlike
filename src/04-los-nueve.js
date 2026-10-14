@@ -98,6 +98,7 @@ function sceneAct(i){
   else if(i==='take'){ S.fallen.push(sc.id); ach('sin_piedad'); const k=BETRAY[sc.id].pw; if(!(k in S.pw) || S.pw[k]==='reserva') S.q.unshift({k:'drop', p:k, src:'betray'}); }
   else if(i==='keep'){ grant(sc.p, 'reserva'); }
   else if(i==='alt'){ takeRoute(sc.alt); }
+  else if(sc && sc.k==='duelo'){ mournAct(sc, i); }
   else if(sc && sc.k==='story' && i && i.startsWith('st:')){ storyAct(sc, +i.slice(3)); }
   else if(i && i.startsWith('give:')){ const id=i.slice(5); if(S.pw[sc.p]) S.pw[sc.p]=null; grant(sc.p, id); }
   nextScene();

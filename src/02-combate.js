@@ -12,7 +12,7 @@ const store = {
 const rel = k => (S.rel[k]||0);
 const lvlMul = s => 1 + .05*(s.lvl-1);
 const maxHp = s => Math.round(ROSTER[s.id].hp * lvlMul(s) * (1 + .15*rel('capa')) * (1 + .25*pwOf(s.id).length));
-const atkOf = s => ROSTER[s.id].atk * lvlMul(s);
+const atkOf = s => ROSTER[s.id].atk * lvlMul(s) * (S && S.vow && S.vow[s.id] ? 1.1 : 1);   // juramento por un compañero caído: +10 %
 const spdOf = s => ROSTER[s.id].spd + 3*rel('caballos');
 const alive = () => S.squad.filter(s=>s.hp>0);
 const liveT = () => C.titans.filter(t=>t.hp>0);

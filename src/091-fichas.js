@@ -122,6 +122,7 @@ V.arbol = function(){
     ['kenny','Kenny Ackerman','Capitán de la brigada antipersonal. Se le puede reclutar.', 'kenny'],
     ['zeke','Zeke Jaeger','Portador de la Bestia. Se le puede capturar.', 'zeke'],
     ['bertolt','Bertolt Hoover','Recluta de la promoción 104. Esconde al Titán Colosal: perdónalo o quítale el poder.', null],
+    ['erwin','Las bajas','Quién cae también cambia la historia: duelo, juramentos, la jeringa de Shiganshina y epílogos que solo existen por una ausencia.', null],
     ['floch','Floch Forster','Si le das la razón, se lleva a los jaegeristas.', null]];
   return `<div><h2>Árbol de la historia</h2><p class="dim">Lo que haces en cada expedición abre sendas y finales. Lo que aún no has descubierto sale como «???», con la pista del camino que lleva hasta allí.</p></div>
     <div class="row"><button class="btn ghost" data-a="codex">Volver</button><span class="lbl">Sendas ${alts.length}/${Object.keys(ALT_SAGAS).length} · Finales ${ends.length}/${Object.keys(ENDINGS).length} · Epílogos ${(st.ep||[]).length}/${EPILOGUES.length}</span></div>

@@ -4,7 +4,7 @@ let skipRunStart = false;   // la diaria registra su propia expedición
 function migrateRun(r){
   if(!r || !r.v || r.v<3 || !r.map) return null;
   if(r.v===3){ Object.assign(r, {pw:{}, q:[], loyal:{}, pity:0, after:null, scene:null, note:null}); r.v=4; }
-  r.items = r.items || []; r.napes = r.napes || 0; r.fallen = r.fallen || []; r.rel = r.rel || {}; r.diff = r.diff || 'explorador'; r.ng = r.ng || 0; r.route = r.route || {}; r.flags = r.flags || {};
+  r.items = r.items || []; r.napes = r.napes || 0; r.fallen = r.fallen || []; r.rel = r.rel || {}; r.diff = r.diff || 'explorador'; r.ng = r.ng || 0; r.route = r.route || {}; r.flags = r.flags || {}; r.deaths = r.deaths || []; r.vow = r.vow || {};
   return r;
 }
 const meta = () => Object.assign({unlocked:1, best:0, nine:[], endings:[], ach:[], codex:{t:{},s:{}}}, store.get('meta')||{});
@@ -99,6 +99,7 @@ function win(){
   if(C.start===4 && alive().length===1) ach('solo');
   if(sagaEnd) ach('saga'+(sagaIx(S.wave)+1));
   if(S.wave>=30) ach('jornada30');
+  const dead = S.squad.filter(s=>s.hp<=0).map(s=>s.id); S.deaths = (S.deaths||[]).concat(dead);   // también cuentan las del último combate para los epílogos
   S.squad.filter(s=>s.hp<=0).forEach(s=>{ S.fallen.push(s.id); if(pwOf(s.id).length){ S.note=`${nm(s)} ha caído. Su poder pasa a la reserva: se puede inyectar en un campamento.`; release(s.id); } });
   S.squad = alive();
   S.squad.forEach(levelUp);
@@ -110,6 +111,7 @@ function win(){
   else if(btr) S.q.push({k:'spare', id:btr.id, lvl:btr.lvl});
   else rollDrop(t, bossId);
   if(t==='b' && typeof storyScenesAfter==='function') S.q.push(...storyScenesAfter(bossId));
+  if(dead.length && typeof mournScene==='function') S.q.unshift(mournScene(dead));   // el duelo va primero
   if(owned().length>=3) ach('tres_poderes');
   if(S.daily && sagaEnd){ finishDaily(true); if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, PER+1, null); store.del('run'); scr='victory'; return render(); }
   if(S.wave>=TOTAL){ const ck = typeof recordRun==='function' ? recordRun(true) : null; if(typeof cloudTelemetry==='function') cloudTelemetry('end', {win:true, comp:ck, route:S.route, squad:S.squad.map(x=>x.id+':'+x.lvl), fallen:S.fallen, rel:S.rel, pw:S.pw, gasMax:S.gasMax}); S.ending=endingOf(); ach(S.ending==='retumbar' ? 'saga4' : S.ending); ach('saga4'); if(S.erenFell) ach('detener_eren'); if(onRoute('reina')) ach('reina');

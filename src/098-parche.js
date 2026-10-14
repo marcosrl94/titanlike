@@ -1,5 +1,11 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-15.7', t:'Las bajas también escriben la historia', items:[
+    'Tras un combate con bajas hay duelo: el escuadrón entierra a los caídos y decide entre seguir adelante (+3 de gas y un 10 % de vida) o jurar por ellos.',
+    'Juramentos: quien tenía un vínculo con el caído (Mikasa y Armin con Eren, Connie con Sasha, Levi con Erwin, Historia con Ymir, los guerreros entre sí…) sube 2 niveles y hace un 10 % más de daño el resto de la expedición. Se ve en su tarjeta.',
+    '«Una sola jeringa»: en la saga 3, con Levi, Erwin y Armin en el escuadrón y sin el poder del Colosal, Levi tiene que elegir a quién salva. El otro muere.',
+    'Seis epílogos que solo existen por una ausencia: «La última orden», «El mar que querías ver», «Media patata», «La carta de Ymir», «Sin bufanda» y «Lo juramos».'
+  ]},
   {v:'2026-10-15.6', t:'Bertolt se une a la promoción 104', items:[
     'Bertolt es recluta desde la saga 1: fuerza, mucho aguante y «Golpe de vapor» (daño ×1,6 al objetivo y un 40 % al resto, ignorando resistencias).',
     'Si llega con vosotros al Colosal de la saga 3, se aparta del escuadrón y se transforma. Al vencerle, como con Reiner y Annie: perdonarlo o quitarle el poder del Colosal.',

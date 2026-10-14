@@ -142,6 +142,10 @@ T('si Eren cae en Trost se abre «El muro Rose cae» y puede volver', ()=>{ setu
   EVENTS[i].o[0].f(); return S.squad.some(x=>x.id==='eren' && x.hp>0) && S.pw.ataque==='eren' && !S.fallen.includes('eren') || JSON.stringify(S.pw); });
 T('Bertolt traiciona ante el Colosal de la saga 3 y se le puede perdonar', ()=>{ setup(['bertolt','mikasa'],['t3']); if(betrayer('col2')!=='bertolt') return 'sin traición'; if(betrayer('aco')) return 'traiciona donde no toca';
   S.loyal.bertolt=1; return betrayer('col2')===null || 'perdonado y vuelve a traicionar'; });
+T('duelo tras una baja y juramento', ()=>{ setup(['sasha','connie'],['t3'],{wave:12}); S.squad[0].hp=0; C.titans[0].hp=0; win(); if(!S.scene || S.scene.k!=='duelo') return 'sin duelo: '+JSON.stringify(S.scene);
+  if(!S.scene.heirs.some(([id])=>id==='connie')) return 'Connie no jura'; const a0=atkOf(who('connie')); sceneAct('vow'); return S.vow.connie==='sasha' && atkOf(who('connie'))>a0 && epiloguesNow().some(e=>e.k==='patata') || 'sin efecto'; });
+T('una sola jeringa: Erwin o Armin', ()=>{ setup(['levi','erwin','armin'],['t3'],{wave:40}); const i=EVENTS.findIndex(e=>e.n==='Una sola jeringa'); if(!EVENTS[i].when()) return 'no sale';
+  EVENTS[i].o[1].f(); return S.pw.colosal==='armin' && !has('erwin') && deadIn('erwin') && epiloguesNow().some(e=>e.k==='ultimaorden') || JSON.stringify(S.pw); });
 // ======== 3) fuzz: combates enteros con acciones al azar ========
 const RES={}; const N=+process.argv[2]||600; let fights=0, turns=0;
 const IDS=Object.keys(ROSTER);

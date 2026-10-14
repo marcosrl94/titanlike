@@ -186,3 +186,42 @@ EPILOGUES.push({k:'regreso', who:'eren', n:'El que volvió de dentro', hint:'Alg
   c:()=>has('eren') && S.flags.erenVuelve, d:'Eren no recuerda nada del tiempo que pasó dentro del titán. Solo que alguien le gritaba que siguiera luchando, y que le hizo caso.'});
 EPILOGUES.push({k:'guerreros', who:'bertolt', n:'Los tres de Marley', hint:'Perdonar a los tres guerreros y llegar con ellos al final.',
   c:()=>['reiner','annie','bertolt'].every(id=>S.loyal[id] && has(id)), d:'Reiner, Annie y Bertolt vuelven juntos al pueblo donde se criaron. Esta vez nadie les ha dado una misión: solo quieren ver si sigue en pie.'});
+
+// ================= Las bajas también escriben la historia =================
+// vínculos: quién reacciona cuando cae quién
+const BONDS = {eren:['mikasa','armin','zeke'], mikasa:['eren','armin'], armin:['eren','mikasa'], sasha:['connie','jean'], connie:['sasha','jean'], jean:['connie','sasha'],
+  erwin:['levi','hange'], levi:['erwin','hange','kenny'], hange:['levi','erwin'], historia:['ymir'], ymir:['historia'], reiner:['bertolt','annie'], bertolt:['reiner','annie'], annie:['reiner','bertolt'],
+  mike:['nanaba','erwin'], nanaba:['mike'], gabi:['pieck'], pieck:['gabi'], zeke:['eren'], kenny:['levi'], floch:['jean']};
+const deadIn = id => (S.deaths||[]).includes(id);
+const vowOf = id => S && S.vow && S.vow[id];
+// tras un combate con bajas: duelo (se apunta quién murió y quién puede jurar por él)
+function mournScene(ids){
+  const heirs = ids.flatMap(d=>(BONDS[d]||[]).filter(id=>has(id) && !vowOf(id)).map(id=>[id,d]));
+  return {k:'duelo', ids, heirs};
+}
+function mournAct(sc, i){
+  if(i==='vow') sc.heirs.forEach(([id,d])=>{ (S.vow=S.vow||{})[id]=d; const s=who(id); if(s){ levelUp(s); levelUp(s); } });
+  else { S.gas=Math.min(S.gasMax, S.gas+3); healAll(.1); }
+}
+// una sola jeringa: el dilema de Shiganshina
+EVENTS.push({n:'Una sola jeringa', prio:true, when:()=>sagaIx(S.wave)===2 && !onRoute('reina') && has('levi') && has('erwin') && has('armin') && !('colosal' in S.pw) && !S.flags.jeringa,
+  d:'Erwin y Armin han caído en la misma carga. Los dos respiran aún, pero apenas. Levi tiene una jeringa con el poder del Colosal y solo da para uno.',
+  o:[{l:'Salvar a Erwin', d:'Erwin hereda el Colosal y vuelve con toda su vida. Armin muere.', f(){ S.flags.jeringa='erwin'; const a=who('armin'); release('armin'); S.squad=S.squad.filter(x=>x!==a); S.fallen.push('armin'); S.deaths=(S.deaths||[]).concat('armin'); grant('colosal','erwin'); const e=who('erwin'); e.hp=maxHp(e);
+       return 'Levi clava la aguja en el brazo de Erwin. Cuando el vapor se disipa, el comandante se levanta. Nadie mira a Armin.'; }},
+     {l:'Salvar a Armin', d:'Armin hereda el Colosal y vuelve con toda su vida. Erwin muere.', f(){ S.flags.jeringa='armin'; const e=who('erwin'); release('erwin'); S.squad=S.squad.filter(x=>x!==e); S.fallen.push('erwin'); S.deaths=(S.deaths||[]).concat('erwin'); grant('colosal','armin'); const a=who('armin'); a.hp=maxHp(a);
+       return 'Levi mira a Erwin un largo rato. Luego se arrodilla junto a Armin. «Descansa», le dice al comandante, y lo deja ir.'; }}]});
+// epílogos que solo existen porque alguien no llegó
+EPILOGUES.push(
+  {k:'ultimaorden', who:'levi', n:'La última orden', hint:'Que el comandante no llegue al final, pero Levi sí.',
+   c:()=>has('levi') && deadIn('erwin'), d:'Levi cumple la última orden de Erwin hasta el final. Luego deja la capa sobre una tumba sin nombre y se queda allí más de lo que nadie esperaba.'},
+  {k:'mar', who:'eren', n:'El mar que querías ver', hint:'Alguien soñaba con ver el mar y no llegó a verlo.',
+   c:()=>deadIn('armin') && (has('eren')||has('mikasa')), d:'Llevan una concha de vuelta a la isla y la dejan donde Armin solía leer sus libros prohibidos. Era él quien quería ver el mar.'},
+  {k:'patata', who:'connie', n:'Media patata', hint:'Que Sasha caiga y Connie vuelva a casa.',
+   c:()=>deadIn('sasha') && has('connie'), d:'Connie visita a la familia de Sasha. Se sienta a su mesa y, sin pensarlo, parte la patata por la mitad y deja una en el plato vacío.'},
+  {k:'carta', who:'historia', n:'La carta de Ymir', hint:'Ymir no vuelve, pero deja algo escrito.',
+   c:()=>deadIn('ymir') && has('historia'), d:'Historia recibe una carta mal escrita y peor doblada. Es de Ymir. La lee una vez, la guarda, y no se la enseña a nadie.'},
+  {k:'bufanda', who:'mikasa', n:'Sin bufanda', hint:'Que Eren caiga y Mikasa llegue al final.',
+   c:()=>deadIn('eren') && has('mikasa') && !S.flags.erenVuelve, d:'Mikasa sigue llevando la bufanda. La gente le pregunta por qué y ella nunca contesta.'},
+  {k:'juramento', who:null, n:'Lo juramos', hint:'Jurar por un compañero caído y cumplirlo hasta el final.',
+   c:()=>Object.keys(S.vow||{}).some(id=>has(id)), d:'Quien juró por un compañero caído llega hasta el final. Al volver, dice su nombre en voz alta delante de todos, para que nadie lo olvide.'}
+);
