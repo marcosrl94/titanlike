@@ -140,7 +140,7 @@ async function cloudRename(n){
 }
 async function cloudUploadPack(){
   if(!CLOUD.user) return;
-  const body = new Blob([JSON.stringify({titanlike:1, img:CUSTOM})], {type:'application/json'});
+  const body = new Blob([JSON.stringify({titanlike:1, img:CUSTOM, names:NAMES})], {type:'application/json'});
   const {error} = await CLOUD.sb.storage.from('player-images').upload(CLOUD.user.id + '/pack.json', body, {upsert:true, contentType:'application/json'});
   packMsg += error ? ' No se pudieron guardar en tu cuenta.' : ' Guardadas también en tu cuenta.'; render();
 }

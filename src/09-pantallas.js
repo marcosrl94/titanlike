@@ -5,10 +5,10 @@ const chip = st => `<span class="chip s-${st}">${STYLE[st]}</span>`;
 // rasgos para las pruebas de habilidad: estilo +1 y rasgos propios
 const traitsOf = id => Object.keys(SKILLS).map(k=>[k, ((ROSTER[id].tr||{})[k]||0) + (STYLE_SKILL[ROSTER[id].st]===k?1:0)]).filter(x=>x[1]>0).sort((x,y)=>y[1]-x[1]);
 const traitsHTML = id => `<span class="lbl num traits">${traitsOf(id).map(([k,v])=>`${SKILLS[k]} +${v}`).join(' · ')}</span>`;
-function solCard(id){
-  const R=ROSTER[id];
-  return `<div class="who">${portrait(id,true)}<div><h3>${R.n}</h3><div>${chip(R.st)}</div></div></div>
-    <div class="stats num"><span><b>PV</b>${R.hp}</span><span><b>ATQ</b>${R.atk}</span><span><b>VEL</b>${R.spd}</span></div>
+function solCard(id, lvl){   // lvl: nivel al que se uniría ahora (stats escaladas); sin lvl, stats base
+  const R=ROSTER[id], k = lvl ? lvlMul({lvl}) : 1, hp = lvl ? Math.round(R.hp*k*(1+.15*rel('capa'))) : R.hp;
+  return `<div class="who">${portrait(id,true)}<div><h3>${R.n}</h3><div class="row" style="gap:6px">${chip(R.st)}${lvl?`<small class="lbl num">Nv ${lvl}</small>`:''}</div></div></div>
+    <div class="stats num"><span><b>PV</b>${hp}</span><span><b>ATQ</b>${Math.round(R.atk*k)}</span><span><b>VEL</b>${lvl?R.spd+3*rel('caballos'):R.spd}</span></div>
     <p><b>${R.sk.n}</b>${R.sk.gas?` · ${R.sk.gas} gas`:''}${R.sk.cd?` · recarga ${R.sk.cd}`:''}. ${R.sk.d}</p>${traitsHTML(id)}`;
 }
 function squadHTML(mode){   // mode: 'ally' (elegir compañero), 'swap' (relevar) o nada
@@ -170,7 +170,7 @@ const V = {
       <p class="dim">${S.sagaDone&&nx?`Se abre la saga ${sagaIx(S.wave)+2}, «${nx.n}». El escuadrón sigue adelante con el depósito lleno. `:'Los supervivientes suben de nivel. '}${S.picks>1?`Elige ${S.picks} recompensas.`:'Elige una recompensa.'}</p></div>
       ${S.note?`<section class="panel note"><p>${S.note}</p></section>`:''}
       <div class="cards">${S.rewards.map((r,i)=> r.t==='rec'
-        ? `<button class="card" data-a="reward" data-i="${i}"><span class="lbl kind">Recluta${ROSTER[r.id].rare?' veterano':''}</span>${solCard(r.id)}</button>`
+        ? `<button class="card" data-a="reward" data-i="${i}"><span class="lbl kind">Recluta${ROSTER[r.id].rare?' veterano':''} · se une al nivel ${joinLvl()}</span>${solCard(r.id, joinLvl())}</button>`
         : r.t==='item' ? `<button class="card" data-a="reward" data-i="${i}"><span class="lbl kind">Objeto · un solo uso</span><h3>${ITEMS[r.id].n}</h3><p>${ITEMS[r.id].d} Llevas ${(S.items||[]).length} de 3.</p></button>`
         : `<button class="card" data-a="reward" data-i="${i}"><span class="lbl kind">Mejora</span><h3>${UPG[r.id].n}</h3><p>${UPG[r.id].d}</p></button>`).join('')}</div>
       <span class="lbl">Tu escuadrón</span>${squadHTML()}${relicsHTML()}`;
@@ -195,14 +195,16 @@ const V = {
   },
   gallery(){
     const fitCtl = k => CUSTOM[k] ? `<div class="fit" role="group" aria-label="Encuadre de ${k}"><span class="lbl">Encuadre${k.endsWith('@a')?' adulto':''}</span>${[['out','−','Alejar'],['in','+','Acercar'],['l','←','Mover a la izquierda'],['r','→','Mover a la derecha'],['u','↑','Subir'],['d','↓','Bajar'],['reset','↺','Restablecer']].map(([o,t,l])=>`<button class="btn ghost sm" data-a="fit" data-i="${k}|${o}" aria-label="${l}" title="${l}">${t}</button>`).join('')}</div>` : '';
-    const cell=(id,name,pic)=>`<div class="card">${pic}<b>${name}</b>${fitCtl(id)}${ROSTER[id]&&CUSTOM[id+'@a']?`<span class="pt lg"><img src="${CUSTOM[id+'@a']}" alt="" style="${fitStyle(id+'@a')}"></span>${fitCtl(id+'@a')}`:''}
+    const cell=(id,name,pic)=>`<div class="card">${pic}<b>${name}</b>${NAMES[id]?`<span class="dim" style="font-size:12px">Original: ${(ROSTER[id]||TITANS[id]).n0}</span>`:''}${fitCtl(id)}${ROSTER[id]&&CUSTOM[id+'@a']?`<span class="pt lg"><img src="${CUSTOM[id+'@a']}" alt="" style="${fitStyle(id+'@a')}"></span>${fitCtl(id+'@a')}`:''}
       <label class="btn ghost sm file" for="up-${id}" tabindex="0">${CUSTOM[id]?'Cambiar imagen':'Subir imagen'}</label><input class="vh" type="file" accept="image/*" id="up-${id}" data-up="${id}">
       ${CUSTOM[id]?`<button class="btn ghost sm" data-a="rm" data-i="${id}">Quitar</button>`:''}
       ${ROSTER[id]?`<label class="btn ghost sm file" for="up-${id}-a" tabindex="0">${CUSTOM[id+'@a']?'Cambiar adulta':'Versión adulta'}</label><input class="vh" type="file" accept="image/*" id="up-${id}-a" data-up="${id}@a">${CUSTOM[id+'@a']?`<button class="btn ghost sm" data-a="rm" data-i="${id}@a">Quitar adulta</button>`:''}`:''}</div>`;
-    return `<div><h2>Tus imágenes y música</h2><p class="dim" style="max-width:66ch">Importa un paquete (.json de imágenes o de música) o carga tus archivos uno a uno, y el juego los usará en lugar de los emblemas, los dibujos de titanes y la música sintetizada. Cada soldado admite una versión adulta, que se usa a partir de la saga 4. ${cloudOn() && CLOUD.user ? 'Se guardan en este navegador y en tu cuenta, que es privada: al entrar desde otro dispositivo se cargan solas.' : cloudOn() ? 'Se guardan en este navegador. Si entras con Google, también en tu cuenta privada y se cargan solas en otros dispositivos.' : 'Se guardan solo en este navegador.'}</p></div>
+    return `<div><h2>Tus imágenes y música</h2><p class="dim" style="max-width:66ch">Importa un paquete (.json de imágenes, de nombres o de música) o carga tus archivos uno a uno, y el juego los usará en lugar de los emblemas, los dibujos de titanes y la música sintetizada. Cada soldado admite una versión adulta, que se usa a partir de la saga 4. ${cloudOn() && CLOUD.user ? 'Se guardan en este navegador y en tu cuenta, que es privada: al entrar desde otro dispositivo se cargan solas.' : cloudOn() ? 'Se guardan en este navegador. Si entras con Google, también en tu cuenta privada y se cargan solas en otros dispositivos.' : 'Se guardan solo en este navegador.'}</p></div>
       <div class="row"><button class="btn ghost" data-a="home">Volver</button>
         <label class="btn file" for="pack" tabindex="0">Importar paquete (.json)</label><input class="vh" type="file" accept=".json,application/json" id="pack" data-pack="1">
         ${Object.keys(CUSTOM).length?`<button class="btn ghost" data-a="rmall">Quitar todas (${Object.keys(CUSTOM).length})</button>`:''}
+        ${Object.keys(NAMES).length?`<button class="btn ghost" data-a="rmnames">Nombres originales (${Object.keys(NAMES).length} cambiados)</button>`:''}
+        ${location.protocol.startsWith('http')?`<button class="btn ghost" data-a="pespack" title="Nombres de parodia e iconos propios para los 18 soldados">Paquete «sin licencia»</button>`:''}
         ${packMsg?`<span class="lbl" style="color:var(--gold)">${packMsg}</span>`:''}</div>
       <div class="row" style="justify-content:space-between"><span class="lbl">Música</span><label class="btn ghost sm file" for="pack" tabindex="0">Importar música (.json)</label></div>${packMsg?`<span class="lbl" style="color:var(--gold)" role="status">${esc(packMsg)}</span>`:''}${auMsg?`<span class="lbl" style="color:var(--gold)" role="status">${esc(auMsg)}</span>`:''}<div class="gal">${Object.keys(TRACKS).map(k=>`<div class="card slot"><b>${TRACKS[k]}</b>
         <span class="dim" style="font-size:13px;overflow-wrap:anywhere">${MY[k]?esc(MY[k].name.replace(/_/g,' ').replace(/\.[a-z0-9]+$/i,'')):'Música del juego'}</span>

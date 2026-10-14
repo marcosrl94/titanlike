@@ -47,7 +47,9 @@ function act(a, i){
   if(a==='rmau') return delMyAudio(i);
   if(a==='fit'){ const [k,op]=i.split('|'); fitAdjust(k, op); return render(); }
   if(a==='closesheet'){ $('sheet').hidden=true; return; }
-  if(a==='rmall'){ CUSTOM={}; store.set('img', CUSTOM); packMsg=''; cloudDeletePack(); return render(); }
+  if(a==='rmall'){ CUSTOM={}; store.set('img', CUSTOM); NAMES={}; store.del('names'); applyNames(); packMsg=''; cloudDeletePack(); return render(); }
+  if(a==='pespack'){ packMsg='Cargando el paquete…'; render(); fetch('titanlike-pes.json').then(r=>r.text()).then(t=>{ const n=mergePack(t); packMsg = n ? `Paquete «sin licencia» cargado: ${n} elementos. Tukasa, Patasha y Lavi se presentan.` : 'No se pudo leer el paquete.'; render(); if(n && typeof cloudUploadPack==='function' && CLOUD.user) cloudUploadPack(); }).catch(()=>{ packMsg='No se pudo descargar el paquete.'; render(); }); return; }
+  if(a==='rmnames'){ NAMES={}; store.del('names'); applyNames(); packMsg='Nombres originales restaurados.'; if(typeof cloudUploadPack==='function' && CLOUD.user) cloudUploadPack(); return render(); }
   if(a==='daily'){ if(dailyDone()) return; newDaily(); return render(); }
   if(a==='codex'){ scr='codex'; return render(); }
   if(a==='login') return cloudLogin();

@@ -1,5 +1,13 @@
 // ---------- Arte: emblemas de soldado y titanes (dibujos propios) e imágenes del jugador ----------
 let CUSTOM = store.get('img') || {};
+// nombres alternativos (paquetes «sin licencia»): se aplican sobre ROSTER y TITANS y se guardan con las imágenes
+let NAMES = store.get('names') || {};
+Object.values(ROSTER).forEach(r=>{ r.n0=r.n; }); Object.values(TITANS).forEach(t=>{ t.n0=t.n; });
+function applyNames(){
+  Object.entries(ROSTER).forEach(([id,r])=>{ r.n = NAMES[id] || r.n0; });
+  Object.entries(TITANS).forEach(([id,t])=>{ t.n = NAMES[id] || t.n0; });
+}
+applyNames();
 // a partir de la saga 4 (Marley) se usa la versión adulta si el jugador la ha cargado
 // encuadre de las imágenes del jugador: zoom y desplazamiento guardados por imagen
 let FIT = store.get('fit') || {};
@@ -90,15 +98,17 @@ function marleyFig(k){
 // el jugador puede poner sus propias imágenes: se reducen y se guardan solo en este navegador
 // paquete de imágenes: {titanlike:1, img:{id: dataURL}}; las claves 'id@a' son versiones adultas
 function mergePack(t){
-  let n=0; try{ const p=JSON.parse(t); Object.entries(p.img||{}).forEach(([k,v])=>{ const id=k.replace('@a','');
-    if((ROSTER[id]||TITANS[id]) && typeof v==='string' && v.startsWith('data:image/')){ CUSTOM[k]=v; n++; } }); }catch(e){}
-  if(n) store.set('img', CUSTOM); return n;
+  let n=0, nn=0; try{ const p=JSON.parse(t); Object.entries(p.img||{}).forEach(([k,v])=>{ const id=k.replace('@a','');
+    if((ROSTER[id]||TITANS[id]) && typeof v==='string' && v.startsWith('data:image/')){ CUSTOM[k]=v; n++; } });
+    Object.entries(p.names||{}).forEach(([id,v])=>{ if((ROSTER[id]||TITANS[id]) && typeof v==='string' && v.trim()){ NAMES[id]=v.trim().slice(0,28); nn++; } });
+  }catch(e){}
+  if(n) store.set('img', CUSTOM); if(nn){ store.set('names', NAMES); applyNames(); } return n+nn;
 }
 function importPack(file){
   file.text().then(async t=>{
     if(t.slice(0,200).includes('"musica"')){ packMsg = await importMusicPack(t); return render(); }
     const n=mergePack(t);
-    packMsg = n ? `Importadas ${n} imágenes.` : 'Ese archivo no es un paquete de Titanlike.'; render();
+    packMsg = n ? `Importados ${n} elementos (imágenes y nombres).` : 'Ese archivo no es un paquete de Titanlike.'; render();
     if(n && typeof cloudUploadPack==='function') cloudUploadPack(); });
 }
 let packMsg = '';

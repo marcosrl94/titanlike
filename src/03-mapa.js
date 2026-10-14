@@ -145,9 +145,11 @@ function applyUpg(k){
   if(k==='shadis') S.squad.forEach(levelUp);
 }
 function randomUpg(){ const p=upgPool().filter(x=>UPG[x].stack); const k=p.length ? pick(p) : pick(['shadis','raciones','recarga']); applyUpg(k); return UPG[k].n; }
+// nivel al que se une un recluta: el de la jornada o, si el escuadrón va por delante (eventos, campamentos), la media del escuadrón
+function joinLvl(){ const a=S.squad.filter(s=>s.hp>0); const avg=a.length ? Math.round(a.reduce((x,s)=>x+s.lvl,0)/a.length) : 0; return Math.max(1, S.wave, avg); }
 function recruit(id, replaceId, hpPct=1){
   if(replaceId){ if(pwOf(replaceId).length) S.note=`${ROSTER[replaceId].n} vuelve a las murallas. Su poder queda en la reserva.`; release(replaceId); S.squad = S.squad.filter(s=>s.id!==replaceId); }
-  const s={id, lvl:Math.max(1,S.wave), hp:0}; S.squad.push(s); bringPower(id); s.hp=Math.max(1, Math.round(maxHp(s)*hpPct));
+  const s={id, lvl:joinLvl(), hp:0}; S.squad.push(s); bringPower(id); s.hp=Math.max(1, Math.round(maxHp(s)*hpPct));
   codex('s', id); if(S.squad.length>=4) ach('escuadron');
 }
 function tookReward(i){

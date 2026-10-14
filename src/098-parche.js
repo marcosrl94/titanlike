@@ -1,5 +1,9 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-14.4', t:'Reclutas al nivel del escuadrón y paquete «sin licencia»', items:[
+    'Los reclutas se unen al nivel del escuadrón (la media, si va por delante de la jornada) y su carta muestra PV, ataque y velocidad a ese nivel, con las mejoras que ya llevéis.',
+    'Paquete «sin licencia»: en «Imágenes y música» hay un botón que carga nombres de parodia e iconos propios para los 18 soldados (Tukasa, Patasha, Lavi…). Los paquetes .json ahora pueden traer nombres además de imágenes, y hay un botón para volver a los originales.'
+  ]},
   {v:'2026-10-14.3', t:'New Game+ y combate a lo ancho', items:[
     'New Game+: al completar la campaña se desbloquea la siguiente vuelta en «Nueva expedición». Sales desde Trost con dos reclutas y hasta tres reliquias (poderes de los Nueve ganados en campañas anteriores), y los enemigos suben un 12 % por vuelta. Encadenar vueltas es la forma de reunir los Nueve. Dos logros nuevos.',
     'Combate y mapa a lo ancho de la pantalla: escenario a la izquierda, escuadrón y órdenes a la derecha. Desde 1280×720 todo cabe sin hacer scroll; en el móvil, las órdenes siguen fijas abajo.',
