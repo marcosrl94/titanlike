@@ -130,9 +130,15 @@ function idbDo(mode, fn){
 function restart(k){ if(AU.want===k){ AU.cur=null; setTrack(k); } }
 async function setMyAudio(k, file){
   const data = await file.arrayBuffer();
-  MY[k] = {name:file.name, data};
-  try{ await idbDo('readwrite', st=>st.put({name:file.name, data}, k)); }catch(e){ MY[k].temp=true; }
+  await keepMyAudio(k, file.name, data, file.type);
+  if(typeof cloudAudioUp==='function') cloudAudioUp(k);
+}
+// guarda una pista en memoria y en este navegador (también la usa la nube al descargar)
+async function keepMyAudio(k, name, data, type){
+  MY[k] = {name, data, type:type||''};
+  try{ await idbDo('readwrite', st=>st.put({name, data, type:type||''}, k)); }catch(e){ MY[k].temp=true; }
   restart(k); render();
 }
-function delMyAudio(k){ delete MY[k]; idbDo('readwrite', st=>st.delete(k)).catch(()=>{}); restart(k); render(); }
-Object.keys(TRACKS).forEach(k=>{ idbDo('readonly', st=>st.get(k)).then(v=>{ if(v){ MY[k]=v; restart(k); if(scr==='gallery') render(); } }).catch(()=>{}); });
+function delMyAudio(k){ delete MY[k]; idbDo('readwrite', st=>st.delete(k)).catch(()=>{}); if(typeof cloudAudioDel==='function') cloudAudioDel(k); restart(k); render(); }
+let auMsg = '';
+const myLoaded = Promise.all(Object.keys(TRACKS).map(k=>idbDo('readonly', st=>st.get(k)).then(v=>{ if(v && !MY[k]){ MY[k]=v; restart(k); if(scr==='gallery') render(); } }).catch(()=>{})));

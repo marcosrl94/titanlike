@@ -179,12 +179,12 @@ const V = {
       <label class="lbl" for="up-${id}">Subir imagen</label><input type="file" accept="image/*" id="up-${id}" data-up="${id}">
       ${CUSTOM[id]?`<button class="btn ghost sm" data-a="rm" data-i="${id}">Quitar</button>`:''}
       ${ROSTER[id]?`<label class="lbl" for="up-${id}-a">Versión adulta${CUSTOM[id+'@a']?' ✓':''}</label><input type="file" accept="image/*" id="up-${id}-a" data-up="${id}@a">${CUSTOM[id+'@a']?`<button class="btn ghost sm" data-a="rm" data-i="${id}@a">Quitar adulta</button>`:''}`:''}</div>`;
-    return `<div><h2>Tus imágenes y música</h2><p class="dim" style="max-width:66ch">Carga tus propios archivos y el juego los usará en lugar de los emblemas, los dibujos de titanes y la música sintetizada. Cada soldado admite una versión adulta, que se usa a partir de la saga 4. Se guardan solo en este navegador. </p></div>
+    return `<div><h2>Tus imágenes y música</h2><p class="dim" style="max-width:66ch">Carga tus propios archivos y el juego los usará en lugar de los emblemas, los dibujos de titanes y la música sintetizada. Cada soldado admite una versión adulta, que se usa a partir de la saga 4. ${cloudOn() && CLOUD.user ? 'Se guardan en este navegador y en tu cuenta, que es privada: al entrar desde otro dispositivo se cargan solas.' : cloudOn() ? 'Se guardan en este navegador. Si entras con Google, también en tu cuenta privada y se cargan solas en otros dispositivos.' : 'Se guardan solo en este navegador.'}</p></div>
       <div class="row"><button class="btn ghost" data-a="home">Volver</button>
         <label class="btn" for="pack" style="cursor:pointer">Importar paquete de imágenes</label><input type="file" accept=".json,application/json" id="pack" data-pack="1" hidden>
         ${Object.keys(CUSTOM).length?`<button class="btn ghost" data-a="rmall">Quitar todas (${Object.keys(CUSTOM).length})</button>`:''}
         ${packMsg?`<span class="lbl" style="color:var(--gold)">${packMsg}</span>`:''}</div>
-      <span class="lbl">Música</span><div class="gal">${Object.keys(TRACKS).map(k=>`<div class="card slot"><b>${TRACKS[k]}</b>
+      <span class="lbl">Música</span>${auMsg?`<span class="lbl" style="color:var(--gold)" role="status">${esc(auMsg)}</span>`:''}<div class="gal">${Object.keys(TRACKS).map(k=>`<div class="card slot"><b>${TRACKS[k]}</b>
         <span class="dim" style="font-size:13px;overflow-wrap:anywhere">${MY[k]?MY[k].name:'Música del juego'}</span>
         <label class="lbl" for="au-${k}">Cargar audio</label><input type="file" accept="audio/*" id="au-${k}" data-au="${k}">
         ${MY[k]?`<button class="btn ghost sm" data-a="rmau" data-i="${k}">Quitar</button>`:''}</div>`).join('')}</div>

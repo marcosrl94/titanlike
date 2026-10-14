@@ -36,6 +36,7 @@ async function cloudPull(){
     if(img.data) mergePack(await img.data.text());
   }catch(e){ CLOUD.msg = 'No se pudo sincronizar con la nube.'; }
   render();
+  cloudAudioPull();
 }
 let pushT = null;
 function cloudPush(now){
@@ -84,4 +85,47 @@ async function cloudFinishRun(runId, wave, ending){
   if(!CLOUD.user || !runId) return;
   const {error} = await CLOUD.sb.rpc('finish_run', {p_run:runId, p_wave:wave, p_ending:ending});
   if(error){ CLOUD.msg = 'La expedición no se ha registrado: ' + error.message + '.'; render(); }
+}
+
+// ---- música propia en la nube: un archivo por pista en el bucket privado player-audio, <uid>/<pista>--<nombre> ----
+const auSafe = n => (n||'audio').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w.\-]+/g,'_').slice(0,90);
+const auBucket = () => CLOUD.sb.storage.from('player-audio');
+async function cloudAudioList(){
+  const {data, error} = await auBucket().list(CLOUD.user.id, {limit:100});
+  if(error) throw error; return (data||[]).filter(o=>TRACKS[o.name.split('--')[0]]);
+}
+async function cloudAudioUp(k){
+  if(!CLOUD.user || !MY[k]) return;
+  const t = MY[k], uid = CLOUD.user.id;
+  if(t.data.byteLength > 25*1024*1024){ auMsg = `«${t.name}» pesa más de 25 MB y se queda solo en este navegador.`; return render(); }
+  auMsg = `Subiendo «${t.name}» a tu cuenta…`; render();
+  try{
+    const old = (await cloudAudioList()).filter(o=>o.name.startsWith(k+'--')).map(o=>uid+'/'+o.name);
+    const path = `${uid}/${k}--${auSafe(t.name)}`, type = t.type || 'audio/mpeg';
+    const {error} = await auBucket().upload(path, new Blob([t.data], {type}), {upsert:true, contentType:type});
+    if(error) throw error;
+    const stale = old.filter(p=>p!==path); if(stale.length) await auBucket().remove(stale);
+    auMsg = `«${t.name}» guardada en tu cuenta.`;
+  }catch(e){ auMsg = `No se pudo guardar «${t.name}» en tu cuenta: ${e.message||e}.`; }
+  render();
+}
+async function cloudAudioDel(k){
+  if(!CLOUD.user) return;
+  try{ const L=(await cloudAudioList()).filter(o=>o.name.startsWith(k+'--')); if(L.length) await auBucket().remove(L.map(o=>CLOUD.user.id+'/'+o.name)); }catch(e){}
+}
+// al entrar: manda la cuenta. Baja sus pistas y sube las de este navegador solo para las pistas que la cuenta no tiene
+async function cloudAudioPull(){
+  if(!CLOUD.user) return;
+  await myLoaded;
+  try{
+    const L = await cloudAudioList(), inCloud = {};
+    for(const o of L){
+      const k = o.name.split('--')[0], name = o.name.slice(k.length+2); inCloud[k] = 1;
+      if(MY[k] && auSafe(MY[k].name)===name) continue;
+      const {data, error} = await auBucket().download(CLOUD.user.id+'/'+o.name);
+      if(error || !data) continue;
+      await keepMyAudio(k, name, await data.arrayBuffer(), data.type);
+    }
+    for(const k of Object.keys(TRACKS)) if(MY[k] && !inCloud[k]) await cloudAudioUp(k);
+  }catch(e){ auMsg = 'No se pudo sincronizar la música con tu cuenta.'; render(); }
 }

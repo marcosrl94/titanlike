@@ -77,3 +77,7 @@ create policy "imagenes propias: borrar" on storage.objects for delete to authen
 -- finish_run (jornada válida, mínimo 8 s por jornada, final solo al completar, cierra una vez,
 -- escribe daily_scores y desbloquea sagas); leaderboard calculada desde runs;
 -- sync_progress_v2 ya no toca sagas, mejor jornada ni finales; sync_progress y submit_daily revocadas.
+
+-- Migración player_audio_bucket: bucket privado para la música propia de cada jugador (<uid>/<pista>--<nombre>)
+-- insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types) values ('player-audio','player-audio',false,26214400, array['audio/mpeg',...]);
+-- políticas "audio propio: leer/subir/cambiar/borrar" iguales a las de player-images, sobre bucket_id = 'player-audio'
