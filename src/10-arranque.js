@@ -3,8 +3,11 @@ let lastScr = null, lastBolt = null;
 function header(){
   $('bmus').classList.toggle('off', !AU.on.m); $('bsfx').classList.toggle('off', !AU.on.s);
   $('bmus').setAttribute('aria-pressed', AU.on.m); $('bsfx').setAttribute('aria-pressed', AU.on.s);
+  const h=$('hacc'); if(h) h.innerHTML = !cloudOn() ? '' : CLOUD.user
+    ? `<button class="ib av-b" data-a="acct" aria-label="Tu cuenta: ${esc(userName())}" title="${esc(userName())}">${avatar('sm')}</button>`
+    : `<button class="gbtn sm" data-a="login" ${CLOUD.busy?'disabled':''} aria-label="Entrar con Google">${GLOGO}<span>Entrar</span></button>`;
   const on = S && !['title','starter','gallery','sagas','board','codex','settings'].includes(scr) && S.map;
-  $('gas').hidden = $('prog').hidden = !on;
+  $('prog').hidden = !on;
   if(!on) return;
   let g=''; for(let i=0;i<S.gasMax;i++) g+=`<i class="${i<S.gas?'on':''}"></i>`;
   $('gasbar').innerHTML = S.gasMax>16 ? '' : g; $('gasn').textContent=`${S.gas}/${S.gasMax}`;
@@ -86,7 +89,8 @@ function act(a, i){
 document.addEventListener('pointerdown', auUnlock);
 document.addEventListener('keydown', auUnlock);
 document.querySelector('.snd').addEventListener('click', ev=>{
-  if(ev.target.closest('#bmenu')){ auUnlock(); return openMenu(); }
+  if(ev.target.closest('#bmenu') || ev.target.closest('[data-a=acct]')){ auUnlock(); return openMenu(); }
+  const l=ev.target.closest('[data-a=login]'); if(l){ if(!l.disabled) cloudLogin(); return; }
   const b=ev.target.closest('[data-s]'); if(!b) return;
   auUnlock(); toggleSound(b.dataset.s); header(); sfx('click');
 });
@@ -96,6 +100,7 @@ $('screen').addEventListener('click', ev=>{
 });
 $('screen').addEventListener('keydown', ev=>{
   if(ev.key!=='Enter' && ev.key!==' ') return;
+  const lf=ev.target.closest('label.file'); if(lf){ ev.preventDefault(); const inp=document.getElementById(lf.htmlFor); if(inp) inp.click(); return; }
   const b=ev.target.closest('g[data-a]'); if(!b) return;
   ev.preventDefault(); act(b.dataset.a, b.dataset.i);
 });

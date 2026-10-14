@@ -6,13 +6,14 @@ function menuHTML(){
   const item = (a, t, d, attrs='') => `<button class="mi" data-m="${a}" ${attrs}><b>${t}</b>${d?`<span>${d}</span>`:''}</button>`;
   return `<div class="menu-in" role="document">
     <div class="row" style="justify-content:space-between"><span class="lbl">Menú</span><button class="btn ghost sm" data-m="close" aria-label="Cerrar el menú">Cerrar</button></div>
+    ${accountHTML('menu')}
     ${inRun() ? item('close', 'Volver a la partida', `${sagaLbl(S.wave)} · jornada ${dayOf(S.wave)}`) : ''}
     ${saved ? item('continue', 'Continuar expedición', `${sagaOf(saved.wave).n}, jornada ${dayOf(saved.wave)}`) : ''}
     ${item('title', 'Portada')}
     ${item('sagas', 'Nueva expedición', inRun() ? 'Sustituye a la expedición en curso' : '')}
     ${item('daily', 'Expedición del día', dailyDone() ? 'Ya la has jugado hoy' : `${dailyInfo().mod.n}: ${dailyInfo().mod.d}`, dailyDone() ? 'disabled' : '')}
     ${item('codex', 'Logros y códice', `${meta().ach.length} de ${ACH.length} logros`)}
-    ${cloudOn() && CLOUD.user ? item('board', 'Clasificación') : ''}
+    
     ${item('gallery', 'Imágenes y música')}
     ${item('settings', 'Ajustes')}
     ${item('tips', 'Repetir los consejos', 'Vuelven a aparecer la primera vez que veas cada cosa')}
@@ -62,9 +63,7 @@ V.settings = function(){
       ${tog('calm','Reducir movimiento','Animaciones mínimas y sin balanceo de los titanes.')}
       ${tog('big','Texto más grande')}
     </section>
-    ${cloudOn() ? `<section class="panel"><span class="lbl">Cuenta</span>
-      <div class="set"><div><b>${CLOUD.user ? esc(CLOUD.name || CLOUD.user.email || 'Sesión iniciada') : 'Sin sesión'}</b><span>${CLOUD.user ? 'El progreso, los logros y las imágenes se guardan en tu cuenta.' : 'Inicia sesión para guardar el progreso en la nube y puntuar en la clasificación.'}</span></div>
-      ${CLOUD.user ? '<button class="btn ghost sm" data-a="logout">Cerrar sesión</button>' : '<button class="btn sm" data-a="login">Entrar con Google</button>'}</div></section>` : ''}
+    ${cloudOn() ? `<section class="panel"><span class="lbl">Cuenta</span>${accountHTML('settings')}</section>` : ''}
     <section class="panel"><span class="lbl">Datos</span>
       <div class="set col"><div><b>Copia del progreso</b><span>Sagas, logros, códice, partida en curso y ajustes. No incluye las imágenes.</span></div>
         <textarea id="cfg-data" rows="3" readonly aria-label="Copia del progreso">${esc(exp)}</textarea>
@@ -101,6 +100,7 @@ function settingsAct(a, i){
 }
 $('menu').addEventListener('click', ev=>{
   if(ev.target.id==='menu') return closeMenu();
+  const a=ev.target.closest('[data-a]'); if(a && !a.disabled){ if(a.dataset.a!=='login') closeMenu(); return act(a.dataset.a, a.dataset.a==='board'?'general':a.dataset.i); }
   const b=ev.target.closest('[data-m]'); if(b && !b.disabled) menuAct(b.dataset.m);
 });
 document.addEventListener('keydown', ev=>{

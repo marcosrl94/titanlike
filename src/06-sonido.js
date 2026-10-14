@@ -142,3 +142,16 @@ async function keepMyAudio(k, name, data, type){
 function delMyAudio(k){ delete MY[k]; idbDo('readwrite', st=>st.delete(k)).catch(()=>{}); if(typeof cloudAudioDel==='function') cloudAudioDel(k); restart(k); render(); }
 let auMsg = '';
 const myLoaded = Promise.all(Object.keys(TRACKS).map(k=>idbDo('readonly', st=>st.get(k)).then(v=>{ if(v && !MY[k]){ MY[k]=v; restart(k); if(scr==='gallery') render(); } }).catch(()=>{})));
+
+// paquete de música: {titanlike:'musica', tracks:{map|combat|boss:{name, type, data:base64}}}
+async function importMusicPack(text){
+  let d; try{ d=JSON.parse(text); }catch(e){ return 'Ese archivo no es un paquete de Titanlike.'; }
+  if(!d || d.titanlike!=='musica' || typeof d.tracks!=='object') return 'Ese archivo no es un paquete de música de Titanlike.';
+  const ks = Object.keys(d.tracks).filter(k=>TRACKS[k] && d.tracks[k] && typeof d.tracks[k].data==='string');
+  for(const k of ks){ const t=d.tracks[k];
+    const bin=atob(t.data), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
+    await keepMyAudio(k, t.name||TRACKS[k], u.buffer, t.type||'audio/mpeg');
+    if(typeof cloudAudioUp==='function' && typeof CLOUD!=='undefined' && CLOUD.user) await cloudAudioUp(k);
+  }
+  return ks.length ? `Importadas ${ks.length} pistas: ${ks.map(k=>TRACKS[k]).join(', ')}.` : 'El paquete no trae pistas.';
+}

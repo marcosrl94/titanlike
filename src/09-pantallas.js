@@ -61,16 +61,17 @@ const V = {
         <span class="lbl">Cuerpo de Exploración · ${SAGAS.length} sagas</span>
         <h1>Más allá del <em>muro</em></h1>
         <p>Sales con un solo recluta. Cuatro sagas, doce titanes cambiantes y una ruta que eliges tú te separan del final. Quien cae, no vuelve.</p>
-        <div class="row">
-          ${ok?`<button class="btn" data-a="continue">Continuar · ${sagaOf(run.wave).n}, jornada ${dayOf(run.wave)}</button>`:''}
-          <button class="btn ${ok?'ghost':''}" data-a="sagas">${ok?'Nueva expedición':'Salir de las murallas'}</button>
-          <button class="btn ghost" data-a="daily" ${dailyDone()?'disabled title="Ya has jugado la de hoy"':''}>${dailyDone()?'Expedición del día: vuelve mañana':'Expedición del día'}</button>
-          <button class="btn ghost" data-a="codex">Logros y códice · ${M.ach.length}/${ACH.length}</button>
-          <button class="btn ghost" data-a="gallery">Tus imágenes y música</button>
-          ${Object.keys(tipsSeen).length?'<button class="btn ghost sm" data-a="tipreset">Repetir consejos</button>':''}
+        <div class="cta">
+          ${ok?`<button class="btn lg" data-a="continue">Continuar<small>${sagaOf(run.wave).n} · jornada ${dayOf(run.wave)}</small></button>`:''}
+          <button class="btn lg ${ok?'ghost':''}" data-a="sagas">${ok?'Nueva expedición':'Salir de las murallas'}</button>
+        </div>
+        <div class="cta2">
+          <button class="btn ghost" data-a="daily" ${dailyDone()?'disabled title="Ya has jugado la de hoy"':''}>${dailyDone()?'Del día: vuelve mañana':'Expedición del día'}</button>
+          <button class="btn ghost" data-a="codex">Logros · ${M.ach.length}/${ACH.length}</button>
+          <button class="btn ghost" data-a="gallery">Imágenes y música</button>
         </div>
         <span class="lbl num">Sagas desbloqueadas: ${M.unlocked} de ${SAGAS.length} · Mejor marca: ${M.best} de ${TOTAL} jornadas</span>
-        ${cloudOn() ? `<div class="row">${CLOUD.user ? `<span class="lbl">Sesión: ${esc(CLOUD.name||CLOUD.user.email||'')}</span><button class="btn ghost sm" data-a="board">Clasificación</button><button class="btn ghost sm" data-a="logout">Salir</button>` : `<button class="btn ghost sm" data-a="login">Entrar con Google</button><span class="lbl">Guarda tu progreso y entra en la clasificación</span>`}${CLOUD.msg?`<span class="lbl" style="color:var(--gold)">${esc(CLOUD.msg)}</span>`:''}</div>` : ''}
+        ${accountHTML('title')}
       </div><div class="peek">${titanFig(TITANS.col.a)}</div></section>
       <ul class="rules">
         <li><b>Sagas encadenadas</b>Quince jornadas cada una. Al vencer al último jefe sigues con tu escuadrón.</li>
@@ -85,8 +86,9 @@ const V = {
         <div class="tablewrap"><table class="chart"><tbody>${rows}</tbody></table></div></section>`;
   },
   sagas(){
-    const u=meta().unlocked;
+    const u=meta().unlocked, saved=!!store.get('run');
     return `<div><h2>Elige la saga</h2><p class="dim" style="max-width:64ch">Una campaña recorre las cuatro seguidas. Las que ya hayas desbloqueado se pueden empezar directamente, con tres veteranos equipados.</p></div>
+      ${saved?'<p class="note-s">Tienes una expedición a medias: empezar otra la sustituye.</p>':''}
       <div class="sagas">${SAGAS.map((g,i)=>`<button class="card saga" data-a="saga" data-i="${i}" ${i<u?'':'disabled'}>
         <span class="n">SAGA ${i+1}${i<u?'':' · BLOQUEADA'}</span><h3>${g.n}</h3><p>${i<u?g.d:`Vence la saga ${i} para abrirla.`}</p>
         <ul>${g.zones.map(z=>`<li>${z.n} · ${TITANS[z.boss].n}</li>`).join('')}</ul></button>`).join('')}</div>
@@ -106,7 +108,9 @@ const V = {
   map(){
     const z=zoneOf(S.wave);
     const D = S.daily ? DAILY_MODS.find(x=>x.k===S.mod) : null;
-    const unranked = cloudOn() && !S.runId ? `<p class="dim" style="font-size:13px">${S.runNote || 'Esta expedición no puntúa en la clasificación: inicia sesión antes de empezar.'}</p>` : '';
+    const unranked = !cloudOn() || S.runId ? '' : CLOUD.user
+      ? `<p class="note-s">${S.runNote || 'Esta expedición empezó sin sesión y no puntúa en la clasificación. La próxima, sí.'}</p>`
+      : `<div class="acc out slim"><div class="acc-t"><b>Esta expedición no puntúa</b><span>Entra con Google: tu progreso se guarda en la nube y las próximas expediciones entran en la clasificación.</span></div>${gbtn()}</div>`;
     return `${unranked}${D?`<section class="panel daily"><span class="lbl">Expedición del día · ${S.daily}</span><p><b>${D.n}.</b> ${D.d} Mismo mapa, titanes y recompensas para todos; termina al acabar la saga 1.</p></section>`:''}<div><span class="lbl">${sagaLbl(S.wave)}</span><h2>${z.n}</h2><p class="dim">${S.map.pos?'Elige el siguiente paso de la ruta.':'Elige por dónde entra el escuadrón.'} Al fondo espera el ${TITANS[z.boss].n}.${BOSS_PW[z.boss] && !(BOSS_PW[z.boss] in S.pw) ? ` Puede soltar el poder del ${POWERS[BOSS_PW[z.boss]].n}: <b class="num" style="color:var(--gold)">${Math.round(dropP()*100)} %</b>.` : ''}</p></div>
       <div class="mapwrap">${mapSVG()}</div>
       <ul class="legend">${Object.keys(NODE).map(k=>`<li><b>${NODE[k].n}.</b> ${NODE[k].d}</li>`).join('')}</ul>
@@ -141,8 +145,8 @@ const V = {
     return `<div class="stage"><div class="titans">${tit}</div></div>
       <div class="log" id="log" aria-live="polite">${C.log.map(l=>`<div>${l}</div>`).join('')}</div>
       ${squadHTML(canAct && P && P.tgt==='ally' ? 'ally' : '')}
-      <div class="hint lbl"><span id="hint">${hint}</span><button class="btn ghost sm" data-a="speed">Animación: ${ANIM[CFG.anim].n}</button></div>
-      <div class="orders" id="orders">${orders}</div>${relicsHTML()}`;
+      <div class="dock"><div class="hint lbl"><span id="hint">${hint}</span><button class="btn ghost sm" data-a="speed" title="Velocidad de las animaciones">Animación: ${ANIM[CFG.anim].n}</button></div>
+      <div class="orders" id="orders">${orders}</div></div>${relicsHTML()}`;
   },
   reward(){
     const t=curNode().t, nx=SAGAS[sagaIx(S.wave)+1];
@@ -176,17 +180,17 @@ const V = {
   gallery(){
     const fitCtl = k => CUSTOM[k] ? `<div class="fit" role="group" aria-label="Encuadre de ${k}"><span class="lbl">Encuadre${k.endsWith('@a')?' adulto':''}</span>${[['out','−','Alejar'],['in','+','Acercar'],['l','←','Mover a la izquierda'],['r','→','Mover a la derecha'],['u','↑','Subir'],['d','↓','Bajar'],['reset','↺','Restablecer']].map(([o,t,l])=>`<button class="btn ghost sm" data-a="fit" data-i="${k}|${o}" aria-label="${l}" title="${l}">${t}</button>`).join('')}</div>` : '';
     const cell=(id,name,pic)=>`<div class="card">${pic}<b>${name}</b>${fitCtl(id)}${ROSTER[id]&&CUSTOM[id+'@a']?`<span class="pt lg"><img src="${CUSTOM[id+'@a']}" alt="" style="${fitStyle(id+'@a')}"></span>${fitCtl(id+'@a')}`:''}
-      <label class="lbl" for="up-${id}">Subir imagen</label><input type="file" accept="image/*" id="up-${id}" data-up="${id}">
+      <label class="btn ghost sm file" for="up-${id}" tabindex="0">${CUSTOM[id]?'Cambiar imagen':'Subir imagen'}</label><input class="vh" type="file" accept="image/*" id="up-${id}" data-up="${id}">
       ${CUSTOM[id]?`<button class="btn ghost sm" data-a="rm" data-i="${id}">Quitar</button>`:''}
-      ${ROSTER[id]?`<label class="lbl" for="up-${id}-a">Versión adulta${CUSTOM[id+'@a']?' ✓':''}</label><input type="file" accept="image/*" id="up-${id}-a" data-up="${id}@a">${CUSTOM[id+'@a']?`<button class="btn ghost sm" data-a="rm" data-i="${id}@a">Quitar adulta</button>`:''}`:''}</div>`;
-    return `<div><h2>Tus imágenes y música</h2><p class="dim" style="max-width:66ch">Carga tus propios archivos y el juego los usará en lugar de los emblemas, los dibujos de titanes y la música sintetizada. Cada soldado admite una versión adulta, que se usa a partir de la saga 4. ${cloudOn() && CLOUD.user ? 'Se guardan en este navegador y en tu cuenta, que es privada: al entrar desde otro dispositivo se cargan solas.' : cloudOn() ? 'Se guardan en este navegador. Si entras con Google, también en tu cuenta privada y se cargan solas en otros dispositivos.' : 'Se guardan solo en este navegador.'}</p></div>
+      ${ROSTER[id]?`<label class="btn ghost sm file" for="up-${id}-a" tabindex="0">${CUSTOM[id+'@a']?'Cambiar adulta':'Versión adulta'}</label><input class="vh" type="file" accept="image/*" id="up-${id}-a" data-up="${id}@a">${CUSTOM[id+'@a']?`<button class="btn ghost sm" data-a="rm" data-i="${id}@a">Quitar adulta</button>`:''}`:''}</div>`;
+    return `<div><h2>Tus imágenes y música</h2><p class="dim" style="max-width:66ch">Importa un paquete (.json de imágenes o de música) o carga tus archivos uno a uno, y el juego los usará en lugar de los emblemas, los dibujos de titanes y la música sintetizada. Cada soldado admite una versión adulta, que se usa a partir de la saga 4. ${cloudOn() && CLOUD.user ? 'Se guardan en este navegador y en tu cuenta, que es privada: al entrar desde otro dispositivo se cargan solas.' : cloudOn() ? 'Se guardan en este navegador. Si entras con Google, también en tu cuenta privada y se cargan solas en otros dispositivos.' : 'Se guardan solo en este navegador.'}</p></div>
       <div class="row"><button class="btn ghost" data-a="home">Volver</button>
-        <label class="btn" for="pack" style="cursor:pointer">Importar paquete de imágenes</label><input type="file" accept=".json,application/json" id="pack" data-pack="1" hidden>
+        <label class="btn file" for="pack" tabindex="0">Importar paquete (.json)</label><input class="vh" type="file" accept=".json,application/json" id="pack" data-pack="1">
         ${Object.keys(CUSTOM).length?`<button class="btn ghost" data-a="rmall">Quitar todas (${Object.keys(CUSTOM).length})</button>`:''}
         ${packMsg?`<span class="lbl" style="color:var(--gold)">${packMsg}</span>`:''}</div>
       <span class="lbl">Música</span>${auMsg?`<span class="lbl" style="color:var(--gold)" role="status">${esc(auMsg)}</span>`:''}<div class="gal">${Object.keys(TRACKS).map(k=>`<div class="card slot"><b>${TRACKS[k]}</b>
         <span class="dim" style="font-size:13px;overflow-wrap:anywhere">${MY[k]?MY[k].name:'Música del juego'}</span>
-        <label class="lbl" for="au-${k}">Cargar audio</label><input type="file" accept="audio/*" id="au-${k}" data-au="${k}">
+        <label class="btn ghost sm file" for="au-${k}" tabindex="0">${MY[k]?'Cambiar audio':'Cargar audio'}</label><input class="vh" type="file" accept="audio/*" id="au-${k}" data-au="${k}">
         ${MY[k]?`<button class="btn ghost sm" data-a="rmau" data-i="${k}">Quitar</button>`:''}</div>`).join('')}</div>
       <span class="lbl">Soldados</span><div class="gal">${Object.keys(ROSTER).map(id=>cell(id,ROSTER[id].n,portrait(id,true))).join('')}</div>
       <span class="lbl">Titanes</span><div class="gal">${Object.keys(TITANS).map(id=>cell(id,TITANS[id].n,`<span class="art">${titanArt(id)}</span>`)).join('')}</div>`;
@@ -203,6 +207,7 @@ const V = {
       <p>${won?`${ENDINGS[S.ending].d} ${S.erenFell?'Eren se volvió contra vosotros y lo habéis detenido. ':''}${S.squad.map(nm).join(', ')} ${S.squad.length>1?'siguen':'sigue'} en pie tras ${TOTAL} jornadas. Poderes reunidos: ${owned().length} de 9.`:`La expedición acaba en la saga ${sagaIx(S.wave)+1}, «${sagaOf(S.wave).n}»: jornada ${dayOf(S.wave)} de ${PER}, en ${zoneOf(S.wave).n}.`}</p>
       <div class="row"><button class="btn" data-a="sagas">Nueva expedición</button><button class="btn ghost" data-a="home">Portada</button></div></div>
       <div class="peek">${titanFig(won?TITANS.fun.a:TITANS.col.a)}</div></section>
+      ${cloudOn()&&!CLOUD.user?accountHTML('end'):''}
       ${f?`<section class="panel"><span class="lbl">Entregaron su corazón</span><ul class="fallen">${f}</ul></section>`:''}`;
   },
   scene(){

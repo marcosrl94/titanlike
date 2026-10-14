@@ -64,8 +64,10 @@ function mergePack(t){
   if(n) store.set('img', CUSTOM); return n;
 }
 function importPack(file){
-  file.text().then(t=>{ const n=mergePack(t);
-    packMsg = n ? `Importadas ${n} imágenes.` : 'Ese archivo no es un paquete de imágenes de Titanlike.'; render();
+  file.text().then(async t=>{
+    if(t.slice(0,200).includes('"musica"')){ packMsg = await importMusicPack(t); return render(); }
+    const n=mergePack(t);
+    packMsg = n ? `Importadas ${n} imágenes.` : 'Ese archivo no es un paquete de Titanlike.'; render();
     if(n && typeof cloudUploadPack==='function') cloudUploadPack(); });
 }
 let packMsg = '';

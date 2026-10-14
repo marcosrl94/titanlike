@@ -1,12 +1,16 @@
 // ---------- Nube: cuenta de Google, progreso, clasificación e imágenes (solo en la versión desplegada) ----------
 const CLOUD = {sb:null, user:null, name:'', board:null, busy:false, msg:''};
+let oauthReturn = typeof location!=='undefined' && /access_token|error_description/.test(location.hash);   // volvemos de Google
 function cloudInit(){
   const cfg = window.TL_CFG;
   if(!cfg || !window.supabase) return;
   CLOUD.sb = window.supabase.createClient(cfg.url, cfg.key);
   CLOUD.sb.auth.onAuthStateChange((evt, sess)=>{
     const u = sess && sess.user, was = CLOUD.user;
-    CLOUD.user = u || null;
+    CLOUD.user = u || null; CLOUD.busy = false;
+    if(!u && oauthReturn && /error_description/.test(location.hash)){ CLOUD.msg='Google no ha completado el acceso: '+decodeURIComponent((location.hash.match(/error_description=([^&]+)/)||[])[1]||'').replace(/\+/g,' '); oauthReturn=false; }
+    if(u && oauthReturn){ oauthReturn=false; }
+    if(u && !was && evt==='SIGNED_IN' && typeof toast==='function' && !(()=>{ try{ return sessionStorage.getItem('tl-hi'); }catch(e){ return 1; } })()) { try{ sessionStorage.setItem('tl-hi','1'); }catch(e){} toast('Sesión iniciada', 'Hola, ' + ((u.user_metadata||{}).full_name || u.email || '') + '. Tu progreso se guarda en tu cuenta.'); }
     if(u && (!was || was.id!==u.id)) setTimeout(cloudPull, 0);
     if(!u){ CLOUD.name=''; CLOUD.board=null; }
     render();
@@ -14,10 +18,25 @@ function cloudInit(){
 }
 const cloudOn = () => !!CLOUD.sb;
 async function cloudLogin(){
+  CLOUD.busy = true; CLOUD.msg = ''; render();
   const {error} = await CLOUD.sb.auth.signInWithOAuth({provider:'google', options:{redirectTo: location.origin + location.pathname}});
-  if(error){ CLOUD.msg = 'No se pudo abrir el acceso con Google: ' + error.message; render(); }
+  if(error){ CLOUD.busy = false; CLOUD.msg = 'No se pudo abrir el acceso con Google: ' + error.message; render(); }
 }
-async function cloudLogout(){ await CLOUD.sb.auth.signOut(); }
+// ---- botón de Google (guía de marca: fondo claro, logo G a color, texto «Continuar con Google») ----
+const GLOGO = '<svg class="g" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+const gbtn = (txt='Continuar con Google', cls='') => `<button class="gbtn ${cls}" data-a="login" ${CLOUD.busy?'disabled aria-busy="true"':''}>${GLOGO}<span>${CLOUD.busy?'Abriendo Google…':txt}</span></button>`;
+const userName = () => CLOUD.name || (CLOUD.user && ((CLOUD.user.user_metadata||{}).full_name || CLOUD.user.email)) || '';
+const userPic = () => { const m=(CLOUD.user&&CLOUD.user.user_metadata)||{}; return m.avatar_url || m.picture || ''; };
+const avatar = (sz='') => { const p=userPic(), n=userName(); return `<span class="av ${sz}" aria-hidden="true">${p?`<img src="${esc(p)}" alt="" referrerpolicy="no-referrer">`:esc((n[0]||'?').toUpperCase())}</span>`; };
+// bloque de cuenta reutilizable: portada, menú, ajustes y fin de expedición
+function accountHTML(where){
+  if(!cloudOn()) return '';
+  const msg = CLOUD.msg ? `<p class="acc-msg" role="status">${esc(CLOUD.msg)}</p>` : '';
+  if(CLOUD.user) return `<div class="acc in">${avatar()}<div class="acc-t"><b>${esc(userName())}</b><span>Progreso, imágenes y música guardados en tu cuenta</span></div>
+    <div class="row acc-a"><button class="btn ghost sm" data-a="board">Clasificación</button><button class="btn ghost sm" data-a="logout">Cerrar sesión</button></div>${msg}</div>`;
+  return `<div class="acc out"><div class="acc-t"><b>${where==='end'?'Que no se pierda esta expedición':'Guarda tu partida en la nube'}</b><span>Juega en el móvil y en el ordenador, sincroniza tus imágenes y música y compite en la clasificación con tus colegas.</span></div>${gbtn()}${msg}</div>`;
+}
+async function cloudLogout(){ try{ sessionStorage.removeItem('tl-hi'); }catch(e){} await CLOUD.sb.auth.signOut(); }
 // trae el progreso de la nube y lo mezcla con el local (máximos y uniones); luego sube el resultado
 async function cloudPull(){
   if(!CLOUD.user) return;

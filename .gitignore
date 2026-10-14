@@ -6,3 +6,4 @@ dist/
 *.webp
 *.png
 public/
+!static/*.png
