@@ -142,7 +142,8 @@ const V = {
       const st=[t.plate>0&&'Coraza',t.exposed>0&&'Expuesto',t.mark>0&&'Marcado',t.stun>0&&'Derribado',t.blind>0&&'Cegado',t.hard>0&&'Endurecido',!(t.stun>0||t.blind>0)&&t.alert>0&&`Alerta ${t.alert}`].filter(Boolean).join(' · ');
       const cl=['titan','z-'+t.cls, t.boss&&'boss', t.phase&&'enraged', t.hp<=0&&'dead', pk&&'pick'].filter(Boolean).join(' ');
       const prev=(()=>{ const e = canAct && CFG.preview && estimate(a, t, P ? P.kind : 'cut'); return e ? `<span class="prev ${e.kill?'kill':''}">${P?'':'Corte '}≈ ${e.lo===e.hi?e.lo:e.lo+'–'+e.hi}${e.kill?' · abate':''}</span>` : ''; })();
-      const intent = CFG.intent && t.hp>0 && t.intent ? `<span class="int ${t.intent==='all'?'all':''}" title="${AI_TXT[aiOf(t)]}">Ataca a: ${t.intent==='all' ? 'todo el escuadrón' : esc(ROSTER[t.intent].n)}</span>` : '';
+      const sp = t.special && t.special!=='all' ? ` · ${t.special}` : '';
+      const intent = CFG.intent && t.hp>0 && t.intent ? `<span class="int ${t.intent==='all'||t.special?'all':''}" title="${AI_TXT[aiOf(t)]}">${t.intent==='all' ? (t.m.txt||'Embestida').toLowerCase().replace(/^./,c=>c.toUpperCase())+': todo el escuadrón' : `Ataca a: ${esc(ROSTER[t.intent].n)}${sp}`}</span>` : '';
       // ficha del enemigo (caja a lo Pokémon, arriba a la izquierda); también sirve para elegirlo como objetivo
       plates.push(`<${pk?'button':'div'} class="plate ${t.boss?'boss':''} ${t.hp<=0?'dead':''} ${pk?'pick':''}" data-u="t${i}" ${pk?`data-a="titan" data-i="${i}"`:''}>
         <span class="row" style="gap:6px;justify-content:space-between"><h3>${t.n}</h3>${e!==1?`<span class="eff num ${e>1?'up':'down'}">×${String(e).replace('.',',')}</span>`:''}</span>
@@ -269,7 +270,7 @@ const V = {
       ${hoy ? `<section class="panel"><div class="tablewrap"><table class="chart num"><thead><tr><td class="lbl">#</td><td class="lbl">Jugador</td><td class="lbl">Puntos</td><td class="lbl">Jornadas</td></tr></thead><tbody>
       ${!B ? '<tr><td colspan="4">Cargando…</td></tr>' : !B.length ? '<tr><td colspan="4">Nadie ha terminado la expedición de hoy todavía.</td></tr>'
         : B.map((r,i)=>`<tr style="${r.user_id===me?'color:var(--gold)':''}"><td>${i+1}</td><td>${esc(r.display_name)}</td><td>${r.score}</td><td>${r.wave} / ${PER}</td></tr>`).join('')}</tbody></table></div></section>` : `
-      <p class="dim" style="font-size:13px">Puntos = jornadas × 1,25 en Veterano × (1 + 0,1 por vuelta de New Game+). Recluta no puntúa.</p>
+      <p class="dim" style="font-size:13px">${CLOUD.season?`<b style="color:var(--gold)">${esc(CLOUD.season.name)}</b> · solo cuentan las expediciones empezadas desde el ${new Date(CLOUD.season.started_at).toLocaleDateString('es-ES')}. `:''}Puntos = jornadas × 1,25 en Veterano × (1 + 0,1 por vuelta de New Game+). Recluta no puntúa.</p>
       <section class="panel"><div class="tablewrap"><table class="chart num"><thead><tr><td class="lbl">#</td><td class="lbl">Jugador</td><td class="lbl">Puntos</td><td class="lbl">Mejor expedición</td><td class="lbl">Finales</td><td class="lbl">Los Nueve</td></tr></thead><tbody>
       ${!B ? '<tr><td colspan="6">Cargando…</td></tr>' : !B.length ? '<tr><td colspan="6">Aún no hay nadie. La primera expedición marca el listón.</td></tr>'
         : B.map((r,i)=>`<tr style="${r.user_id===me?'color:var(--gold)':''}"><td>${i+1}</td><td>${esc(r.display_name)}${r.ng_level?` <span class="chip pwc" title="Campañas completadas">NG+${r.ng_level}</span>`:''}</td><td><b>${r.score}</b></td><td>${r.best} / ${TOTAL}${r.diff==='veterano'?' <span class="chip" style="color:var(--blood-hi)">Veterano</span>':''}${r.ng?` <span class="chip pwc">Vuelta ${r.ng+1}</span>`:''}</td><td>${r.endings} / 3</td><td>${r.nine} / 9</td></tr>`).join('')}

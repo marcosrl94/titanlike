@@ -81,7 +81,7 @@ const TITANS = {
   // el Retumbar: titanes de las murallas y portadores del pasado
   mur: {n:'Titán de las murallas', cls:'grande', hp:145, atk:17, spd:4, a:{R:19,sh:50,bel:22,arm:58,hy:38,flay:1,bald:1}},
   pas: {n:'Portador del pasado', cls:'anormal', hp:92, atk:14, spd:13, a:{R:16,sh:40,bel:17,arm:60,hy:34,sk:'#b9b3a6',h:'#2e2a26',bob:1}},
-  fun: {n:'Titán Fundador', cls:'grande', hp:500, atk:16, spd:8, boss:1, m:{aoe:3, harden:5, summon:3, txt:'EL RETUMBAR'}, a:{R:14,sh:50,bel:14,arm:70,hy:28,sk:'#d8d2c0',h:'#2e2a26',bob:1}}
+  fun: {n:'Titán Fundador', cls:'grande', hp:470, atk:16, spd:8, boss:1, m:{aoe:3, harden:5, summon:3, txt:'EL RETUMBAR'}, a:{R:14,sh:50,bel:14,arm:70,hy:28,sk:'#d8d2c0',h:'#2e2a26',bob:1}}
 };
 const SAGAS = [
   {n:'La caída de Trost', d:'El muro Rose cede. Reclutas recién licenciados contra titanes de verdad.', start:['eren','mikasa','armin'], zones:[

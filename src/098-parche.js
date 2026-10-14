@@ -1,5 +1,11 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-14.6', t:'Revisión de combate, curva de dificultad y temporada nueva', items:[
+    'Escalado: a partir de la saga 2 los enemigos crecen un 13 % por jornada en vez de un 15 %, y los saltos entre sagas son menores (×1,17, ×1,65 y ×1,85 en vez de ×1,2, ×1,72 y ×1,95). La saga 1 no cambia. En simulación, el final del acto 2 y las sagas 3 y 4 pasan de superarse un 78-90 % de las veces a un 85-96 %.',
+    'Titán Fundador: 470 PV (antes 500) y los titanes que llama al Retumbar salen más débiles (60 % de la escala en vez del 80 %).',
+    'Mecánicas revisadas una a una: el lanzamiento de la Bestia y la patada de la Hembra solo aturden si el golpe alcanza (si se esquiva, no); el Sonriente y la Mandíbula se lanzan a por el Señuelo cuando lo hay; cada titán anuncia su ataque especial en la ficha («lanzamiento», «patada», «devora», «todo el escuadrón», «endurece») para poder prepararse; el Acorazado queda expuesto exactamente dos turnos al romperle la coraza, como dice el texto.',
+    'Clasificación reiniciada: empieza la Temporada 1. Las partidas anteriores se conservan en la cuenta (logros, registro, New Game+) pero la tabla solo cuenta expediciones nuevas.'
+  ]},
   {v:'2026-10-14.5', t:'Combate a lo Pokémon, jefes con mecánica y clasificación justa', items:[
     'Combate: nuestros soldados aparecen en el escenario, delante de los titanes, y las fichas de los enemigos pasan a cajas en la esquina. Los ataques salen del soldado y llegan al titán; pulsar la ficha o la figura del enemigo lo elige como objetivo.',
     'Acorazado: lleva coraza (barra azul) y recibe la mitad de daño hasta romperla; después queda expuesto dos turnos (×1,5) y la regenera en parte. Las lanzas trueno, la Mandíbula y las cargas la ignoran.',

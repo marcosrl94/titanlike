@@ -132,7 +132,9 @@ async function cloudBoard(){
   const {data, error} = CLOUD.tab==='hoy'
     ? await CLOUD.sb.from('daily_board').select('display_name,score,wave,user_id').eq('day', today()).limit(50)
     : await CLOUD.sb.from('leaderboard_v2').select('display_name,best,score,diff,ng,endings,nine,ng_level,user_id').limit(50);
-  CLOUD.board = error ? [] : data; if(error) CLOUD.msg='No se pudo cargar la clasificación.'; render();
+  CLOUD.board = error ? [] : data; if(error) CLOUD.msg='No se pudo cargar la clasificación.';
+  if(!CLOUD.season){ const r = await CLOUD.sb.from('season_current').select('name,started_at').maybeSingle(); if(r && r.data) CLOUD.season = r.data; }   // temporada en curso: la tabla solo cuenta sus partidas
+  render();
 }
 async function cloudRename(n){
   n = (n||'').trim().slice(0,32); if(!n || !CLOUD.user) return;

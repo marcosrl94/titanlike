@@ -23,7 +23,7 @@ const zoneOf = w => sagaOf(w).zones[Math.floor(((clampW(w)-1)%PER)/5)];
 const dayOf = w => (clampW(w)-1)%PER + 1;
 const curNode = () => S.map.pos ? S.map.rows[S.map.pos[0]][S.map.pos[1]] : null;
 const nm = s => ROSTER[s.id].n;
-const SAGA_MUL = [1.03, 1.2, 1.72, 1.95];
+const SAGA_MUL = [1.03, 1.17, 1.65, 1.85];
 // dificultad: multiplicador de PV y ataque enemigos, gas recuperado tras cada combate
 const DIFF = {recluta:{n:'Recluta', m:.85, gas:4, d:'Enemigos un 15 % más débiles y 4 de gas tras cada combate. No puntúa en la clasificación.'},
   explorador:{n:'Explorador', m:1, gas:3, d:'El juego tal y como está pensado.'},
@@ -39,7 +39,8 @@ function check(k, dc){
   const txt = `Tirada de ${SKILLS[k]} (${who?nm(who):'nadie'} +${b}): ${r}${r===20?' ¡20 natural!':r===1?' ¡pifia!':''}${b?' + '+b+' = '+(r+b):''} contra ${dc}. ${ok?'Éxito.':'Fallo.'}`;
   return {ok, who, r, b, txt};
 }
-const scaleAt = w => (1 + .15*(w-1)) * SAGA_MUL[sagaIx(w)];
+// crecimiento por jornada: 15 % de la base en la saga 1 y 13 % a partir de la 2 (la curva se aplanaba poco con los niveles del escuadrón)
+const scaleAt = w => (1 + .15*Math.min(w-1, PER-1) + .13*Math.max(0, w-PER)) * SAGA_MUL[sagaIx(w)];
 
 function mkTitan(id, sc){
   const b=TITANS[id]; sc *= diffOf().m * ngMul(); const hp=Math.round(b.hp*sc);
@@ -113,7 +114,7 @@ function strike(s, t, mult, o={}){
   const exec = !!o.nape && !t.boss && (t.hp-d)/t.max < .25 && d < t.hp;
   if(exec){ d = t.hp; S.napes=(S.napes||0)+1; if(S.napes>=5) ach('nuca5'); }
   t.hp = Math.max(0, t.hp-d);
-  if(t.plate>0){ t.plate = Math.max(0, t.plate-d); if(t.plate===0){ t.exposed=3; ev({k:'mark', t:C.titans.indexOf(t), txt:'¡CORAZA ROTA!', m:`La coraza de ${t.n} salta en pedazos: durante 2 turnos recibe daño ×1,5.`}); } }
+  if(t.plate>0){ t.plate = Math.max(0, t.plate-d); if(t.plate===0){ t.exposed=2; ev({k:'mark', t:C.titans.indexOf(t), txt:'¡CORAZA ROTA!', m:`La coraza de ${t.n} salta en pedazos: durante 2 turnos recibe daño ×1,5.`}); } }
   t.lastHit = s.id; t.threat = t.threat || {}; t.threat[s.id] = (t.threat[s.id]||0) + d;
   checkPhase(t);
   ev({k:'slash', s:s.id, t:C.titans.indexOf(t), d, crit, fumble, roll:r, exec, kill:t.hp<=0, hp:t.hp, max:t.max, boom:!!o.pierce,
@@ -175,16 +176,16 @@ function doAction(kind, target){
   play(()=>{ render(); setTimeout(nextTurn, 140); });
 }
 // daño de titán a soldado
-function wound(t, s, mult){
-  if(s.hp<=0) return;
+function wound(t, s, mult){   // devuelve al soldado alcanzado (el escudo puede interponerse) o null si el golpe falla
+  if(s.hp<=0) return null;
   const guard = alive().find(a=>C.fx[a.id].guard>0 && a!==s);
   const tgt = guard || s, f=C.fx[tgt.id], ti=C.titans.indexOf(t);
   let d = t.atk*mult*rnd(.85,1.15);
-  if(t.blind>0) return ev({k:'miss', t:ti, s:tgt.id, txt:'FALLA', m:`${t.n} ${TITANS[t.id].a.k?'dispara a ciegas':'manotea a ciegas'} y falla.`});
-  if(f.evade>0){ f.evade=0; return ev({k:'miss', t:ti, s:tgt.id, txt:'ESQUIVA', m:`${nm(tgt)} esquiva a ${t.n}.`}); }
+  if(t.blind>0){ ev({k:'miss', t:ti, s:tgt.id, txt:'FALLA', m:`${t.n} ${TITANS[t.id].a.k?'dispara a ciegas':'manotea a ciegas'} y falla.`}); return null; }
+  if(f.evade>0){ f.evade=0; ev({k:'miss', t:ti, s:tgt.id, txt:'ESQUIVA', m:`${nm(tgt)} esquiva a ${t.n}.`}); return null; }
   // tirada de esquiva: d20 + bono de velocidad; 20 siempre esquiva
   const r=d20(), mod=Math.max(0, Math.floor((spdOf(tgt)-10)/3)), die=`d20 ${r}${mod?'+'+mod:''}`;
-  if(r+mod>=20) return ev({k:'miss', t:ti, s:tgt.id, txt:'ESQUIVA', die, m:`${nm(tgt)} esquiva a ${t.n} <small class="die">${die} · esquiva</small>`});
+  if(r+mod>=20){ ev({k:'miss', t:ti, s:tgt.id, txt:'ESQUIVA', die, m:`${nm(tgt)} esquiva a ${t.n} <small class="die">${die} · esquiva</small>`}); return null; }
   if(guard || f.guard>0) d*=.5;
   if(f.titan>0) d*=.5;
   if(f.armor>0) d*=.5;
@@ -193,6 +194,7 @@ function wound(t, s, mult){
   d = Math.max(1, Math.round(d));
   tgt.hp = Math.max(0, tgt.hp-d); C.taken += d;
   ev({k:'bite', t:ti, s:tgt.id, d, die, hp:tgt.hp, max:maxHp(tgt), dead:tgt.hp<=0, m:`${t.n} ${t.v||'golpea a'} ${nm(tgt)}: ${d} <small class="die">${die}</small>${tgt.hp<=0?'. Ha caído.':''}`});
+  return tgt;
 }
 function titanAct(t){
   const ti=C.titans.indexOf(t), m=t.m, every = n => n && t.turns%n===0;
@@ -210,13 +212,14 @@ function titanAct(t){
   if(every(m.aoe)){ ev({k:'roar', t:ti, txt:m.txt||'EMBESTIDA', m:`${t.n} golpea a todo el escuadrón.`}); alive().forEach(s=>wound(t,s,.6)); }
   else if(every(m.devour)){
     // devorar: a por el más herido; si alguien lo cubre (Escudo humano o Señuelo) el golpe es normal, si no, devastador
-    const s = alive().sort((a,b)=>a.hp/maxHp(a)-b.hp/maxHp(b))[0], covered = alive().some(x=>C.fx[x.id].guard>0 || C.fx[x.id].taunt>0);
+    const tz = alive().find(x=>C.fx[x.id].taunt>0), weak = alive().sort((a,b)=>a.hp/maxHp(a)-b.hp/maxHp(b))[0];
+    const s = tz || weak, covered = !!tz || alive().some(x=>C.fx[x.id].guard>0);
     ev({k:'roar', t:ti, txt:'DEVORA', m:`${t.n} se lanza a por ${nm(s)}${covered?', pero el escuadrón lo cubre.':'. ¡Nadie lo cubre!'}`}); wound(t,s,covered?1.2:2.2);
   } else if(every(m.throw)){
-    // lanzamiento: agarra a un soldado, lo lanza lejos y este pierde su próximo turno
-    const s = choose(true); if(s){ ev({k:'roar', t:ti, txt:'LANZAMIENTO', m:`${t.n} agarra a ${nm(s)} y lo lanza contra las casas.`}); wound(t,s,.9); if(s.hp>0 && !C.fx[s.id].evade){ C.fx[s.id].stun=1; ev({k:'buff', ids:[s.id], txt:'ATURDIDO', m:`${nm(s)} queda aturdido: pierde su próximo turno.`}); } }
+    // lanzamiento: agarra a un soldado y lo lanza lejos; quien recibe el golpe pierde su próximo turno (si lo esquiva, no)
+    const s = choose(true); if(s){ ev({k:'roar', t:ti, txt:'LANZAMIENTO', m:`${t.n} agarra a ${nm(s)} y lo lanza contra las casas.`}); const h=wound(t,s,.9); if(h && h.hp>0){ C.fx[h.id].stun=1; ev({k:'buff', ids:[h.id], txt:'ATURDIDO', m:`${nm(h)} queda aturdido: pierde su próximo turno.`}); } }
   } else if(every(m.kick)){
-    const s = choose(true); if(s){ ev({k:'roar', t:ti, txt:'PATADA', m:`${t.n} lanza una patada endurecida a ${nm(s)}.`}); wound(t,s,1.5); if(s.hp>0){ C.fx[s.id].stun=1; ev({k:'buff', ids:[s.id], txt:'ATURDIDO', m:`${nm(s)} sale despedido y pierde su próximo turno.`}); } }
+    const s = choose(true); if(s){ ev({k:'roar', t:ti, txt:'PATADA', m:`${t.n} lanza una patada endurecida a ${nm(s)}.`}); const h=wound(t,s,1.5); if(h && h.hp>0){ C.fx[h.id].stun=1; ev({k:'buff', ids:[h.id], txt:'ATURDIDO', m:`${nm(h)} sale despedido y pierde su próximo turno.`}); } }
   } else {
     const n = t.twice ? 2 : 1;
     for(let i=0;i<n;i++){ const s=choose(i===0); if(s){ wound(t,s,t.twice?.7:1); if(t.threat && t.threat[s.id]) t.threat[s.id]*=.4; } }
@@ -226,7 +229,7 @@ function titanAct(t){
   if(every(m.summon) && alive().length){
     // ocupa un hueco libre: nunca hay más de tres titanes en pantalla
     const slot = C.titans.length<3 ? C.titans.length : C.titans.findIndex(x=>x.hp<=0 && !x.boss);
-    if(slot>=0){ const n = mkTitan(pick(zoneOf(S.wave).pool), scaleAt(S.wave)*.8); C.titans[slot]=n;
+    if(slot>=0){ const n = mkTitan(pick(zoneOf(S.wave).pool), scaleAt(S.wave)*.6); C.titans[slot]=n;
       ev({k:'summon', t:slot, txt:'LLAMADA', m:`${t.n} llama a un ${n.n}.`}); }
   }
 }
@@ -239,6 +242,8 @@ function planIntent(t){
   if(t.hp<=0){ t.intent=null; return; }
   const a=alive(); if(!a.length){ t.intent=null; return; }
   const nx=t.turns+1, m=t.m, due=n=>n && nx%n===0;
+  t.special = due(m.aoe) ? 'all' : due(m.devour) ? 'devora' : due(m.throw) ? 'lanzamiento' : due(m.kick) ? 'patada' : null;
+  if(due(m.harden)) t.special = (t.special ? t.special+' · ' : '') + 'endurece';
   if(due(m.aoe)){ t.intent='all'; return; }
   const tz=a.find(x=>C.fx[x.id].taunt>0); if(tz){ t.intent=tz.id; return; }
   const by = due(m.devour) ? 'debil' : aiOf(t);
@@ -284,7 +289,7 @@ function useItem(s, k, target){
   const heal = (a,p) => { const h=Math.min(maxHp(a)-a.hp, Math.round(maxHp(a)*p)); a.hp+=h; ev({k:'heal', s:a.id, d:h, hp:a.hp, max:maxHp(a), m:h?`${nm(a)} recupera ${h} PV.`:''}); };
   switch(k){
     case 'humo': liveT().forEach(t=>applyCC(t,'blind',{quiet:true, boss:true})); ev({k:'roarAll', txt:'HUMO', m:`${nm(s)} lanza una bengala de humo. Los titanes no ven nada.`}); break;
-    case 'carga': { const d=Math.min(target.hp, itemDmg()); target.hp-=d; if(target.plate>0){ target.plate=Math.max(0,target.plate-d); if(!target.plate){ target.exposed=3; ev({k:'mark', t:C.titans.indexOf(target), txt:'¡CORAZA ROTA!'}); } } checkPhase(target);
+    case 'carga': { const d=Math.min(target.hp, itemDmg()); target.hp-=d; if(target.plate>0){ target.plate=Math.max(0,target.plate-d); if(!target.plate){ target.exposed=2; ev({k:'mark', t:C.titans.indexOf(target), txt:'¡CORAZA ROTA!'}); } } checkPhase(target);
       ev({k:'slash', s:s.id, t:C.titans.indexOf(target), d, crit:false, exec:false, kill:target.hp<=0, hp:target.hp, max:target.max, boom:true, m:`${nm(s)} detona una carga en ${target.n}: ${d}${target.hp<=0?'. ¡Abatido!':''}`}); break; }
     case 'botiquin': alive().forEach(a=>heal(a,.3)); break;
     case 'cable': heal(target,.5); break;

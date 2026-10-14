@@ -86,3 +86,7 @@ create policy "imagenes propias: borrar" on storage.objects for delete to authen
 -- al completar la campaña, vista leaderboard_v2 (puntos = jornadas × 1,25 Veterano × (1 + 0,1·vuelta)), tabla telemetry
 -- (inserción propia con RLS, sin lectura desde el cliente, 400 filas/hora por jugador). Migración backfill_ng_level: ng_level=1
 -- para quien ya había completado la campaña.
+
+-- Migraciones seasons_table y leaderboard_v2_by_season: tabla seasons (name, started_at; lectura pública) con la vista
+-- season_current (la última). leaderboard_v2 solo cuenta runs con started_at >= inicio de la temporada en curso.
+-- Reiniciar la clasificación = insert into public.seasons (name) values ('Temporada N'); no se borra ninguna partida.

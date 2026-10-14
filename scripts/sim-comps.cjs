@@ -8,6 +8,9 @@ const D=__dirname+'/../src/';
 let src0=['01-datos.js','02-combate.js','03-mapa.js','04-los-nueve.js','096-logros.js'].map(f=>fs.readFileSync(D+f,'utf8')).join('\n');
 let src=src0;
 if(process.env.MUL) src=src.replace(/const SAGA_MUL = \[[^\]]*\]/, 'const SAGA_MUL = ['+process.env.MUL+']');
+if(process.env.GROW) src=src.replace('(1 + .15*(w-1))', '(1 + '+process.env.GROW+'*(w-1))');
+if(process.env.LVL) src=src.replace('const lvlMul = s => 1 + .05*(s.lvl-1)', 'const lvlMul = s => 1 + '+process.env.LVL+'*(s.lvl-1)');
+if(process.env.DIFFM) src=src.replace("explorador:{n:'Explorador', m:1,", "explorador:{n:'Explorador', m:"+process.env.DIFFM+",");
 src+=`
 function render(){} function header(){} function busyUI(){}
 function play(d){ C.ev=[]; d(); }
