@@ -1,10 +1,22 @@
 // ---------- Arte: emblemas de soldado y titanes (dibujos propios) e imágenes del jugador ----------
 let CUSTOM = store.get('img') || {};
 // a partir de la saga 4 (Marley) se usa la versión adulta si el jugador la ha cargado
+// encuadre de las imágenes del jugador: zoom y desplazamiento guardados por imagen
+let FIT = store.get('fit') || {};
+const keyOf = id => (S && S.wave>3*PER && CUSTOM[id+'@a']) ? id+'@a' : id;
+const fitStyle = k => { const f=FIT[k]; return f ? `transform:scale(${f.z}) translate(${f.x}%,${f.y}%)` : ''; };
+function fitAdjust(k, op){
+  const f = FIT[k] || {z:1, x:0, y:0}, d=4;
+  if(op==='in') f.z=Math.min(2.5, +(f.z+.1).toFixed(2)); if(op==='out') f.z=Math.max(1, +(f.z-.1).toFixed(2));
+  if(op==='l') f.x+=d; if(op==='r') f.x-=d; if(op==='u') f.y+=d; if(op==='d') f.y-=d;
+  f.x=Math.max(-30,Math.min(30,f.x)); f.y=Math.max(-30,Math.min(30,f.y));
+  if(op==='reset') delete FIT[k]; else FIT[k]=f;
+  store.set('fit', FIT);
+}
 const imgOf = id => (S && S.wave>3*PER && CUSTOM[id+'@a']) || CUSTOM[id];
 function portrait(id, big){   // emblema genérico: capucha del cuerpo e inicial, con el color del estilo
   const c = big ? 'pt lg' : 'pt';
-  if(imgOf(id)) return `<span class="${c}"><img src="${imgOf(id)}" alt=""></span>`;
+  if(imgOf(id)) return `<span class="${c}"><img src="${imgOf(id)}" alt="" style="${fitStyle(keyOf(id))}"></span>`;
   const R = ROSTER[id];
   return `<span class="${c} s-${R.st}"><svg viewBox="0 0 100 100" aria-hidden="true">
     <rect width="100" height="100" fill="var(--stone-3)"/>
@@ -43,7 +55,7 @@ function titanFig(a){
       <rect x="${cx-mw/2}" y="${my}" width="${mw}" height="${th}" rx="2" fill="var(--bone)" stroke="var(--blood)" stroke-width="1.6"/><path d="${teeth}" stroke="var(--blood)" stroke-width="1"/>
     </g>${extra}</svg>`;
 }
-const titanArt = id => CUSTOM[id] ? `<img src="${CUSTOM[id]}" alt="">` : titanFig(TITANS[id].a);
+const titanArt = id => CUSTOM[id] ? `<img src="${CUSTOM[id]}" alt="" style="${fitStyle(id)}">` : titanFig(TITANS[id].a);
 // el jugador puede poner sus propias imágenes: se reducen y se guardan solo en este navegador
 // paquete de imágenes: {titanlike:1, img:{id: dataURL}}; las claves 'id@a' son versiones adultas
 function mergePack(t){

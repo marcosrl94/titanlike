@@ -117,6 +117,31 @@ p{margin:0}
 .items{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .items .sel{border-color:var(--gold)}
 .titan.enraged .plate{border-color:var(--blood-hi);box-shadow:0 0 0 2px var(--blood) inset}
+/* móvil, fichas y encuadre */
+#sheet{position:fixed;inset:0;z-index:60;background:rgba(10,12,11,.6);display:flex;align-items:flex-end;justify-content:center;padding:16px}
+.sheet-in{background:var(--stone-2);border:1px solid var(--stone-4);border-top:3px solid var(--gold);padding:16px;max-width:520px;width:100%;display:flex;flex-direction:column;gap:6px;color:var(--bone)}
+.sheet-in b{font-family:var(--display);font-size:22px}
+.sheet-in p b{font-family:var(--body);font-size:inherit}
+.fit{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.fit .btn{padding:2px 8px;min-width:30px}
+@media (pointer:coarse){
+  .order{min-height:64px}
+  .btn{min-height:44px}
+  .btn.sm{min-height:40px}
+  .node circle{stroke-width:3}
+}
+@media (max-width:620px){
+  #app .titans{min-height:200px;gap:4px}
+  #app .plate h3{font-size:15px}
+  #app .plate .chip{display:none}
+  #app .prev,#app .int{font-size:12px}
+  #app .stage{padding:12px 6px 0}
+  #app .squad{grid-template-columns:1fr 1fr;gap:6px}
+  #app .sol{flex-direction:column;align-items:flex-start;gap:6px;padding:8px}
+  #app .sol .pt{width:44px;height:44px}
+  #app .hero h1{font-size:44px}
+}
+button,[role=button]{touch-action:manipulation}
 /* consejos e intenciones */
 .tip{display:flex;flex-direction:column;gap:6px;background:var(--stone-2);border:1px solid var(--stone-3);border-left:3px solid var(--gold);padding:12px 16px}
 .tip b{font-family:var(--display);font-size:22px;font-weight:700}
@@ -266,3 +291,4 @@ button.card:hover{border-color:var(--gold);background:var(--stone-3)}
   <main id="screen"></main>
 </div>
 <div id="fx" aria-hidden="true"><svg id="fxsvg"></svg></div>
+<div id="sheet" hidden role="dialog" aria-label="Ficha"></div>

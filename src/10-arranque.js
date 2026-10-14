@@ -36,6 +36,8 @@ function act(a, i){
   if(a==='gallery' || a==='home'){ scr = a==='home' ? 'title' : 'gallery'; return render(); }
   if(a==='rm'){ delete CUSTOM[i]; store.set('img', CUSTOM); return render(); }
   if(a==='rmau') return delMyAudio(i);
+  if(a==='fit'){ const [k,op]=i.split('|'); fitAdjust(k, op); return render(); }
+  if(a==='closesheet'){ $('sheet').hidden=true; return; }
   if(a==='rmall'){ CUSTOM={}; store.set('img', CUSTOM); packMsg=''; cloudDeletePack(); return render(); }
   if(a==='daily'){ if(dailyDone()) return; newDaily(); return render(); }
   if(a==='codex'){ scr='codex'; return render(); }
@@ -101,5 +103,29 @@ $('screen').addEventListener('change', ev=>{
   if(f.dataset.au) setMyAudio(f.dataset.au, f.files[0]);
   if(f.dataset.pack) importPack(f.files[0]);
 });
+// ---- ficha al mantener pulsado (móvil) o con clic derecho (escritorio) ----
+function infoFor(el){
+  const u=el.dataset.u; if(!u || !C) return null;
+  if(u[0]==='t'){ const t=C.titans[+u.slice(1)]; if(!t) return null;
+    const a=C.active, e=a?eff(a,t):1;
+    return `<b>${t.n}</b><span class="lbl">${CLS[t.cls]}${t.boss?' · cambiante':''}${t.phase?' · segunda fase':''}</span>
+      <p>${t.hp} / ${t.max} PV · ataque ${Math.round(t.atk)} · velocidad ${t.spd}</p>
+      <p>${AI_TXT[aiOf(t)]}${t.intent?` Ahora apunta a ${t.intent==='all'?'todo el escuadrón':ROSTER[t.intent].n}.`:''}</p>
+      ${a?`<p>${ROSTER[a.id].n} (${STYLE[ROSTER[a.id].st]}) le hace ×${String(e).replace('.',',')}.</p>`:''}
+      ${[t.mark>0&&'Marcado: recibe +50 %.',t.stun>0&&'Derribado: pierde su turno.',t.blind>0&&'Cegado: falla el próximo ataque.',t.hard>0&&'Endurecido: recibe el 40 %.'].filter(Boolean).map(x=>`<p>${x}</p>`).join('')}`; }
+  if(u[0]==='s'){ const s=S.squad.find(x=>x.id===u.slice(1)); if(!s) return null; const R=ROSTER[s.id];
+    return `<b>${R.n}</b><span class="lbl">${STYLE[R.st]} · nivel ${s.lvl}</span><p>${s.hp} / ${maxHp(s)} PV · ataque ${Math.round(atkOf(s))} · velocidad ${spdOf(s)}</p>
+      <p><b>${R.sk.n}.</b> ${R.sk.d}</p>${pwOf(s.id).map(k=>`<p><b>${POWERS[k].n}.</b> ${POWERS[k].d}</p>`).join('')}`; }
+  return null;
+}
+function showSheet(el){ const h=infoFor(el); if(!h) return false; $('sheet').innerHTML=`<div class="sheet-in">${h}<button class="btn sm" data-a="closesheet">Cerrar</button></div>`; $('sheet').hidden=false; return true; }
+let pressT=null, pressed=false;
+$('screen').addEventListener('pointerdown', ev=>{ const el=ev.target.closest('[data-u]'); if(!el || ev.pointerType==='mouse') return;
+  pressed=false; clearTimeout(pressT); pressT=setTimeout(()=>{ pressed=showSheet(el); }, 480); });
+['pointerup','pointercancel','pointerleave'].forEach(n=>$('screen').addEventListener(n, ()=>clearTimeout(pressT)));
+$('screen').addEventListener('click', ev=>{ if(pressed){ pressed=false; ev.stopImmediatePropagation(); ev.preventDefault(); } }, true);
+$('screen').addEventListener('contextmenu', ev=>{ const el=ev.target.closest('[data-u]'); if(el && showSheet(el)) ev.preventDefault(); });
+$('sheet').addEventListener('click', ev=>{ if(ev.target.id==='sheet' || ev.target.closest('[data-a=closesheet]')) $('sheet').hidden=true; });
+
 cloudInit();
 render();

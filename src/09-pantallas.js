@@ -174,7 +174,8 @@ const V = {
       <span class="lbl">Tu escuadrón</span>${squadHTML()}`;
   },
   gallery(){
-    const cell=(id,name,pic)=>`<div class="card">${pic}<b>${name}</b>
+    const fitCtl = k => CUSTOM[k] ? `<div class="fit" role="group" aria-label="Encuadre de ${k}"><span class="lbl">Encuadre${k.endsWith('@a')?' adulto':''}</span>${[['out','−','Alejar'],['in','+','Acercar'],['l','←','Mover a la izquierda'],['r','→','Mover a la derecha'],['u','↑','Subir'],['d','↓','Bajar'],['reset','↺','Restablecer']].map(([o,t,l])=>`<button class="btn ghost sm" data-a="fit" data-i="${k}|${o}" aria-label="${l}" title="${l}">${t}</button>`).join('')}</div>` : '';
+    const cell=(id,name,pic)=>`<div class="card">${pic}<b>${name}</b>${fitCtl(id)}${ROSTER[id]&&CUSTOM[id+'@a']?`<span class="pt lg"><img src="${CUSTOM[id+'@a']}" alt="" style="${fitStyle(id+'@a')}"></span>${fitCtl(id+'@a')}`:''}
       <label class="lbl" for="up-${id}">Subir imagen</label><input type="file" accept="image/*" id="up-${id}" data-up="${id}">
       ${CUSTOM[id]?`<button class="btn ghost sm" data-a="rm" data-i="${id}">Quitar</button>`:''}
       ${ROSTER[id]?`<label class="lbl" for="up-${id}-a">Versión adulta${CUSTOM[id+'@a']?' ✓':''}</label><input type="file" accept="image/*" id="up-${id}-a" data-up="${id}@a">${CUSTOM[id+'@a']?`<button class="btn ghost sm" data-a="rm" data-i="${id}@a">Quitar adulta</button>`:''}`:''}</div>`;
