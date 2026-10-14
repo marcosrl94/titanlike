@@ -50,7 +50,7 @@ function bringPower(id){ const k=BRINGS[id]; if(k && !(k in S.pw)) grant(k, id, 
 function usePower(s, k, target){
   const f=C.fx[s.id], P=POWERS[k], ti = target ? C.titans.indexOf(target) : -1;
   C.usedPw[k] = true;
-  ev({k:'shift', s:s.id, art:P.art, txt:P.n.toUpperCase(), m:`${nm(s)} se transforma en el ${P.n}.`});
+  ev({k:'shift', s:s.id, pw:k, art:P.art, txt:P.n.toUpperCase(), m:`${nm(s)} se transforma en el ${P.n}.`});
   switch(k){
     case 'ataque': f.titan=4; f.form=k; f.formT=4; break;
     case 'colosal': liveT().forEach(t=>strike(s,t,1.8,{pierce:true, verb:'abrasa a'}));
@@ -60,8 +60,8 @@ function usePower(s, k, target){
     case 'bestia': liveT().forEach(t=>strike(s,t,1.3,{verb:'lanza rocas a'})); break;
     case 'mandibula': strike(s,target,2.8,{pierce:true, verb:'muerde a'}); break;
     case 'carguero': S.gas=Math.min(S.gasMax, S.gas+4); alive().forEach(a=>{ const h=Math.min(maxHp(a)-a.hp, Math.round(maxHp(a)*.2)); a.hp+=h; if(h) ev({k:'heal', s:a.id, d:h, hp:a.hp, max:maxHp(a)}); }); break;
-    case 'martillo': alive().forEach(a=>{ C.fx[a.id].up=3; C.fx[a.id].ward=3; }); ev({k:'buff', ids:alive().map(a=>a.id), txt:'CRISTAL', m:'Armas de cristal para todo el escuadrón.'}); break;
-    case 'fundador': liveT().forEach(t=>{ if(t.boss) t.mark=3; else { applyCC(t,'stun',{quiet:true}); t.mark=2; } }); ev({k:'roarAll', txt:'EL GRITO', m:'El Grito recorre el campo. Los titanes se detienen.'}); break;
+    case 'martillo': teamBuff(s,'up',3); teamBuff(s,'ward',3); ev({k:'buff', ids:alive().map(a=>a.id), txt:'CRISTAL', m:'Armas de cristal para todo el escuadrón.'}); break;
+    case 'fundador': liveT().forEach(t=>{ if(t.boss) t.mark=Math.max(t.mark,3); else { applyCC(t,'stun',{quiet:true}); t.mark=Math.max(t.mark,2); } }); ev({k:'roarAll', txt:'EL GRITO', m:'El Grito recorre el campo. Los titanes se detienen.'}); break;
   }
 }
 

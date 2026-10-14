@@ -4,6 +4,7 @@ const CFG_DEF = {
   anim: 'normal',                // velocidad de las animaciones: normal, fast, instant
   preview: true, intent: true,   // previsión de daño e intenciones de los titanes
   shake: true, flash: true,      // sacudidas de pantalla y destellos
+  dice: true,                    // dados animados en combate y eventos
   calm: false,                   // reducir movimiento
   big: false,                    // texto más grande
   diff: 'explorador'             // dificultad con la que se empiezan las expediciones

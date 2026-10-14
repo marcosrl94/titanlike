@@ -61,6 +61,7 @@ V.settings = function(){
     </section>
     <section class="panel"><span class="lbl">Accesibilidad</span>
       ${tog('flash','Destellos','Fogonazos de pantalla en rayos, golpes y explosiones.')}
+      ${tog('dice','Dados animados','El d20 rueda en pantalla en cada corte, esquiva y prueba de habilidad. Desactivado, la tirada queda solo en el registro.')}
       ${tog('shake','Sacudidas de pantalla')}
       ${tog('calm','Reducir movimiento','Animaciones mínimas y sin balanceo de los titanes.')}
       ${tog('big','Texto más grande')}

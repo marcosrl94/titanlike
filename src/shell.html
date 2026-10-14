@@ -301,6 +301,89 @@ button.card:hover{border-color:var(--gold);background:var(--stone-3)}
 @keyframes glow{40%{box-shadow:0 0 0 3px var(--gold),0 0 24px var(--gold)}}
 .dying .art{animation:die .8s ease-in forwards}
 @keyframes die{to{transform:translateY(20px) scaleY(.45);opacity:.14;filter:grayscale(1)}}
+/* ---- efectos nuevos: --k es la velocidad de animación (1 normal, .5 rápida) ---- */
+#fx{--k:1}
+.bolt.big{stroke-width:11;filter:drop-shadow(0 0 10px var(--gold))}
+.spark{position:absolute;width:3px;height:16px;margin:-8px -1.5px;border-radius:2px;transform:rotate(var(--a)) translateY(0);animation:spark calc(.55s*var(--k)) ease-out forwards}
+@keyframes spark{from{opacity:1}to{transform:rotate(var(--a)) translateY(calc(-1*var(--d))) scaleY(.3);opacity:0}}
+.ring{position:absolute;width:var(--s);height:var(--s);margin:calc(var(--s)/-2);border:4px solid;border-radius:50%;opacity:0;animation:ring calc(.75s*var(--k)) ease-out forwards}
+@keyframes ring{0%{transform:scale(.1);opacity:.95;border-width:10px}100%{transform:scale(1);opacity:0;border-width:1px}}
+.vig{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 35%,var(--c) 100%);animation:vig calc(1s*var(--k)) ease-out forwards}
+@keyframes vig{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+.heat{position:absolute;inset:0;background:radial-gradient(ellipse at 70% 45%,rgba(255,150,70,.45),rgba(255,110,40,.18) 55%,transparent 80%);mix-blend-mode:screen;animation:heat calc(1.1s*var(--k)) ease-in-out forwards}
+@keyframes heat{0%,100%{opacity:0}30%,60%{opacity:1}}
+.shard{position:absolute;width:12px;height:22px;margin:-11px -6px;clip-path:polygon(50% 0,100% 70%,50% 100%,0 70%);box-shadow:0 0 8px #fff;animation:shard calc(.85s*var(--k)) cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes shard{from{transform:rotate(var(--a)) translateY(0) rotate(0);opacity:1}to{transform:rotate(var(--a)) translateY(calc(-1*var(--d))) rotate(var(--r));opacity:0}}
+.rock{position:absolute;border-radius:40% 55% 45% 60%;box-shadow:inset -4px -4px 0 rgba(0,0,0,.35);animation:rock calc(.9s*var(--k)) cubic-bezier(.5,0,.9,.6) both}
+@keyframes rock{0%{transform:translateY(0) rotate(0);opacity:1}88%{opacity:1}100%{transform:translateY(var(--y)) rotate(var(--r));opacity:0}}
+.spike{position:absolute;width:20px;height:var(--h);margin-left:-10px;clip-path:polygon(50% 0,100% 100%,0 100%);transform-origin:bottom;transform:translateY(-100%) scaleY(0);filter:drop-shadow(0 0 6px #fff);animation:spike calc(1.1s*var(--k)) cubic-bezier(.2,1.4,.4,1) both}
+@keyframes spike{0%{transform:translateY(-100%) scaleY(0)}25%,70%{transform:translateY(-100%) scaleY(1);opacity:1}100%{transform:translateY(-100%) scaleY(1);opacity:0}}
+.pillar{position:absolute;top:0;bottom:0;width:120px;margin-left:-60px;background:linear-gradient(90deg,transparent,var(--c),#fff,var(--c),transparent);opacity:0;filter:blur(2px);animation:pillar calc(1.3s*var(--k)) ease-out forwards}
+@keyframes pillar{0%{opacity:0;transform:scaleX(.1)}20%{opacity:.85;transform:scaleX(1)}100%{opacity:0;transform:scaleX(.4)}}
+.claw{stroke:var(--blood-hi);stroke-width:5;stroke-linecap:round;stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:draw .1s ease-out forwards,fade .4s .2s forwards;filter:drop-shadow(0 0 4px var(--blood))}
+.dust{position:absolute;width:26px;height:26px;margin:-13px;border-radius:50%;background:#a99a82;opacity:.6;filter:blur(6px);animation:dust calc(.95s*var(--k)) ease-out forwards}
+@keyframes dust{to{transform:translate(var(--dx),-36px) scale(3);opacity:0}}
+.plus{position:absolute;color:var(--cloak-hi);font:700 18px var(--display);animation:plus calc(1s*var(--k)) ease-out both}
+.plus::before{content:'+'}
+@keyframes plus{0%{opacity:0;transform:translateY(0)}20%{opacity:1}100%{opacity:0;transform:translateY(-60px)}}
+.float.meh{color:var(--steel)}
+/* franjas de cine para jefes y transformaciones */
+.cine{position:absolute;inset:0;display:grid;place-items:center}
+.cine .cb{position:absolute;left:0;right:0;height:13vh;background:#000;animation:cbar calc(1.9s*var(--k)) ease-in-out both}
+.cine .cb.t{top:0;transform-origin:top} .cine .cb.b{bottom:0;transform-origin:bottom}
+@keyframes cbar{0%,100%{transform:scaleY(0)}15%,82%{transform:scaleY(1)}}
+.cine .ttl{text-align:center;animation:cttl calc(1.9s*var(--k)) cubic-bezier(.2,.8,.2,1) both}
+.cine .ttl b{display:block;font-family:var(--display);font-size:clamp(34px,6vw,76px);line-height:1;color:var(--bone);letter-spacing:.02em;text-shadow:0 0 24px var(--c),0 3px 0 #000,0 0 2px #000}
+.cine .ttl small{display:block;font-family:var(--label);font-size:clamp(12px,1.4vw,16px);letter-spacing:.3em;text-transform:uppercase;color:var(--c);margin-bottom:6px;text-shadow:0 1px 3px #000}
+@keyframes cttl{0%{opacity:0;transform:scale(1.6);letter-spacing:.3em}18%{opacity:1;transform:scale(1)}80%{opacity:1;transform:scale(.98)}100%{opacity:0;transform:scale(.94)}}
+.cine.still .cb,.cine.still .ttl{animation-duration:1.4s}
+/* sacudidas y golpes */
+.quake{animation:quake .12s linear infinite}
+@keyframes quake{0%{transform:translate(0,0)}25%{transform:translate(-5px,3px)}50%{transform:translate(4px,-3px)}75%{transform:translate(-3px,-2px)}100%{transform:translate(3px,2px)}}
+.punch{animation:punch .24s ease-out}
+@keyframes punch{30%{transform:scale(1.025)}}
+.titan.rise .art{animation:trise 1s cubic-bezier(.2,.8,.3,1)}
+@keyframes trise{0%{transform:translateY(40%) scale(.85);filter:brightness(2.4) blur(2px);opacity:0}60%{filter:brightness(1.4)}100%{transform:none;opacity:1}}
+.titan.sheen .art{animation:sheen .9s}
+@keyframes sheen{30%{filter:brightness(1.9) saturate(.4) drop-shadow(0 0 12px #fff3c4)}}
+.spr.grow .pt{animation:grow .9s cubic-bezier(.2,1.5,.4,1)}
+@keyframes grow{0%{transform:scale(.4);filter:brightness(3)}50%{transform:scale(1.35)}100%{transform:scale(1)}}
+.spr.dodge{animation:dodge .45s ease-out}
+@keyframes dodge{35%{transform:translate(-26px,-10px) rotate(-8deg)}}
+.spr.tossed{animation:tossed .7s cubic-bezier(.3,.6,.4,1)}
+@keyframes tossed{30%{transform:translate(-40px,-60px) rotate(-200deg)}70%{transform:translate(-50px,4px) rotate(-340deg)}100%{transform:none}}
+/* el d20 */
+.d20{position:absolute;width:62px;height:62px;margin:-31px;display:grid;place-items:center;z-index:2;pointer-events:none;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6))}
+.d20 svg{position:absolute;inset:0;width:100%;height:100%}
+.d20 .f{fill:#2b322c;stroke:var(--bone);stroke-width:3;stroke-linejoin:round}
+.d20 .in{fill:#3a433b;stroke:var(--bone);stroke-width:2;stroke-linejoin:round}
+.d20 .e{stroke:var(--bone);stroke-width:1.4;opacity:.55;fill:none}
+.d20 b{position:relative;font-family:var(--display);font-size:20px;color:var(--bone);margin-top:4px;text-shadow:0 1px 0 #000}
+.d20 small{position:absolute;right:-12px;bottom:2px;font-family:var(--label);font-size:12px;color:var(--steel);background:rgba(27,31,28,.9);border:1px solid var(--stone-4);border-radius:999px;padding:0 5px}
+.d20 em{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;font-style:normal;font-family:var(--label);font-size:12px;letter-spacing:.14em;color:var(--gold);white-space:nowrap;text-shadow:0 1px 2px #000;animation:lnin .2s}
+.d20.roll{animation:dthrow calc(.45s*var(--k)) cubic-bezier(.25,.7,.4,1) both,dout calc(.35s*var(--k)) calc(1.05s*var(--k)) ease-in forwards}
+.d20.still{animation:dout .3s 1s ease-in forwards}
+.d20.roll b{animation:none}
+@keyframes dthrow{0%{transform:translate(-110px,-80px) rotate(-560deg) scale(.4);opacity:0}20%{opacity:1}62%{transform:translate(0,0) rotate(-30deg) scale(1.05)}78%{transform:translate(0,-14px) rotate(8deg) scale(1)}100%{transform:translate(0,0) rotate(0) scale(1)}}
+@keyframes dout{to{opacity:0;transform:translateY(-16px) scale(.85)}}
+.d20.land svg{animation:dland .32s ease-out}
+@keyframes dland{40%{transform:scale(1.28)}}
+.d20.crit .f,.d20.crit .in{stroke:var(--gold);fill:#4a3d1c} .d20.crit b{color:var(--gold)} .d20.crit{filter:drop-shadow(0 0 14px rgba(216,180,95,.9))}
+.d20.bad .f,.d20.bad .in{stroke:var(--blood-hi);fill:#3d1d1a} .d20.bad b{color:var(--blood-hi)} .d20.bad em{color:var(--blood-hi)}
+.d20.ok .f,.d20.ok .in{stroke:var(--cloak-hi)} .d20.ok b{color:var(--cloak-hi)} .d20.ok em{color:var(--cloak-hi)}
+.d20.fail .f{stroke:var(--steel)}
+/* dados de los eventos: quedan en la página con el resultado */
+.evdice{display:flex;flex-wrap:wrap;gap:18px}
+.evdice .dz{display:flex;align-items:center;gap:14px}
+.evdice .d20{position:relative;margin:0;width:76px;height:76px;flex:none}
+.evdice .d20 b{font-size:26px}
+.evdice .d20.roll{animation:dthrow calc(.7s*var(--k)) cubic-bezier(.25,.7,.4,1) both}
+.evdice .dres{display:flex;flex-direction:column;gap:2px;opacity:0;transform:translateX(-8px);transition:opacity .25s,transform .25s}
+.evdice .dres.show{opacity:1;transform:none}
+.evdice .dres b{font-family:var(--display);font-size:20px}
+.evdice .okt{color:var(--cloak-hi);font-family:var(--label);letter-spacing:.12em;text-transform:uppercase;font-size:13px}
+.evdice .kot{color:var(--blood-hi);font-family:var(--label);letter-spacing:.12em;text-transform:uppercase;font-size:13px}
+body.calm .quake,body.calm .punch{animation:none}
 @keyframes sway{50%{transform:rotate(1.3deg) scaleY(1.018)}}
 
 /* ===== Interfaz 2026: radios, profundidad, controles táctiles y cabecera ===== */

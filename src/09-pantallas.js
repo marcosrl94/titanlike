@@ -199,7 +199,9 @@ const V = {
   },
   event(){
     const E=EVENTS[S.pend.i];
-    return `<div><span class="lbl">Evento</span><h2>${E.n}</h2></div><section class="panel"><p style="max-width:62ch">${S.pend.res||E.d}</p></section>
+    const dice = S.pend.res && S.pend.dice && S.pend.dice.length && CFG.dice ? `<div class="evdice">${S.pend.dice.map(d=>`<div class="dz"><div class="d20 ev ${d.r===20?'crit':d.r===1?'bad':d.ok?'ok':'fail'}${S.pend.diceShown?' done land':''}" data-r="${d.r}">${D20}<b>${S.pend.diceShown?d.r:'?'}</b>${d.b?`<small>+${d.b}</small>`:''}</div>
+      <div class="dres${S.pend.diceShown?' show':''}"><span class="lbl">${SKILLS[d.k]}${d.who?' · '+ROSTER[d.who].n:''}</span><b>${d.r}${d.b?' + '+d.b+' = '+(d.r+d.b):''} contra ${d.dc}</b><span class="${d.ok?'okt':'kot'}">${d.r===20?'¡20 natural! ':d.r===1?'¡Pifia! ':''}${d.ok?'Éxito':'Fallo'}</span></div></div>`).join('')}</div>` : '';
+    return `<div><span class="lbl">Evento</span><h2>${E.n}</h2></div>${dice}<section class="panel"><p style="max-width:62ch">${S.pend.res||E.d}</p></section>
       ${S.pend.res ? `<div><button class="btn" data-a="evok">Seguir la ruta</button></div>`
         : `<div class="cards">${E.o.map((o,i)=>`<button class="card" data-a="evopt" data-i="${i}"><h3>${o.l}</h3><p>${o.d}</p></button>`).join('')}</div>`}
       <span class="lbl">Tu escuadrón</span>${squadHTML()}`;

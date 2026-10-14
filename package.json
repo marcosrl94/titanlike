@@ -1,1 +1,1 @@
-{"name":"titanlike","private":true,"type":"module","scripts":{"build":"node build.mjs","sim":"node scripts/sim.cjs 300","test":"node build.mjs --artifact && node scripts/check-daily.cjs && node scripts/check-saves.cjs && node scripts/e2e.cjs 60"}}
+{"name":"titanlike","private":true,"type":"module","scripts":{"build":"node build.mjs","sim":"node scripts/sim.cjs 300","test":"node build.mjs --artifact && node scripts/check-daily.cjs && node scripts/check-saves.cjs && node scripts/audit.cjs 300 && node scripts/e2e.cjs 60"}}

@@ -105,6 +105,15 @@ function sfx(k){
      buff(){ seq([69,76],'triangle',.07,.14,.12); },
      miss(){ noise(b,t,.09,.16,'bandpass',2200,3600); },
      click(){ tone(b,'square',660,t,.035,.05,{cut:2000}); },
+     // dados: traqueteo al rodar, golpe seco al pararse, brillo en el crítico y nota grave en la pifia
+     dice(){ for(let i=0;i<6;i++) noise(b,t+i*.055+Math.random()*.02,.03,.22,'bandpass',2400+Math.random()*1800,1200); },
+     land(){ tone(b,'triangle',330,t,.08,.18,{to:220}); noise(b,t,.05,.25,'bandpass',1800,900); },
+     nat20(){ seq([79,84,88,91],'triangle',.05,.22,.14); noise(b,t,.05,.2,'bandpass',1800,900); },
+     fumble(){ tone(b,'sawtooth',180,t,.35,.18,{to:70,cut:900}); },
+     crystal(){ seq([88,95,91,100],'sine',.04,.35,.08); noise(b,t,.25,.15,'highpass',6000); },
+     shatter(){ noise(b,t,.45,.5,'highpass',3200); seq([96,91,100],'triangle',.03,.2,.07); },
+     rocks(){ for(let i=0;i<5;i++){ tone(b,'sine',90+Math.random()*40,t+i*.12,.22,.45,{to:40}); noise(b,t+i*.12,.12,.25,'lowpass',600); } },
+     rumble(){ tone(b,'sawtooth',42,t,1.8,.35,{to:30,cut:180,a:.3}); noise(b,t,1.8,.35,'lowpass',160); },
      win(){ seq([62,66,69,74,78],'triangle',.11,.4,.16); },
      lose(){ seq([62,58,55,50],'sawtooth',.28,.6,.13,{cut:700}); }
   }[k]||(()=>{}))();

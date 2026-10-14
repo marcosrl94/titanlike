@@ -22,6 +22,7 @@ function render(){
   header();
   document.body.classList.toggle('wide', scr==='combat' || scr==='map');
   $('screen').innerHTML = `<div>${tipHTML()}${V[scr]()}</div>`;
+  if(scr==='event') rollDice($('screen'));
   if(!$('menu').hidden && typeof menuHTML==='function') $('menu').innerHTML = menuHTML();   // el menú refleja la sesión y los avisos
   if(scr!==lastScr){
     if(scr==='over'){ setTrack(null); sfx('lose'); }
