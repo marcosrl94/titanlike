@@ -37,6 +37,7 @@ function act(a, i){
   if(a==='tipok' || a==='tipoff' || a==='tipreset') return tipAct(a, i);
   if(a!=='order' && a!=='titan' && a!=='sol') sfx('click');
   if(a==='sagas'){ picked=[]; scr='sagas'; return render(); }
+  if(a==='diff'){ if(DIFF[i]) setCfg('diff', i); return render(); }
   if(a==='saga'){ pendingSaga=+i; picked=[]; scr='starter'; return render(); }
   if(a==='gallery' || a==='home'){ scr = a==='home' ? 'title' : 'gallery'; return render(); }
   if(a==='rm'){ delete CUSTOM[i]; store.set('img', CUSTOM); return render(); }
@@ -124,7 +125,8 @@ function infoFor(el){
       ${a?`<p>${ROSTER[a.id].n} (${STYLE[ROSTER[a.id].st]}) le hace ×${String(e).replace('.',',')}.</p>`:''}
       ${[t.mark>0&&'Marcado: recibe +50 %.',t.stun>0&&'Derribado: pierde su turno.',t.blind>0&&'Cegado: falla el próximo ataque.',t.hard>0&&'Endurecido: recibe el 40 %.',t.alert>0&&`Alerta: no se deja cegar ni derribar durante ${t.alert} turno${t.alert>1?'s':''} más.`].filter(Boolean).map(x=>`<p>${x}</p>`).join('')}`; }
   if(u[0]==='s'){ const s=S.squad.find(x=>x.id===u.slice(1)); if(!s) return null; const R=ROSTER[s.id];
-    return `<b>${R.n}</b><span class="lbl">${STYLE[R.st]} · nivel ${s.lvl}</span><p>${s.hp} / ${maxHp(s)} PV · ataque ${Math.round(atkOf(s))} · velocidad ${spdOf(s)}</p>
+    const dodge = 5 + 5*Math.max(0, Math.floor((spdOf(s)-10)/3));
+    return `<b>${R.n}</b><span class="lbl">${STYLE[R.st]} · nivel ${s.lvl}</span><p>${s.hp} / ${maxHp(s)} PV · ataque ${Math.round(atkOf(s))} · velocidad ${spdOf(s)} · esquiva ${dodge} %</p><p>${traitsOf(s.id).map(([k,v])=>`${SKILLS[k]} +${v}`).join(' · ')||'Sin rasgos'}.</p>
       <p><b>${R.sk.n}.</b> ${R.sk.d}</p>${pwOf(s.id).map(k=>`<p><b>${POWERS[k].n}.</b> ${POWERS[k].d}</p>`).join('')}`; }
   return null;
 }

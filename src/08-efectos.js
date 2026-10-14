@@ -47,6 +47,7 @@ const FX = {
     if(e.boom){ flash('var(--gold)',.7); cls($('screen'),'shake'); }
     cls(t,'struck'); float(b, e.d, e.crit?'crit':''); setHp('t'+e.t, e.hp, e.max);
     if(e.exec) float({x:b.x, y:b.y-50}, 'NUCA', 'tag');
+    if(e.crit && e.roll>=17) float({x:b.x+40, y:b.y-70}, 'd20 · '+e.roll, 'tag'); else if(e.fumble) float({x:b.x+40, y:b.y-70}, 'd20 · 1', 'tag bad');
     if(e.kill){ t.classList.add('dying'); steam(b); sfx('steam'); await sleep(560); } else await sleep(340);
   },
   async bite(e){

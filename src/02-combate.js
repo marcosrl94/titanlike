@@ -23,11 +23,26 @@ const zoneOf = w => sagaOf(w).zones[Math.floor(((clampW(w)-1)%PER)/5)];
 const dayOf = w => (clampW(w)-1)%PER + 1;
 const curNode = () => S.map.pos ? S.map.rows[S.map.pos[0]][S.map.pos[1]] : null;
 const nm = s => ROSTER[s.id].n;
-const SAGA_MUL = [1, 1.12, 1.5, 1.7];
+const SAGA_MUL = [1.03, 1.2, 1.72, 1.95];
+// dificultad: multiplicador de PV y ataque enemigos, gas recuperado tras cada combate
+const DIFF = {recluta:{n:'Recluta', m:.85, gas:4, d:'Enemigos un 15 % más débiles y 4 de gas tras cada combate. No puntúa en la clasificación.'},
+  explorador:{n:'Explorador', m:1, gas:3, d:'El juego tal y como está pensado.'},
+  veterano:{n:'Veterano', m:1.15, gas:2, d:'Enemigos un 15 % más fuertes y solo 2 de gas tras cada combate.'}};
+const diffOf = () => DIFF[S && S.diff] || DIFF.explorador;
+const ngMul = () => 1 + .12*((S && S.ng)||0);   // New Game+: +12 % por vuelta
+const d20 = () => 1 + Math.floor(Math.random()*20);
+const skillBonus = (s, k) => ((ROSTER[s.id].tr||{})[k]||0) + (STYLE_SKILL[ROSTER[s.id].st]===k ? 1 : 0);
+// prueba de habilidad del escuadrón: tira el mejor en esa habilidad
+function check(k, dc){
+  const a=alive(); const who = a.slice().sort((x,y)=>skillBonus(y,k)-skillBonus(x,k))[0];
+  const b = who ? skillBonus(who,k) : 0, r = d20(), ok = r===20 || (r!==1 && r+b>=dc);
+  const txt = `Tirada de ${SKILLS[k]} (${who?nm(who):'nadie'} +${b}): ${r}${r===20?' ¡20 natural!':r===1?' ¡pifia!':''}${b?' + '+b+' = '+(r+b):''} contra ${dc}. ${ok?'Éxito.':'Fallo.'}`;
+  return {ok, who, r, b, txt};
+}
 const scaleAt = w => (1 + .15*(w-1)) * SAGA_MUL[sagaIx(w)];
 
 function mkTitan(id, sc){
-  const b=TITANS[id], hp=Math.round(b.hp*sc);
+  const b=TITANS[id]; sc *= diffOf().m * ngMul(); const hp=Math.round(b.hp*sc);
   return {id, n:b.n, cls:b.cls, boss:!!b.boss, m:b.m||{}, twice:!!b.twice, v:b.v||'golpea a', hp, max:hp, atk:b.atk*sc, spd:b.spd, turns:0, mark:0, stun:0, blind:0, hard:0, alert:0};
 }
 function genWave(w, type){
@@ -86,16 +101,17 @@ function strike(s, t, mult, o={}){
   if(f.titan>0) d *= 2;
   if(t.mark>0) d *= 1.5;
   if(t.hard>0 && !o.pierce) d *= .4;
-  const crit = f.crit>0 || Math.random() < (ROSTER[s.id].st==='preciso' ? .22 : .1);
-  if(crit) d *= 1.5;
+  // d20: 19-20 crítico (17-20 los Precisos); 1, el corte resbala y hace la mitad
+  const r = d20(), crit = f.crit>0 || r >= (ROSTER[s.id].st==='preciso' ? 17 : 19), fumble = !crit && r===1;
+  if(crit) d *= 1.5; if(fumble) d *= .5;
   d = Math.max(1, Math.round(d));
   const exec = !!o.nape && !t.boss && (t.hp-d)/t.max < .25 && d < t.hp;
   if(exec){ d = t.hp; S.napes=(S.napes||0)+1; if(S.napes>=5) ach('nuca5'); }
   t.hp = Math.max(0, t.hp-d);
   t.lastHit = s.id; t.threat = t.threat || {}; t.threat[s.id] = (t.threat[s.id]||0) + d;
   checkPhase(t);
-  ev({k:'slash', s:s.id, t:C.titans.indexOf(t), d, crit, exec, kill:t.hp<=0, hp:t.hp, max:t.max, boom:!!o.pierce,
-      m:`${nm(s)} ${o.verb||'corta a'} ${t.n}: ${d}${crit?' (crítico)':''}${t.hp<=0?'. ¡Abatido!':''}`});
+  ev({k:'slash', s:s.id, t:C.titans.indexOf(t), d, crit, fumble, roll:r, exec, kill:t.hp<=0, hp:t.hp, max:t.max, boom:!!o.pierce,
+      m:`${nm(s)} ${o.verb||'corta a'} ${t.n}: ${d}${crit?` (crítico, d20: ${f.crit>0?'olfato':r})`:fumble?' (resbala, d20: 1)':''}${t.hp<=0?'. ¡Abatido!':''}`});
   return t.hp<=0;
 }
 // control (ceguera, derribo): un titán controlado se pone alerta y no admite otro control durante 2 de sus turnos (3 los jefes)
@@ -123,19 +139,19 @@ function doAction(kind, target){
     S.gas -= R.sk.gas; if(R.sk.once) C.used[s.id]=true;
     switch(s.id){
       case 'eren': strike(s,target, s.hp<maxHp(s)/2 ? 2.2 : 1.5, {verb:'se lanza contra'}); break;
-      case 'mikasa': strike(s,target,.9); strike(s,target,.9); break;
+      case 'mikasa': strike(s,target,1); strike(s,target,1); break;
       case 'armin': strike(s,target,1,{verb:'estudia y corta a'}); if(target.hp>0) target.mark=3; ev({k:'mark', t:ti, txt:'MARCADO', m:`Armin señala el punto débil de ${target.n}.`}); break;
-      case 'sasha': strike(s,target,1.2,{verb:'dispara a'}); applyCC(target, 'blind'); break;
+      case 'sasha': strike(s,target,1.4,{verb:'dispara a'}); applyCC(target, 'blind'); break;
       case 'jean': alive().forEach(a=>C.fx[a.id].up=3); ev({k:'buff', ids:all(), txt:'FLANQUEO', m:'Jean ordena flanquear. El escuadrón aprieta.'}); break;
       case 'connie': f.taunt=3; f.evade=1; ev({k:'buff', ids:[s.id], txt:'SEÑUELO', m:'Connie cruza por delante de los titanes gritando.'}); break;
       case 'hange': strike(s,target,2.6,{pierce:true, verb:'clava una lanza trueno en'}); break;
       case 'reiner': f.guard=4; ev({k:'buff', ids:[s.id], txt:'ESCUDO', m:'Reiner se pone delante del escuadrón.'}); break;
-      case 'annie': strike(s,target,1.3,{verb:'barre a'}); applyCC(target, 'stun'); break;
+      case 'annie': strike(s,target,1.5,{verb:'barre a'}); applyCC(target, 'stun'); break;
       case 'historia': { const h=Math.min(maxHp(target)-target.hp, Math.round(maxHp(target)*.3)); target.hp+=h;
         ev({k:'heal', s:target.id, d:h, hp:target.hp, max:maxHp(target), m:`Historia venda a ${nm(target)}: +${h} PV.`}); break; }
       case 'levi': say('Levi gira sobre sí mismo.',120); liveT().forEach(t=>strike(s,t,1)); break;
       case 'erwin': ev({k:'buff', ids:all(), txt:'¡AVANZAD!', m:'Erwin: «¡Avanzad!»'}); alive().filter(a=>a!==s).forEach(a=>strike(a,target,1)); break;
-      case 'ymir': if(strike(s,target,1.5,{verb:'muerde a'})){ const h=Math.min(maxHp(s)-s.hp, Math.round(maxHp(s)*.3)); s.hp+=h;
+      case 'ymir': if(strike(s,target,1.7,{verb:'muerde a'})){ const h=Math.min(maxHp(s)-s.hp, Math.round(maxHp(s)*.3)); s.hp+=h;
         if(h) ev({k:'heal', s:s.id, d:h, hp:s.hp, max:maxHp(s), m:`Ymir se rehace: +${h} PV.`}); } break;
       case 'nanaba': for(let i=0;i<2;i++){ const l=liveT(); if(l.length) strike(s, pick(l), 1.1, {verb:'pasa rasante sobre'}); } break;
       case 'mike': alive().forEach(a=>C.fx[a.id].crit=3); ev({k:'buff', ids:all(), txt:'OLFATO', m:'Mike olfatea el aire y señala dónde cortar.'}); break;
@@ -159,6 +175,9 @@ function wound(t, s, mult){
   let d = t.atk*mult*rnd(.85,1.15);
   if(t.blind>0) return ev({k:'miss', t:ti, s:tgt.id, txt:'FALLA', m:`${t.n} ${TITANS[t.id].a.k?'dispara a ciegas':'manotea a ciegas'} y falla.`});
   if(f.evade>0){ f.evade=0; return ev({k:'miss', t:ti, s:tgt.id, txt:'ESQUIVA', m:`${nm(tgt)} esquiva a ${t.n}.`}); }
+  // tirada de esquiva: d20 + bono de velocidad; 20 siempre esquiva
+  { const r=d20(), mod=Math.max(0, Math.floor((spdOf(tgt)-10)/3));
+    if(r+mod>=20) return ev({k:'miss', t:ti, s:tgt.id, txt:'ESQUIVA', m:`${nm(tgt)} esquiva a ${t.n} (d20: ${r}${mod?'+'+mod:''}).`}); }
   if(guard || f.guard>0) d*=.5;
   if(f.titan>0) d*=.5;
   if(f.armor>0) d*=.5;
@@ -220,7 +239,7 @@ function planIntent(t){
 function planAll(){ if(C) C.titans.forEach(planIntent); }
 
 // ---- previsión de daño: lo que haría cada orden contra cada titán, sin azar ----
-const SKILL_MULT = {eren:s=>s.hp<maxHp(s)/2?2.2:1.5, mikasa:()=>1.8, armin:()=>1, sasha:()=>1.2, hange:()=>2.6, annie:()=>1.3, ymir:()=>1.5, gabi:()=>2.1};
+const SKILL_MULT = {eren:s=>s.hp<maxHp(s)/2?2.2:1.5, mikasa:()=>2, armin:()=>1, sasha:()=>1.4, hange:()=>2.6, annie:()=>1.5, ymir:()=>1.7, gabi:()=>2.1};
 function estimate(s, t, kind){
   if(!s || !t || t.hp<=0) return null;
   if(kind==='it:carga'){ const d=Math.min(t.hp, itemDmg()); return {lo:d, hi:d, kill:d>=t.hp}; }

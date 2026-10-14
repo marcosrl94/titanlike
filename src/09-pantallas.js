@@ -2,11 +2,14 @@
 let pendingRec = null, pendingSaga = 0, picked = [];
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const chip = st => `<span class="chip s-${st}">${STYLE[st]}</span>`;
+// rasgos para las pruebas de habilidad: estilo +1 y rasgos propios
+const traitsOf = id => Object.keys(SKILLS).map(k=>[k, ((ROSTER[id].tr||{})[k]||0) + (STYLE_SKILL[ROSTER[id].st]===k?1:0)]).filter(x=>x[1]>0).sort((x,y)=>y[1]-x[1]);
+const traitsHTML = id => `<span class="lbl num traits">${traitsOf(id).map(([k,v])=>`${SKILLS[k]} +${v}`).join(' · ')}</span>`;
 function solCard(id){
   const R=ROSTER[id];
   return `<div class="who">${portrait(id,true)}<div><h3>${R.n}</h3><div>${chip(R.st)}</div></div></div>
     <div class="stats num"><span><b>PV</b>${R.hp}</span><span><b>ATQ</b>${R.atk}</span><span><b>VEL</b>${R.spd}</span></div>
-    <p><b>${R.sk.n}</b>${R.sk.gas?` · ${R.sk.gas} gas`:''}. ${R.sk.d}</p>`;
+    <p><b>${R.sk.n}</b>${R.sk.gas?` · ${R.sk.gas} gas`:''}${R.sk.cd?` · recarga ${R.sk.cd}`:''}. ${R.sk.d}</p>${traitsHTML(id)}`;
 }
 function squadHTML(mode){   // mode: 'ally' (elegir compañero), 'swap' (relevar) o nada
   return `<div class="squad">`+S.squad.map(s=>{
@@ -89,6 +92,9 @@ const V = {
     const u=meta().unlocked, saved=!!store.get('run');
     return `<div><h2>Elige la saga</h2><p class="dim" style="max-width:64ch">Una campaña recorre las cuatro seguidas. Las que ya hayas desbloqueado se pueden empezar directamente, con tres veteranos equipados.</p></div>
       ${saved?'<p class="note-s">Tienes una expedición a medias: empezar otra la sustituye.</p>':''}
+      <section class="panel"><span class="lbl">Dificultad</span>
+        <div class="seg" role="radiogroup" aria-label="Dificultad">${Object.keys(DIFF).map(k=>`<button class="btn sm ${CFG.diff===k?'':'ghost'}" role="radio" aria-checked="${CFG.diff===k}" data-a="diff" data-i="${k}">${DIFF[k].n}</button>`).join('')}</div>
+        <p class="dim" style="font-size:13.5px">${DIFF[CFG.diff]?DIFF[CFG.diff].d:DIFF.explorador.d} La expedición del día siempre es Explorador.</p></section>
       <div class="sagas">${SAGAS.map((g,i)=>`<button class="card saga" data-a="saga" data-i="${i}" ${i<u?'':'disabled'}>
         <span class="n">SAGA ${i+1}${i<u?'':' · BLOQUEADA'}</span><h3>${g.n}</h3><p>${i<u?g.d:`Vence la saga ${i} para abrirla.`}</p>
         <ul>${g.zones.map(z=>`<li>${z.n} · ${TITANS[z.boss].n}</li>`).join('')}</ul></button>`).join('')}</div>
@@ -109,10 +115,10 @@ const V = {
   map(){
     const z=zoneOf(S.wave);
     const D = S.daily ? DAILY_MODS.find(x=>x.k===S.mod) : null;
-    const unranked = !cloudOn() || S.runId ? '' : CLOUD.user
+    const unranked = S.diff==='recluta' ? `<p class="note-s">${S.runNote||'Modo Recluta: esta expedición no puntúa en la clasificación.'}</p>` : !cloudOn() || S.runId ? '' : CLOUD.user
       ? `<p class="note-s">${S.runNote || 'Esta expedición empezó sin sesión y no puntúa en la clasificación. La próxima, sí.'}</p>`
       : `<div class="acc out slim"><div class="acc-t"><b>Esta expedición no puntúa</b><span>Entra con Google o con tu correo: tu progreso se guarda en la nube y las próximas expediciones entran en la clasificación.</span></div>${loginBtns()}${CLOUD.msg?`<p class="acc-msg" role="status">${esc(CLOUD.msg)}</p>`:''}</div>`;
-    return `${unranked}${D?`<section class="panel daily"><span class="lbl">Expedición del día · ${S.daily}</span><p><b>${D.n}.</b> ${D.d} Mismo mapa, titanes y recompensas para todos; termina al acabar la saga 1.</p></section>`:''}<div><span class="lbl">${sagaLbl(S.wave)}</span><h2>${z.n}</h2><p class="dim">${S.map.pos?'Elige el siguiente paso de la ruta.':'Elige por dónde entra el escuadrón.'} Al fondo espera el ${TITANS[z.boss].n}.${BOSS_PW[z.boss] && !(BOSS_PW[z.boss] in S.pw) ? ` Puede soltar el poder del ${POWERS[BOSS_PW[z.boss]].n}: <b class="num" style="color:var(--gold)">${Math.round(dropP()*100)} %</b>.` : ''}</p></div>
+    return `${unranked}${D?`<section class="panel daily"><span class="lbl">Expedición del día · ${S.daily}</span><p><b>${D.n}.</b> ${D.d} Mismo mapa, titanes y recompensas para todos; termina al acabar la saga 1.</p></section>`:''}<div><span class="lbl">${sagaLbl(S.wave)}${S.diff&&S.diff!=='explorador'?` · ${diffOf().n}`:''}${S.ng?` · Vuelta ${S.ng+1}`:''}</span><h2>${z.n}</h2><p class="dim">${S.map.pos?'Elige el siguiente paso de la ruta.':'Elige por dónde entra el escuadrón.'} Al fondo espera el ${TITANS[z.boss].n}.${BOSS_PW[z.boss] && !(BOSS_PW[z.boss] in S.pw) ? ` Puede soltar el poder del ${POWERS[BOSS_PW[z.boss]].n}: <b class="num" style="color:var(--gold)">${Math.round(dropP()*100)} %</b>.` : ''}</p></div>
       <div class="mapwrap">${mapSVG()}</div>
       <ul class="legend">${Object.keys(NODE).map(k=>`<li><b>${NODE[k].n}.</b> ${NODE[k].d}</li>`).join('')}</ul>
       <span class="lbl">Tu escuadrón</span>${squadHTML()}${relicsHTML()}`;

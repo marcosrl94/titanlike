@@ -4,7 +4,7 @@ let skipRunStart = false;   // la diaria registra su propia expedición
 function migrateRun(r){
   if(!r || !r.v || r.v<3 || !r.map) return null;
   if(r.v===3){ Object.assign(r, {pw:{}, q:[], loyal:{}, pity:0, after:null, scene:null, note:null}); r.v=4; }
-  r.items = r.items || []; r.napes = r.napes || 0; r.fallen = r.fallen || []; r.rel = r.rel || {};
+  r.items = r.items || []; r.napes = r.napes || 0; r.fallen = r.fallen || []; r.rel = r.rel || {}; r.diff = r.diff || 'explorador'; r.ng = r.ng || 0;
   return r;
 }
 const meta = () => Object.assign({unlocked:1, best:0, nine:[], endings:[], ach:[], codex:{t:{},s:{}}}, store.get('meta')||{});
@@ -38,20 +38,21 @@ function genMap(z){   // z: zona global (3 por saga)
 function openNodes(){ const m=S.map; return m.pos ? m.rows[m.pos[0]][m.pos[1]].next.map(j=>[m.pos[0]+1, j]) : m.rows[0].map((_,j)=>[0,j]); }
 // saga 0: un recluta de nivel 1. Sagas posteriores: tres veteranos con el equipo que traería una campaña en curso.
 const KITS = [0, 10, 22, 36];
-const KIT_PW = [0, 1, 2, 3];   // poderes de partida según la saga de inicio
+const KIT_PW = [0, 1, 2, 4];   // poderes de partida según la saga de inicio
 const startSize = g => g>=2 ? 4 : 3;   // soldados con los que se empieza una saga avanzada
-const startLvl = g => g*PER + 1 + 2*g;   // veteranía extra de quien ya ha recorrido las sagas anteriores
-function newRun(ids, saga=0){
+const startLvl = g => g*PER + 1 + 3*g;   // veteranía extra de quien ya ha recorrido las sagas anteriores
+function newRun(ids, saga=0, diff){
   const w = saga*PER + 1;
   saveMeta({runs:(meta().runs||0)+1});
-  S = {v:4, wave:w, squad:ids.map(id=>({id, lvl:saga?startLvl(saga):w, hp:0})), fallen:[], rel:{}, pw:{}, q:[], loyal:{}, pity:0, after:null, scene:null, note:null, gas:10+2*saga, gasMax:10+2*saga, map:genMap(saga*3), rewards:null, picks:0, pend:null, kit:[], items:[]};
+  S = {v:4, diff: diff || (typeof CFG!=='undefined' && DIFF[CFG.diff] ? CFG.diff : 'explorador'), ng:0, wave:w, squad:ids.map(id=>({id, lvl:saga?startLvl(saga):w, hp:0})), fallen:[], rel:{}, pw:{}, q:[], loyal:{}, pity:0, after:null, scene:null, note:null, gas:10+2*saga, gasMax:10+2*saga, map:genMap(saga*3), rewards:null, picks:0, pend:null, kit:[], items:[]};
   for(let i=0;i<KITS[saga];i++) S.kit.push(randomUpg());
   S.kitPw = KIT_PW[saga];
   S.squad.forEach(s=>{ s.hp=maxHp(s); bringPower(s.id); codex('s', s.id); });
   // quien empieza en una saga avanzada trae los poderes que de media se consiguen antes (medido en simulación)
   for(let i=0;i<S.kitPw;i++){ const miss=MINOR.filter(k=>!(k in S.pw)), who=S.squad.filter(hasRoom); if(miss.length&&who.length){ const s=pick(who); grant(pick(miss), s.id); s.hp=maxHp(s); } }
   C=null; scr='map'; store.set('run', S);
-  if(typeof cloudStartRun==='function' && !skipRunStart) cloudStartRun(saga, false);
+  if(S.diff==='recluta') S.runNote = 'Modo Recluta: esta expedición no puntúa en la clasificación.';
+  else if(typeof cloudStartRun==='function' && !skipRunStart) cloudStartRun(saga, false);
 }
 function enterNode(r, j){
   if(!openNodes().some(o=>o[0]===r && o[1]===j)) return;
@@ -91,7 +92,7 @@ function win(){
   S.squad = alive();
   S.squad.forEach(levelUp);
   healAll(.10 + .10*rel('vendas') + (t==='b'?.25:0) + (sagaEnd?.3:0));
-  S.gas = sagaEnd ? S.gasMax : Math.min(S.gasMax, S.gas+3);
+  S.gas = sagaEnd ? S.gasMax : Math.min(S.gasMax, S.gas+diffOf().gas);
   saveBest(S.wave);
   if(sagaEnd) saveMeta({unlocked:Math.max(meta().unlocked, Math.min(SAGAS.length, sagaIx(S.wave)+2))});
   if(btr && btr.id==='eren'){ S.fallen.push('eren'); btr.pws.forEach(k=>grant(k,'reserva')); S.erenFell=true; }
@@ -160,7 +161,7 @@ const who = id => S.squad.find(s=>s.id===id);
 const EVENTS = [
   {n:'Carro de suministros volcado', when:inParadis,d:'Un carro de la Guarnición yace en la cuneta. Las bombonas siguen atadas, pero entre los árboles se mueve algo.',
    o:[{l:'Cargar el gas y salir', d:'Depósito lleno.', f(){ S.gas=S.gasMax; return 'Llenáis las bombonas y os vais antes de que nadie os oiga.'; }},
-      {l:'Rebuscar a fondo', d:'Una mejora al azar. El ruido os costará un 15 % de PV.', f(){ hurtAll(.15); return `Bajo la lona aparece equipo intacto: ${randomUpg()}. Un titán os alcanza por la espalda antes de montar.`; }}]},
+      {l:'Rebuscar a fondo', d:'Una mejora al azar. Prueba de Sigilo (12): si falla, el ruido os cuesta un 15 % de PV.', f(){ const c=check('sigilo',12); if(!c.ok) hurtAll(.15); return `${c.txt} Bajo la lona aparece equipo intacto: ${randomUpg()}.${c.ok?' Nadie os oye.':' Un titán os alcanza por la espalda antes de montar.'}`; }}]},
   {n:'Recluta rezagado', d:'Un soldado herido os hace señas desde un tejado. Ha perdido a su escuadrón.',
    o:[{l:'Acogerlo', d:'Se une con la mitad de sus PV. Si no hay hueco, enseña lo que sabe: +1 nivel a todos.', f(){
         const p=recruitPool().filter(id=>!ROSTER[id].rare);
@@ -168,15 +169,16 @@ const EVENTS = [
         S.squad.forEach(levelUp); return 'No hay sitio en la formación, pero os cuenta cómo sobrevivió tres días. Todos suben 1 nivel.'; }},
       {l:'Darle un caballo y seguir', d:'+3 de gas por no desviaros.', f(){ S.gas=Math.min(S.gasMax,S.gas+3); return 'Le dejáis un caballo de refresco y mantenéis la ruta.'; }}]},
   {n:'Frasco sin etiqueta', d:'En una mochila del laboratorio hay un frasco que burbujea. La nota dice «no beber (todavía)».',
-   o:[{l:'Que alguien se lo beba', d:'A cara o cruz: +3 niveles o pierde el 40 % de sus PV.', f(){
-        const s=pick(S.squad);
-        if(Math.random()<.5){ levelUp(s); levelUp(s); levelUp(s); return `${nm(s)} tose, se pone en pie y parte una rama de un tajo. +3 niveles.`; }
-        s.hp=Math.max(1, s.hp-Math.round(maxHp(s)*.4)); return `${nm(s)} pasa una hora doblado en la cuneta. Pierde el 40 % de sus PV.`; }},
+   o:[{l:'Que alguien se lo beba', d:'Prueba de Aguante (13): +3 niveles si la supera; si no, pierde el 40 % de sus PV.', f(){
+        const c=check('aguante',13), s=c.who;
+        if(c.ok){ levelUp(s); levelUp(s); levelUp(s); return `${c.txt} ${nm(s)} tose, se pone en pie y parte una rama de un tajo. +3 niveles.`; }
+        s.hp=Math.max(1, s.hp-Math.round(maxHp(s)*.4)); return `${c.txt} ${nm(s)} pasa una hora doblado en la cuneta. Pierde el 40 % de sus PV.`; }},
       {l:'Dejarlo donde está', d:'Descansáis un rato: cura el 12 %.', f(){ healAll(.12); return 'Nadie se atreve. Aprovecháis para beber agua, que es más seguro.'; }}]},
   {n:'Aldea abandonada', when:inParadis,d:'Casas reventadas desde dentro y ni una gota de sangre. Las despensas siguen llenas.',
-   o:[{l:'Registrar las casas', d:'60 %: una mejora. 40 %: emboscada, todos pierden el 20 % de PV.', f(){
-        if(Math.random()<.6) return `En un establo hay material del Cuerpo: ${randomUpg()}.`;
-        hurtAll(.2); return 'Un anormal sale de un pajar. Escapáis, pero no ilesos: todos pierden el 20 % de PV.'; }},
+   o:[{l:'Registrar las casas', d:'Prueba de Percepción (11): una mejora si la superáis; si no, emboscada y todos pierden el 20 % de PV.', f(){
+        const c=check('percepcion',11);
+        if(c.ok) return `${c.txt} En un establo hay material del Cuerpo: ${randomUpg()}.`;
+        hurtAll(.2); return `${c.txt} Un anormal sale de un pajar. Escapáis, pero no ilesos: todos pierden el 20 % de PV.`; }},
       {l:'Acampar en las afueras', d:'Cura el 20 % a todos.', f(){ healAll(.2); return 'Hacéis noche lejos de las casas. Nadie duerme mucho, pero se descansa.'; }}]},
   {n:'Jeringa en un sótano', when:()=>sagaIx(S.wave)>=1 && Math.random()<.5, d:'Bajo una casa en ruinas hay un maletín de médico. Dentro, una jeringa con un líquido turbio y una etiqueta con un nombre que nadie reconoce.',
    o:[{l:'Quedárosla', d:'Un poder de los Nueve que aún no tengáis, al azar.', f(){
@@ -234,9 +236,10 @@ const EVENTS = [
       {l:'Cargar bombonas del almacén', d:'Depósito lleno y +1 de gas máximo.', f(){ addGasMax(1); S.gas=S.gasMax; return 'Bajáis con el equipo nuevo y las bombonas llenas.'; }}]},
   {n:'Dos candidatos a guerrero', when:inMarley, d:'Dos críos con brazalete os siguen desde el muelle. Quieren ser guerreros de Marley.',
    o:[{l:'Dejarlos marchar', d:'Cura el 15 %.', f(){ healAll(.15); return 'Se van corriendo. Os sentáis un rato antes de seguir.'; }},
-      {l:'Seguirlos hasta el cuartel', d:'50 %: una mejora. 50 %: emboscada, todos pierden el 20 %.', f(){
-        if(Math.random()<.5) return `Os llevan hasta un almacén del ejército: ${randomUpg()}.`;
-        hurtAll(.2); return 'Era una trampa de los guerreros. Salís a tiros de la zona.'; }}]},
+      {l:'Seguirlos hasta el cuartel', d:'Prueba de Sigilo (12): una mejora si la superáis; si no, emboscada y todos pierden el 20 %.', f(){
+        const c=check('sigilo',12);
+        if(c.ok) return `${c.txt} Os llevan hasta un almacén del ejército: ${randomUpg()}.`;
+        hurtAll(.2); return `${c.txt} Era una trampa de los guerreros. Salís a tiros de la zona.`; }}]},
   {n:'Puerto de Liberio', when:inMarley, d:'En el puerto hay un carguero de suministros con la guardia cambiando de turno.',
    o:[{l:'Vaciar la bodega', d:'Una mejora al azar y +2 de gas.', f(){ S.gas=Math.min(S.gasMax,S.gas+2); return `Sacáis cajas durante media hora: ${randomUpg()}.`; }},
       {l:'Hundirlo', d:'Todos suben 1 nivel y pierden el 10 %.', f(){ S.squad.forEach(levelUp); hurtAll(.1); return 'El barco se va a pique con la guardia a bordo. Os llevan dos balas de recuerdo.'; }}]},
@@ -250,16 +253,18 @@ const EVENTS = [
    o:[{l:'Ayudar', d:'+1 de gas máximo y +2 de gas; todos pierden el 10 % de PV.', f(){ addGasMax(1); S.gas=Math.min(S.gasMax,S.gas+2); hurtAll(.1); return 'En agradecimiento os dejan dos bombonas nuevas.'; }},
       {l:'Seguir', d:'Nada cambia.', f(){ return 'Seguís el camino. A lo lejos se oye el primer cañonazo.'; }}]},
   {n:'Un titán dormido', when:inParadis,d:'En mitad del camino duerme un titán de 10 metros. No hay forma de rodearlo sin hacer ruido.',
-   o:[{l:'Ir a por su nuca', d:'60 %: todos suben 2 niveles. 40 %: todos pierden el 25 %.', f(){
-        if(Math.random()<.6){ S.squad.forEach(s=>{ levelUp(s); levelUp(s); }); return 'Un solo corte limpio. El vapor tarda una hora en disiparse.'; }
-        hurtAll(.25); return 'Se despierta a mitad del salto. Salís vivos, que no es poco.'; }},
+   o:[{l:'Ir a por su nuca', d:'Prueba de Sigilo (11): todos suben 2 niveles si la superáis; si no, todos pierden el 25 %.', f(){
+        const c=check('sigilo',11);
+        if(c.ok){ S.squad.forEach(s=>{ levelUp(s); levelUp(s); }); return `${c.txt} Un solo corte limpio. El vapor tarda una hora en disiparse.`; }
+        hurtAll(.25); return `${c.txt} Se despierta a mitad del salto. Salís vivos, que no es poco.`; }},
       {l:'Esperar a que se vaya', d:'Cura el 15 %.', f(){ healAll(.15); return 'Tarda toda la tarde en marcharse. Aprovecháis para curar heridas.'; }}]},
   {n:'Huérfanos en el camino', when:inParadis,d:'Tres niños caminan solos hacia la muralla. Están a dos días de distancia.',
    o:[{l:'Escoltarlos', d:'Todos suben 2 niveles; gastáis 3 de gas.', f(){ S.squad.forEach(s=>{ levelUp(s); levelUp(s); }); S.gas=Math.max(0,S.gas-3); return 'Llegan a la puerta. Uno de ellos dice que quiere alistarse.'; }},
       {l:'Indicarles el camino', d:'+1 de gas.', f(){ S.gas=Math.min(S.gasMax,S.gas+1); return 'Les dais agua y una bengala. Esperáis hasta verlos desaparecer.'; }}]},
   {n:'Bengala verde', when:inParadis,d:'Una bengala verde sube a lo lejos: otro escuadrón ha encontrado algo.',
-   o:[{l:'Ir hacia ella', d:'50 %: una mejora. 50 %: todos pierden el 20 %.', f(){
-        if(Math.random()<.5) return `Es un depósito de suministros intacto: ${randomUpg()}.`;
-        hurtAll(.2); return 'Llegáis tarde. Solo quedan titanes y equipo roto.'; }},
+   o:[{l:'Ir hacia ella', d:'Prueba de Percepción (12): una mejora si la superáis; si no, todos pierden el 20 %.', f(){
+        const c=check('percepcion',12);
+        if(c.ok) return `${c.txt} Es un depósito de suministros intacto: ${randomUpg()}.`;
+        hurtAll(.2); return `${c.txt} Llegáis tarde. Solo quedan titanes y equipo roto.`; }},
       {l:'Mantener la ruta', d:'Depósito de gas lleno.', f(){ S.gas=S.gasMax; return 'La disciplina también salva vidas. Llenáis el gas en un puesto de paso.'; }}]},
 ];

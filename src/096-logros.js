@@ -61,7 +61,7 @@ function dailyInfo(d=today()){ const r=mulberry(hashStr('titanlike|'+d)); return
 const dailyDone = () => meta().dailyPlayed===today();
 function newDaily(){
   const D=dailyInfo();
-  skipRunStart = true; newRun([D.starter], 0); skipRunStart = false;
+  skipRunStart = true; newRun([D.starter], 0, 'explorador'); skipRunStart = false;
   S.daily=D.day; S.mod=D.mod.k; S.map=seeded('map0', ()=>genMap(0));
   if(S.mod==='escaso'){ S.gasMax-=3; S.gas=S.gasMax; }
   if(S.mod==='veterano') seeded('vet', ()=>{ const p=recruitPool().filter(id=>!ROSTER[id].rare && ROSTER[id].sg===0); recruit(pick(p)); });

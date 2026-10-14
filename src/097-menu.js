@@ -16,6 +16,7 @@ function menuHTML(){
     
     ${item('gallery', 'Imágenes y música')}
     ${item('settings', 'Ajustes')}
+    ${item('patch', 'Novedades', PATCH.t)}
     ${item('tips', 'Repetir los consejos', 'Vuelven a aparecer la primera vez que veas cada cosa')}
     ${inRun() ? (confirmAbandon
       ? `<div class="mi warn"><b>¿Abandonar la expedición?</b><span>Cuenta como derrota y no se puede deshacer.</span><div class="row"><button class="btn sm" data-m="abandon-yes">Sí, abandonar</button><button class="btn ghost sm" data-m="abandon-no">No</button></div></div>`
@@ -32,6 +33,7 @@ function menuAct(m){
   if(m==='abandon-yes'){ confirmAbandon=false; if(C) C.busy=true; return lose(); }
   if(m==='title'){ scr='title'; return render(); }
   if(m==='tips') return tipAct('tipreset');
+  if(m==='patch') return showPatch(true);
   if(m==='settings'){ confirmErase=false; dataMsg=''; scr='settings'; return render(); }
   act(m==='sagas' ? 'sagas' : m==='continue' ? 'continue' : m, m==='board' ? 'general' : undefined);
 }

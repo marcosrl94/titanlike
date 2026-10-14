@@ -5,7 +5,8 @@ const CFG_DEF = {
   preview: true, intent: true,   // previsión de daño e intenciones de los titanes
   shake: true, flash: true,      // sacudidas de pantalla y destellos
   calm: false,                   // reducir movimiento
-  big: false                     // texto más grande
+  big: false,                    // texto más grande
+  diff: 'explorador'             // dificultad con la que se empiezan las expediciones
 };
 let CFG = Object.assign({}, CFG_DEF, store.get('cfg') || {});
 const ANIM = {normal:{n:'Normal', k:1}, fast:{n:'Rápida', k:.5}, instant:{n:'Instantánea', k:.12}};
