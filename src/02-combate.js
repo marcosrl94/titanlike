@@ -187,6 +187,7 @@ function doAction(kind, target){
       case 'mike': teamBuff(s, 'crit', 2); ev({k:'buff', ids:all(), txt:'OLFATO', m:'Mike olfatea el aire y señala dónde cortar.'}); break;
       case 'floch': say('Floch ordena la salva.',120); liveT().forEach(t=>strike(s,t,1.2,{pierce:true, verb:'revienta a'})); break;
       case 'gabi': strike(s,target,2.1,{verb:'dispara a'}); break;
+      case 'bertolt': strike(s,target,1.6,{verb:'golpea a'}); liveT().filter(t=>t!==target).forEach(t=>strike(s,t,.4,{pierce:true, verb:'abrasa con vapor a'})); break;
       case 'kenny': strike(s,target,2,{verb:'dispara a bocajarro a'}); { const o=liveT().filter(t=>t!==target); if(o.length) strike(s, pick(o), .6, {verb:'remata con la otra pistola a'}); } break;
       case 'zeke': say('Zeke lanza una lluvia de piedras.',120); liveT().forEach(t=>{ strike(s,t,1,{verb:'apedrea a'}); if(t.hp>0 && !t.boss && Math.random()<.25) applyCC(t,'stun'); }); break;
       case 'pieck': say('La artillería de Pieck abre fuego.',120); liveT().forEach(t=>{ strike(s,t,.8,{verb:'bombardea a'}); if(t.hp>0) t.mark=Math.max(t.mark,2); }); break;
@@ -280,7 +281,7 @@ function planIntent(t){
 function planAll(){ if(C) C.titans.forEach(planIntent); }
 
 // ---- previsión de daño: lo que haría cada orden contra cada titán, sin azar ----
-const SKILL_MULT = {kenny:()=>2, eren:s=>s.hp<maxHp(s)/2?2.2:1.5, mikasa:()=>2, armin:()=>1, sasha:()=>1.4, hange:()=>2.6, annie:()=>1.5, ymir:()=>1.7, gabi:()=>2.1};
+const SKILL_MULT = {bertolt:()=>1.6, kenny:()=>2, eren:s=>s.hp<maxHp(s)/2?2.2:1.5, mikasa:()=>2, armin:()=>1, sasha:()=>1.4, hange:()=>2.6, annie:()=>1.5, ymir:()=>1.7, gabi:()=>2.1};
 function estimate(s, t, kind){
   if(!s || !t || t.hp<=0) return null;
   if(kind==='it:carga'){ const d=Math.min(t.hp, itemDmg()); return {lo:d, hi:d, kill:d>=t.hp}; }

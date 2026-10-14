@@ -244,7 +244,7 @@ const EVENTS = [
         return `${c.txt} ${c.ok?'Os perdéis entre los callejones antes de que den la alarma.':'Hay disparos antes de que podáis escabulliros.'} Historia no dice nada en toda la noche. Al amanecer pregunta por qué la quieren tanto los Reiss.`; }},
       {l:'Entregarla', d:'Historia deja el escuadrón. A cambio, dos mejoras al azar.', f(){ const h=who('historia'); S.squad=S.squad.filter(x=>x!==h); S.flags.entregada=1; const a=randomUpg(), b=randomUpg();
         return `Historia se va sin mirar atrás. El oficial os deja material de sobra: ${a} y ${b}.`; }}]},
-  {n:'Una carta de Marley', prio:true, when:()=>sagaIx(S.wave)===2 && ['reiner','annie'].some(id=>S.loyal[id] && has(id)) && !S.flags.alianza && !S.flags.carta,
+  {n:'Una carta de Marley', prio:true, when:()=>sagaIx(S.wave)===2 && WARRIORS.some(id=>S.loyal[id] && has(id)) && !S.flags.alianza && !S.flags.carta,
    d:'Un pájaro mensajero trae una carta cifrada al cuartel. Solo el guerrero que perdonasteis sabe leerla.',
    o:[{l:'Que la lea en voz alta', d:'Puede abrir otra senda al final de la saga.', f(){ S.flags.alianza=1; S.flags.carta=1; return 'Marley prepara un desembarco en la isla. El guerrero dibuja en la mesa dónde van a atacar y cuántos son.'; }},
       {l:'Quemarla', d:'Todos suben 1 nivel.', f(){ S.flags.carta=1; S.squad.forEach(levelUp); return 'La carta arde en la chimenea. Nadie pregunta qué decía.'; }}]},

@@ -35,7 +35,7 @@ const altsSeen = () => (statsOf().alts || []);
 let crossroadAt = function(i){
   if(S.daily) return null;
   if(i===1 && S.flags && S.flags.reina && has('historia')) return 'reina';
-  if(i===2 && (!has('eren') || (S.flags && S.flags.alianza) || ['reiner','annie'].some(id=>S.loyal[id] && has(id)))) return 'paradis';
+  if(i===2 && (!has('eren') || (S.flags && S.flags.alianza) || WARRIORS.some(id=>S.loyal[id] && has(id)))) return 'paradis';
   return null;
 };
 let takeRoute = function(k){
@@ -59,7 +59,7 @@ const EPILOGUES = [
    c:()=>has('armin') && S.pw.colosal==='armin',
    d:'Armin hereda el mando del Cuerpo de Exploración. Su primera orden no es atacar: es mandar una carta al otro lado del mar.'},
   {k:'traidor', who:null, n:'Volver a casa', hint:'Perdonar a un guerrero y llegar con él hasta el final.',
-   c:()=>['reiner','annie'].some(id=>S.loyal[id] && has(id)),
+   c:()=>WARRIORS.some(id=>S.loyal[id] && has(id)),
    d:'El guerrero que perdonasteis cruza el mar de vuelta. No como enemigo ni como héroe: como alguien que por fin puede decir la verdad.'},
   {k:'cientonueve', who:null, n:'Los que quedan', hint:'Dos amigos de la promoción 104, vivos al final.',
    c:()=>has('jean') && has('connie'),
@@ -107,7 +107,7 @@ crossroadAt = function(i){
   if(S.daily) return null;
   if(i===1 && S.flags && S.flags.reina && has('historia')) return 'reina';
   if(i===2 && S.flags && S.flags.jaeger && has('floch') && has('eren')) return 'jaeger';
-  if(i===2 && (!has('eren') || (S.flags && S.flags.alianza) || ['reiner','annie'].some(id=>S.loyal[id] && has(id)))) return 'paradis';
+  if(i===2 && (!has('eren') || (S.flags && S.flags.alianza) || WARRIORS.some(id=>S.loyal[id] && has(id)))) return 'paradis';
   return null;
 };
 const _takeRoute = takeRoute;
@@ -184,3 +184,5 @@ EVENTS.push(
 );
 EPILOGUES.push({k:'regreso', who:'eren', n:'El que volvió de dentro', hint:'Alguien que cayó en Trost no se quedó allí.',
   c:()=>has('eren') && S.flags.erenVuelve, d:'Eren no recuerda nada del tiempo que pasó dentro del titán. Solo que alguien le gritaba que siguiera luchando, y que le hizo caso.'});
+EPILOGUES.push({k:'guerreros', who:'bertolt', n:'Los tres de Marley', hint:'Perdonar a los tres guerreros y llegar con ellos al final.',
+  c:()=>['reiner','annie','bertolt'].every(id=>S.loyal[id] && has(id)), d:'Reiner, Annie y Bertolt vuelven juntos al pueblo donde se criaron. Esta vez nadie les ha dado una misión: solo quieren ver si sigue en pie.'});

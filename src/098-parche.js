@@ -1,5 +1,10 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-15.6', t:'Bertolt se une a la promoción 104', items:[
+    'Bertolt es recluta desde la saga 1: fuerza, mucho aguante y «Golpe de vapor» (daño ×1,6 al objetivo y un 40 % al resto, ignorando resistencias).',
+    'Si llega con vosotros al Colosal de la saga 3, se aparta del escuadrón y se transforma. Al vencerle, como con Reiner y Annie: perdonarlo o quitarle el poder del Colosal.',
+    'Un guerrero perdonado también abre «Defender Paradis», y si perdonas a los tres y llegan al final hay epílogo propio: «Los tres de Marley».'
+  ]},
   {v:'2026-10-15.5', t:'Nueva senda: «El muro Rose cae»', items:[
     'Si Eren cae en la saga 1, al cerrar Trost aparece una encrucijada: la saga 2 puede ser «El muro Rose cae». Sin el Titán de Ataque nadie tapa la brecha y la retirada empieza en los pueblos del sur: la Bestia en Ragako, el Sonriente en los bosques y, en la brecha de Rose, el Colosal y el Acorazado a la vez (primer combate contra dos cambiantes).',
     'A mitad de la senda aparece un titán de ojos verdes que lucha contra los demás. Si le sigues, Eren vuelve al escuadrón con su poder. Un epílogo nuevo para quien lo consiga.',

@@ -140,6 +140,8 @@ T('epílogo Hermanos', ()=>{ setup(['eren','zeke'],['t3']); return epiloguesNow(
 T('si Eren cae en Trost se abre «El muro Rose cae» y puede volver', ()=>{ setup(['mikasa','armin'],['t3']); S.fallen.push('eren'); if(crossroadAt(0)!=='caida') return crossroadAt(0); takeRoute('caida'); S.wave=20;
   if(zoneOf(30).boss!=='aco' || genWave(30,'b').length!==2) return 'sin jefe doble'; const i=EVENTS.findIndex(e=>e.n==='Un titán que lucha contra titanes'); if(!EVENTS[i].when()) return 'sin evento';
   EVENTS[i].o[0].f(); return S.squad.some(x=>x.id==='eren' && x.hp>0) && S.pw.ataque==='eren' && !S.fallen.includes('eren') || JSON.stringify(S.pw); });
+T('Bertolt traiciona ante el Colosal de la saga 3 y se le puede perdonar', ()=>{ setup(['bertolt','mikasa'],['t3']); if(betrayer('col2')!=='bertolt') return 'sin traición'; if(betrayer('aco')) return 'traiciona donde no toca';
+  S.loyal.bertolt=1; return betrayer('col2')===null || 'perdonado y vuelve a traicionar'; });
 // ======== 3) fuzz: combates enteros con acciones al azar ========
 const RES={}; const N=+process.argv[2]||600; let fights=0, turns=0;
 const IDS=Object.keys(ROSTER);

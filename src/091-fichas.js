@@ -18,6 +18,7 @@ const BIO = {
   mike:'Su olfato vale por un escuadrón: sabe dónde y cuándo cortar antes de que nadie lo vea.',
   floch:'Recluta superviviente de las peores salidas. Con las lanzas trueno no tiembla.',
   gabi:'Guerrera de Marley, impulsiva y con una puntería brutal con el rifle antititán.',
+  bertolt:'Alto, callado y siempre un paso por detrás de Reiner. Es muy bueno en todo y nunca quiere destacar en nada.',
   kenny:'Capitán de la brigada antipersonal y el Ackerman más peligroso del interior. Dispara primero, con dos pistolas, y nunca explica para quién trabaja.',
   zeke:'Portador de la Bestia y hermano de Eren por parte de padre. Lanza piedras como si fueran balas y siempre parece saber algo que tú no.',
   pieck:'Estratega tranquila. Su artillería castiga a todo el frente y deja marcado al enemigo.'
@@ -120,6 +121,7 @@ V.arbol = function(){
     ['historia','Familia Reiss','Rod, Frieda y Uri: la capilla, el recuerdo del Fundador y una tumba olvidada.', null],
     ['kenny','Kenny Ackerman','Capitán de la brigada antipersonal. Se le puede reclutar.', 'kenny'],
     ['zeke','Zeke Jaeger','Portador de la Bestia. Se le puede capturar.', 'zeke'],
+    ['bertolt','Bertolt Hoover','Recluta de la promoción 104. Esconde al Titán Colosal: perdónalo o quítale el poder.', null],
     ['floch','Floch Forster','Si le das la razón, se lleva a los jaegeristas.', null]];
   return `<div><h2>Árbol de la historia</h2><p class="dim">Lo que haces en cada expedición abre sendas y finales. Lo que aún no has descubierto sale como «???», con la pista del camino que lleva hasta allí.</p></div>
     <div class="row"><button class="btn ghost" data-a="codex">Volver</button><span class="lbl">Sendas ${alts.length}/${Object.keys(ALT_SAGAS).length} · Finales ${ends.length}/${Object.keys(ENDINGS).length} · Epílogos ${(st.ep||[]).length}/${EPILOGUES.length}</span></div>

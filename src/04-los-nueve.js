@@ -15,7 +15,12 @@ const EREN3 = ['ataque','fundador','martillo'];
 const MINOR = ['colosal','acorazado','hembra','bestia','mandibula','carguero'];
 const BOSS_PW = {col:'colosal', col2:'colosal', hem:'hembra', hem2:'hembra', bes:'bestia', aco:'acorazado', aco2:'acorazado', man:'mandibula', mar:'martillo', rod:'fundador'};
 const BRINGS = {eren:'ataque', ymir:'mandibula', pieck:'carguero'};
+const WARRIORS = ['reiner','annie','bertolt'];
 const BETRAY = {
+  bertolt:{bosses:['col2'], pw:'colosal',
+    pre:['Bertolt lleva días sin dormir. Le tiemblan las manos al ajustar el equipo.', '«Reiner y yo… no somos lo que creéis», dice, mirando el muro.',
+         'Se aparta del escuadrón y echa a correr hacia la muralla. Un rayo enorme cae sobre ella.', 'Donde estaba Bertolt se alza el Titán Colosal, envuelto en vapor.'],
+    post:'El Colosal se consume en su propio vapor. Bertolt cuelga de la nuca, con la piel quemada, y todavía respira.'},
   reiner:{bosses:['aco','aco2'], pw:'acorazado',
     pre:['Reiner se queda atrás mientras el escuadrón avanza.', '«Llevo demasiado tiempo aquí», dice sin mirar a nadie. «Ya no sé qué soy.»',
          'Se arranca el vendaje de la mano. Un rayo cae en mitad de la formación.', 'Donde estaba Reiner se levanta el Titán Acorazado.'],
@@ -69,7 +74,7 @@ function usePower(s, k, target){
 function betrayer(boss){
   if(S.squad.length<2) return null;
   if(boss==='fun' && S.pw.fundador==='eren') return 'eren';
-  return ['reiner','annie'].find(id=>BETRAY[id].bosses.includes(boss) && S.squad.some(s=>s.id===id) && !S.loyal[id]) || null;
+  return WARRIORS.find(id=>BETRAY[id].bosses.includes(boss) && S.squad.some(s=>s.id===id) && !S.loyal[id]) || null;
 }
 function startBetrayal(id, boss){
   const s = S.squad.find(x=>x.id===id), pws = pwOf(id);

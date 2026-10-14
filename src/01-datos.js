@@ -31,6 +31,8 @@ const ROSTER = {
            sk:{n:'Torbellino', gas:3, tgt:'none', d:'Corta a todos los titanes al 100 %.'}},
   erwin:  {n:'Erwin',  st:'tactico', hp:85,  atk:13, spd:11, sg:0, rare:true, tr:{ingenio:3, aguante:1},
            sk:{n:'¡Avanzad!', gas:3, tgt:'enemy', d:'Cada compañero vivo asesta un corte inmediato al objetivo.'}},
+  bertolt:{n:'Bertolt', st:'fuerza', hp:102, atk:16, spd:12, sg:0, tr:{aguante:2, sigilo:1},
+           sk:{n:'Golpe de vapor', gas:2, tgt:'enemy', d:'Daño ×1,6 al objetivo y un 40 % al resto de enemigos, ignorando resistencias.'}},
   ymir:   {n:'Ymir',   st:'fuerza',  hp:90,  atk:17, spd:13, sg:1, tr:{percepcion:2, aguante:1},
            sk:{n:'Dentellada', gas:2, tgt:'enemy', d:'Daño ×1,7. Si abate al titán, recupera el 30 % de sus PV.'}},
   nanaba: {n:'Nanaba', st:'veloz',   hp:78,  atk:17, spd:17, sg:1, tr:{sigilo:2},
