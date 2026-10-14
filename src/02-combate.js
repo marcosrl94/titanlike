@@ -50,7 +50,8 @@ function mkTitan(id, sc){
 function genWave(w, type){
   const z = zoneOf(w), k = (w-1)%5, elite = type==='e';
   const sc = scaleAt(w) * (elite ? 1.2 : 1);
-  if(type==='b') return [mkTitan(z.boss, sc)];
+  // jefe doble (p. ej. Colosal y Acorazado juntos en la brecha): cada uno al 72 %
+  if(type==='b') return z.boss2 ? [mkTitan(z.boss, sc*.72), mkTitan(z.boss2, sc*.72)] : [mkTitan(z.boss, sc)];
   const count = Math.min(3, 1 + Math.floor((k + (w>5?2:0))/2) + (elite?1:0));
   const out=[]; for(let i=0;i<count;i++) out.push(mkTitan(pick(k===0&&w<=5 ? ['t3','t5'] : z.pool), sc));
   return out;

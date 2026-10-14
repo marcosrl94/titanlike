@@ -1,5 +1,10 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-15.5', t:'Nueva senda: «El muro Rose cae»', items:[
+    'Si Eren cae en la saga 1, al cerrar Trost aparece una encrucijada: la saga 2 puede ser «El muro Rose cae». Sin el Titán de Ataque nadie tapa la brecha y la retirada empieza en los pueblos del sur: la Bestia en Ragako, el Sonriente en los bosques y, en la brecha de Rose, el Colosal y el Acorazado a la vez (primer combate contra dos cambiantes).',
+    'A mitad de la senda aparece un titán de ojos verdes que lucha contra los demás. Si le sigues, Eren vuelve al escuadrón con su poder. Un epílogo nuevo para quien lo consiga.',
+    'El árbol de la historia ya tiene desvíos en las sagas 2, 3 y 4: cuatro sendas, cuatro finales y quince epílogos. Tres momentos nuevos.'
+  ]},
   {v:'2026-10-15.4', t:'Grisha, los Reiss, Kenny, Zeke y Floch: el árbol de la historia', items:[
     'Grisha Jaeger: Eren lleva su llave desde la saga 1 y, si llega con ella a la saga 3, puede bajar al sótano y leer los diarios. Eso cambia su epílogo.',
     'La familia Reiss en «La reina de las murallas»: la capilla esconde un recuerdo del Titán de Frieda Reiss, Rod espera en Orvud y detrás de la capilla hay una tumba con el nombre de Uri.',

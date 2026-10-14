@@ -137,13 +137,16 @@ T('senda jaegerista: Floch se va y es el jefe', ()=>{ setup(['eren','floch','mik
   return !S.squad.some(x=>x.id==='floch') && zoneOf(46).boss==='flochb' && !recruitPool().includes('floch') || 'floch sigue'; });
 T('los personajes de historia no salen al azar', ()=>{ setup(['eren','mikasa'],['t3'],{wave:50}); const p=recruitPool(); return !p.includes('kenny') && !p.includes('zeke') || p.join(); });
 T('epílogo Hermanos', ()=>{ setup(['eren','zeke'],['t3']); return epiloguesNow().some(e=>e.k==='hermanos') || 'no'; });
+T('si Eren cae en Trost se abre «El muro Rose cae» y puede volver', ()=>{ setup(['mikasa','armin'],['t3']); S.fallen.push('eren'); if(crossroadAt(0)!=='caida') return crossroadAt(0); takeRoute('caida'); S.wave=20;
+  if(zoneOf(30).boss!=='aco' || genWave(30,'b').length!==2) return 'sin jefe doble'; const i=EVENTS.findIndex(e=>e.n==='Un titán que lucha contra titanes'); if(!EVENTS[i].when()) return 'sin evento';
+  EVENTS[i].o[0].f(); return S.squad.some(x=>x.id==='eren' && x.hp>0) && S.pw.ataque==='eren' && !S.fallen.includes('eren') || JSON.stringify(S.pw); });
 // ======== 3) fuzz: combates enteros con acciones al azar ========
 const RES={}; const N=+process.argv[2]||600; let fights=0, turns=0;
 const IDS=Object.keys(ROSTER);
 for(let i=0;i<N;i++){
   const ids=IDS.slice().sort(()=>Math.random()-.5).slice(0, 1+Math.floor(Math.random()*4));
   const w = 1+Math.floor(Math.random()*60);
-  if(S) S.route={}; const rt = Math.random()<.3 ? {2:'reina'} : Math.random()<.4 ? {3:'paradis'} : Math.random()<.4 ? {3:'jaeger'} : {}; if(S) S.route=rt; const z = zoneOf(w), boss=Math.random()<.3;
+  if(S) S.route={}; const rt = Math.random()<.2 ? {1:'caida'} : Math.random()<.3 ? {2:'reina'} : Math.random()<.4 ? {3:'paradis'} : Math.random()<.4 ? {3:'jaeger'} : {}; if(S) S.route=rt; const z = zoneOf(w), boss=Math.random()<.3;
   const en = boss ? [z.boss] : Array.from({length:1+Math.floor(Math.random()*3)}, ()=>pick(z.pool));
   const pws = NINE.slice().sort(()=>Math.random()-.5).slice(0, Math.floor(Math.random()*4)).map((k,j)=>[k, ids[j%ids.length]]).filter(([k,id],j,a)=>id==='eren' ? a.filter(x=>x[1]==='eren').indexOf(a[j])<3 : a.filter(x=>x[1]===id)[0][0]===k);
   CTX='fuzz '+ids.join('+')+' vs '+en.join('+')+' w'+w;

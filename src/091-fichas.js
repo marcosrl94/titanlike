@@ -94,7 +94,8 @@ V.arbol = function(){
   const M=meta(), u=M.unlocked, alts=altsSeen(), ends=M.endings||[], st=statsOf();
   const N = {   // c: columna, r: fila; seen: descubierto; h: pista del camino que lleva hasta allí
     s1:{c:0,r:1.5, t:SAGAS[0].n, sub:'Saga 1', seen:true, ev:'La llave de Grisha'},
-    s2:{c:1,r:1.5, t:SAGAS[1].n, sub:'Saga 2', seen:u>=2, ev:'Historia · la Bestia y Zeke', h:'Vence la saga 1.'},
+    s2:{c:1,r:.6, t:SAGAS[1].n, sub:'Saga 2', seen:u>=2, ev:'Historia · la Bestia y Zeke', h:'Vence la saga 1.'},
+    caida:{c:1,r:2.6, t:ALT_SAGAS.caida.n, sub:'Senda · saga 2', seen:alts.includes('caida'), alt:1, ev:'Ragako · un titán de ojos verdes', h:'Que Eren caiga en la saga 1.'},
     s3:{c:2,r:.6, t:SAGAS[2].n, sub:'Saga 3', seen:u>=3, ev:'El sótano · Floch · una carta', h:'Vence la saga 2.'},
     reina:{c:2,r:2.6, t:ALT_SAGAS.reina.n, sub:'Senda · saga 3', seen:alts.includes('reina'), alt:1, ev:'Kenny · Frieda · Uri', h:'Protege a Historia en la saga 2.'},
     s4:{c:3,r:0, t:SAGAS[3].n, sub:'Saga 4', seen:u>=4, h:'Vence la saga 3.'},
@@ -105,7 +106,7 @@ V.arbol = function(){
     e_nue:{c:4,r:2, t:ENDINGS.nueve.n, sub:'Final', seen:ends.includes('nueve'), end:1, h:'Reúne los nueve poderes.'},
     e_par:{c:4,r:3, t:ENDINGS.paradis.n, sub:'Final', seen:ends.includes('paradis'), end:1, h:'Gana la guerra en la isla.'}
   };
-  const E = [['s1','s2'],['s2','s3'],['s2','reina'],['s3','s4'],['s3','jaeger'],['s3','paradis'],['reina','s4'],
+  const E = [['s1','s2'],['s1','caida'],['s2','s3'],['s2','reina'],['caida','s3'],['caida','reina'],['s3','s4'],['s3','jaeger'],['s3','paradis'],['reina','s4'],
     ['s4','e_ret'],['s4','e_coo'],['s4','e_nue'],['jaeger','e_ret'],['jaeger','e_coo'],['paradis','e_par'],['paradis','e_nue']];
   const W=1100, H=470, cx=c=>20+c*222, cy=r=>20+r*112, bw=180, bh=96;
   const edge=([a,b])=>{ const A=N[a],B2=N[b], x1=cx(A.c)+bw, y1=cy(A.r)+bh/2, x2=cx(B2.c), y2=cy(B2.r)+bh/2, mx=(x1+x2)/2, on=A.seen&&B2.seen;

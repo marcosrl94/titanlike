@@ -56,7 +56,7 @@ function ai(){ const a=C.active,R=ROSTER[a.id],sk=R.sk,ts=liveT();
   if(S.gas>=1 && S.gas>S.gasMax*.4){ M.napes++; return doAction('nape',best); }
   M.cuts++; doAction('cut',best);
 }
-function run(ids, saga){ newRun(ids, saga); let n=0;
+function run(ids, saga){ newRun(ids, saga); if(process.env.ROUTE){ const [g,k]=process.env.ROUTE.split(':'); S.route[+g]=k; } let n=0;
   while(n++<2000000){ if(q.length){ q.shift()(); continue; }
     if(scr==='combat'&&C&&C.active&&!C.busy){ ai(); continue; }
     if(scr==='map'){ const o=openNodes(); const pref=o.find(x=>S.map.rows[x[0]][x[1]].t==='k' && S.squad.some(s=>s.hp<maxHp(s)*.5)) || o.find(x=>S.map.rows[x[0]][x[1]].t==='e' && !S.squad.some(s=>s.hp<maxHp(s)*.6)) || pick(o); enterNode(pref[0],pref[1]); continue; }

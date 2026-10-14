@@ -163,3 +163,24 @@ EPILOGUES.push(
   {k:'floch', who:'floch', n:'Segunda oportunidad', hint:'Perdonar a quien se llevó a los jaegeristas.',
    c:()=>has('floch') && onRoute('jaeger'), d:'Floch se queda en el puerto para ayudar a reparar lo que rompió. Nadie le da las gracias, y no las pide.'}
 );
+
+// ================= Senda de la saga 2: si Eren cae en Trost =================
+ALT_SAGAS.caida = {slot:1, n:'El muro Rose cae', d:'Eren cayó en Trost. Sin el Titán de Ataque nadie tapa la brecha, y la retirada empieza en los pueblos del sur.',
+  hint:'Se abre si Eren cae en la saga 1.', ending:null,
+  zones:[{n:'Ragako', boss:'bes', pool:['t5','t7','an1','an3','cu'], mo:19},
+         {n:'Bosques del sur', boss:'son', pool:['t7','t10','an2','an3'], mo:20},
+         {n:'La brecha de Rose', boss:'aco', boss2:'col', pool:['t10','t15','an2','bl'], mo:21}]};
+{ const _cr = crossroadAt;
+  crossroadAt = function(i){ if(i===0 && !S.daily && S.fallen.includes('eren') && !has('eren')) return 'caida'; return _cr(i); }; }
+EVENTS.push(
+  {n:'Un titán que lucha contra titanes', prio:true, when:()=>onRoute('caida') && sagaIx(S.wave)===1 && S.fallen.includes('eren') && !S.flags.erenVuelve && !S.flags.erenNo,
+   d:'Entre el humo aparece un titán de quince metros que no os mira: arranca la nuca a otro titán de un puñetazo y ruge. Tiene los ojos verdes.',
+   o:[{l:'Seguirlo hasta que se detenga', d:'Eren vuelve al escuadrón con el Titán de Ataque. Si estáis cuatro, el de menor nivel vuelve a las murallas.', f(){
+        S.flags.erenVuelve=1; S.fallen=S.fallen.filter(x=>x!=='eren');
+        if(S.squad.length>=4){ const w=S.squad.slice().sort((a,b)=>a.lvl-b.lvl)[0]; release(w.id); S.squad=S.squad.filter(x=>x!==w); }
+        S.squad.push({id:'eren', lvl:joinLvl(), hp:0}); const e=S.squad[S.squad.length-1]; bringPower('eren'); e.hp=Math.round(maxHp(e)*.5);
+        return 'El titán se desploma y de la nuca sale Eren, sin un rasguño en los brazos que perdió. Nadie sabe explicarlo. Él tampoco.'; }},
+      {l:'Dejarlo atrás', d:'Todos suben 1 nivel. Eren no vuelve.', f(){ S.flags.erenNo=1; S.squad.forEach(levelUp); return 'El titán se aleja hacia la brecha. Sea lo que sea, ya no es asunto vuestro.'; }}]}
+);
+EPILOGUES.push({k:'regreso', who:'eren', n:'El que volvió de dentro', hint:'Alguien que cayó en Trost no se quedó allí.',
+  c:()=>has('eren') && S.flags.erenVuelve, d:'Eren no recuerda nada del tiempo que pasó dentro del titán. Solo que alguien le gritaba que siguiera luchando, y que le hizo caso.'});
