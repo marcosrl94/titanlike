@@ -51,8 +51,8 @@ async function cloudPull(){
         nine:[...new Set(m.nine.concat(r.nine))], endings:[...new Set(m.endings.concat(r.endings))], runs:Math.max(m.runs||0, r.runs),
         ach:[...new Set(m.ach.concat((r.extra&&r.extra.ach)||[]))], codex:mergeCodex(m.codex, r.extra&&r.extra.codex)})); }
     cloudPush(true);
-    const img = await sb.storage.from('player-images').download(uid + '/pack.json');
-    if(img.data) mergePack(await img.data.text());
+    const ls = await sb.storage.from('player-images').list(uid, {search:'pack.json'});   // evita un 400 si aún no hay paquete
+    if(ls.data && ls.data.some(o=>o.name==='pack.json')){ const img = await sb.storage.from('player-images').download(uid + '/pack.json'); if(img.data) mergePack(await img.data.text()); }
   }catch(e){ CLOUD.msg = 'No se pudo sincronizar con la nube.'; }
   render();
   cloudAudioPull();
