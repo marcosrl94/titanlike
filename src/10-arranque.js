@@ -5,7 +5,7 @@ function header(){
   $('bmus').setAttribute('aria-pressed', AU.on.m); $('bsfx').setAttribute('aria-pressed', AU.on.s);
   const h=$('hacc'); if(h) h.innerHTML = !cloudOn() ? '' : CLOUD.user
     ? `<button class="ib av-b" data-a="acct" aria-label="Tu cuenta: ${esc(userName())}" title="${esc(userName())}">${avatar('sm')}</button>`
-    : `<button class="gbtn sm" data-a="login" ${CLOUD.busy?'disabled':''} aria-label="Entrar con Google">${GLOGO}<span>Entrar</span></button>`;
+    : `<button class="btn sm ghost hin" data-a="acct" aria-label="Entrar o crear cuenta"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Entrar</span></button>`;
   const on = S && !['title','starter','gallery','sagas','board','codex','settings'].includes(scr) && S.map;
   $('prog').hidden = !on;
   if(!on) return;
@@ -21,6 +21,7 @@ function header(){
 function render(){
   header();
   $('screen').innerHTML = `<div>${tipHTML()}${V[scr]()}</div>`;
+  if(!$('menu').hidden && typeof menuHTML==='function') $('menu').innerHTML = menuHTML();   // el menú refleja la sesión y los avisos
   if(scr!==lastScr){
     if(scr==='over'){ setTrack(null); sfx('lose'); }
     else if(scr==='victory'){ setTrack('map'); sfx('win'); }
@@ -46,6 +47,7 @@ function act(a, i){
   if(a==='daily'){ if(dailyDone()) return; newDaily(); return render(); }
   if(a==='codex'){ scr='codex'; return render(); }
   if(a==='login') return cloudLogin();
+  if(a.startsWith('mail') && mailAct(a, i)) return;
   if(a==='logout') return cloudLogout();
   if(a==='board'){ CLOUD.tab = i || CLOUD.tab || 'general'; scr='board'; cloudBoard(); return; }
   if(a==='rename'){ const f=document.getElementById('nm'); return cloudRename(f && f.value); }

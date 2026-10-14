@@ -100,7 +100,7 @@ function settingsAct(a, i){
 }
 $('menu').addEventListener('click', ev=>{
   if(ev.target.id==='menu') return closeMenu();
-  const a=ev.target.closest('[data-a]'); if(a && !a.disabled){ if(a.dataset.a!=='login') closeMenu(); return act(a.dataset.a, a.dataset.a==='board'?'general':a.dataset.i); }
+  const a=ev.target.closest('[data-a]'); if(a && !a.disabled){ if(a.dataset.a.startsWith('mail')){ mailAct(a.dataset.a, a.dataset.i); $('menu').innerHTML=menuHTML(); return; } if(a.dataset.a!=='login') closeMenu(); return act(a.dataset.a, a.dataset.a==='board'?'general':a.dataset.i); }
   const b=ev.target.closest('[data-m]'); if(b && !b.disabled) menuAct(b.dataset.m);
 });
 document.addEventListener('keydown', ev=>{

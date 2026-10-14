@@ -337,6 +337,7 @@ body{padding-top:0}
 .ib:hover{background:var(--stone-3)}
 .ib.off{opacity:1;text-decoration:none;color:var(--muted)}
 .ib.off::after{content:"";position:absolute;width:24px;height:2px;background:var(--blood-hi);transform:rotate(-45deg);border-radius:2px}
+#app .hin{border-radius:999px;height:40px;min-height:40px;padding:0 14px 0 12px}
 #bmenu{margin-left:2px;border-radius:999px;padding:0 14px 0 12px;height:40px;min-height:40px}
 .av-b{border-color:var(--cloak-hi);overflow:hidden}
 .av{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:999px;background:var(--cloak);color:var(--bone);font-family:var(--body);font-weight:600;font-size:19px;overflow:hidden;flex:none}
@@ -363,6 +364,15 @@ body{padding-top:0}
 label.file{cursor:pointer}
 .gal .card{gap:8px}
 .gal .card b{font-weight:600}
+.logins{display:flex;flex-direction:column;align-items:flex-start;gap:10px;flex:1 1 260px}
+.linkb{background:none;border:0;padding:4px 2px;color:var(--cloak-hi);font:500 14px var(--body);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.linkb:hover{color:var(--bone)}
+.mailf{display:flex;flex-direction:column;gap:10px;width:100%;max-width:380px}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld span{font-size:13px;color:var(--muted)}
+.fld input,#nm{background:var(--stone);color:var(--bone);border:1px solid var(--stone-4);border-radius:var(--r-sm);padding:11px 12px;font:16px var(--body);width:100%}
+.fld input:focus{outline:none;border-color:var(--gold);box-shadow:var(--ring)}
+.mailf .seg{align-self:flex-start}
 .note-s{font-size:13.5px;color:var(--muted);background:var(--stone-2);border:1px solid var(--stone-3);border-radius:var(--r-sm);padding:10px 12px}
 /* portada */
 .cta{display:flex;gap:10px;flex-wrap:wrap}
@@ -417,12 +427,13 @@ button.mi::after{content:"";position:absolute;right:16px;top:50%;width:8px;heigh
   .brand{font-size:23px}
   #bmenu span{display:none}
   #bmenu{width:40px;padding:0;justify-content:center}
-  .gbtn.sm span{display:none}
-  .gbtn.sm{width:40px;height:40px;padding:0;border-radius:999px}
+  #app .hin span{display:none}
+  #app .hin{width:40px;padding:0}
   .cta .btn,.cta2 .btn{flex:1 1 100%}
   .cta2{display:grid;grid-template-columns:1fr 1fr}
   .cta2 .btn{min-width:0;white-space:normal;text-align:center}
-  .acc .gbtn{flex:1 1 100%}
+  .acc .gbtn,.logins{width:100%}
+  .mailf{max-width:none}
   .peek{height:170px}
   .peek svg{width:220px;margin-left:-110px;bottom:-100px}
   .cta2 .btn:last-child:nth-child(odd){grid-column:1/-1}

@@ -1,6 +1,6 @@
 // ---------- Nube: cuenta de Google, progreso, clasificación e imágenes (solo en la versión desplegada) ----------
 const CLOUD = {sb:null, user:null, name:'', board:null, busy:false, msg:''};
-let oauthReturn = typeof location!=='undefined' && /access_token|error_description/.test(location.hash);   // volvemos de Google
+let oauthReturn = typeof location!=='undefined' && /access_token|error_description/.test(location.hash) || /[?&]code=/.test(location.search);   // volvemos de Google
 function cloudInit(){
   const cfg = window.TL_CFG;
   if(!cfg || !window.supabase) return;
@@ -11,6 +11,8 @@ function cloudInit(){
     if(!u && oauthReturn && /error_description/.test(location.hash)){ CLOUD.msg='Google no ha completado el acceso: '+decodeURIComponent((location.hash.match(/error_description=([^&]+)/)||[])[1]||'').replace(/\+/g,' '); oauthReturn=false; }
     if(u && oauthReturn){ oauthReturn=false; }
     if(u && !was && evt==='SIGNED_IN' && typeof toast==='function' && !(()=>{ try{ return sessionStorage.getItem('tl-hi'); }catch(e){ return 1; } })()) { try{ sessionStorage.setItem('tl-hi','1'); }catch(e){} toast('Sesión iniciada', 'Hola, ' + ((u.user_metadata||{}).full_name || u.email || '') + '. Tu progreso se guarda en tu cuenta.'); }
+    if(u && !was && typeof closeMenu==='function' && !$('menu').hidden) closeMenu();
+    if(evt==='PASSWORD_RECOVERY') setTimeout(askNewPassword, 300);
     if(u && (!was || was.id!==u.id)) setTimeout(cloudPull, 0);
     if(!u){ CLOUD.name=''; CLOUD.board=null; }
     render();
@@ -34,7 +36,65 @@ function accountHTML(where){
   const msg = CLOUD.msg ? `<p class="acc-msg" role="status">${esc(CLOUD.msg)}</p>` : '';
   if(CLOUD.user) return `<div class="acc in">${avatar()}<div class="acc-t"><b>${esc(userName())}</b><span>Progreso, imágenes y música guardados en tu cuenta</span></div>
     <div class="row acc-a"><button class="btn ghost sm" data-a="board">Clasificación</button><button class="btn ghost sm" data-a="logout">Cerrar sesión</button></div>${msg}</div>`;
-  return `<div class="acc out"><div class="acc-t"><b>${where==='end'?'Que no se pierda esta expedición':'Guarda tu partida en la nube'}</b><span>Juega en el móvil y en el ordenador, sincroniza tus imágenes y música y compite en la clasificación con tus colegas.</span></div>${gbtn()}${msg}</div>`;
+  return `<div class="acc out"><div class="acc-t"><b>${where==='end'?'Que no se pierda esta expedición':'Guarda tu partida en la nube'}</b><span>Juega en el móvil y en el ordenador, sincroniza tus imágenes y música y compite en la clasificación con tus colegas.</span></div>${loginBtns()}${msg}</div>`;
+}
+// ---- acceso con correo y contraseña (sin correo de confirmación) ----
+const MAIL = {open:false, mode:'in', f:{name:'', email:'', pass:''}, busy:false};
+const loginBtns = () => `<div class="logins">${gbtn()}${MAIL.open ? mailForm() : '<button class="linkb" data-a="mailopen">o entra con tu correo</button>'}</div>`;
+function mailForm(){
+  const up = MAIL.mode==='up', f=MAIL.f;
+  return `<form class="mailf" data-mailf="1" novalidate>
+    <div class="seg" role="tablist" aria-label="Acceso con correo"><button type="button" class="btn sm ${up?'ghost':''}" role="tab" aria-selected="${!up}" data-a="mailmode" data-i="in">Entrar</button><button type="button" class="btn sm ${up?'':'ghost'}" role="tab" aria-selected="${up}" data-a="mailmode" data-i="up">Crear cuenta</button></div>
+    ${up?`<label class="fld"><span>Nombre en la clasificación</span><input data-f="name" autocomplete="nickname" maxlength="32" value="${esc(f.name)}" placeholder="Cómo te verán tus colegas"></label>`:''}
+    <label class="fld"><span>Correo</span><input data-f="email" type="email" autocomplete="email" inputmode="email" value="${esc(f.email)}" placeholder="tu@correo.com" required></label>
+    <label class="fld"><span>Contraseña</span><input data-f="pass" type="password" autocomplete="${up?'new-password':'current-password'}" minlength="6" value="${esc(f.pass)}" placeholder="${up?'Mínimo 6 caracteres':''}" required></label>
+    <div class="row"><button type="submit" class="btn" ${MAIL.busy?'disabled aria-busy="true"':''}>${MAIL.busy?'Un momento…':up?'Crear cuenta':'Entrar'}</button>${up?'':'<button type="button" class="linkb" data-a="mailreset">He olvidado la contraseña</button>'}<button type="button" class="linkb" data-a="mailclose">Cancelar</button></div>
+  </form>`;
+}
+const AUTH_ES = m => /Invalid login/i.test(m) ? 'Correo o contraseña incorrectos.' : /already registered|already exists/i.test(m) ? 'Ese correo ya tiene cuenta: usa «Entrar».' : /Password should be/i.test(m) ? 'La contraseña necesita al menos 6 caracteres.' : /invalid.*email|Unable to validate email/i.test(m) ? 'Ese correo no parece válido.' : /rate limit|security purposes/i.test(m) ? 'Demasiados intentos seguidos. Espera un minuto y vuelve a probar.' : m;
+async function mailSubmit(){
+  const f=MAIL.f, email=f.email.trim();
+  if(!/^\S+@\S+\.\S+$/.test(email)){ CLOUD.msg='Escribe un correo válido.'; return render(); }
+  if(f.pass.length<6){ CLOUD.msg='La contraseña necesita al menos 6 caracteres.'; return render(); }
+  MAIL.busy=true; CLOUD.msg=''; render();
+  const r = MAIL.mode==='up'
+    ? await CLOUD.sb.auth.signUp({email, password:f.pass, options:{data:{full_name:(f.name.trim()||email.split('@')[0]).slice(0,32)}, emailRedirectTo: location.origin + location.pathname}})
+    : await CLOUD.sb.auth.signInWithPassword({email, password:f.pass});
+  MAIL.busy=false;
+  if(r.error){ CLOUD.msg = AUTH_ES(r.error.message); return render(); }
+  if(MAIL.mode==='up' && !r.data.session){ CLOUD.msg='Cuenta creada. Revisa tu correo para confirmarla y luego entra.'; return render(); }
+  MAIL.open=false; MAIL.f={name:'', email:'', pass:''}; render();
+}
+async function mailReset(){
+  const email=MAIL.f.email.trim();
+  if(!/^\S+@\S+\.\S+$/.test(email)){ CLOUD.msg='Escribe tu correo arriba y vuelve a pulsar «He olvidado la contraseña».'; return render(); }
+  const {error} = await CLOUD.sb.auth.resetPasswordForEmail(email, {redirectTo: location.origin + location.pathname});
+  CLOUD.msg = error ? AUTH_ES(error.message) : 'Te hemos enviado un correo para cambiar la contraseña.'; render();
+}
+// al volver del enlace de recuperación: pedir la nueva contraseña
+function askNewPassword(){
+  if(typeof document==='undefined') return;
+  $('sheet').innerHTML = `<form class="sheet-in mailf" data-newpass="1"><b>Nueva contraseña</b><label class="fld"><span>Contraseña</span><input id="np" type="password" autocomplete="new-password" minlength="6" required></label><div class="row"><button type="submit" class="btn">Guardar</button><button type="button" class="btn ghost" data-a="closesheet">Ahora no</button></div><p class="acc-msg" id="npm"></p></form>`;
+  $('sheet').hidden=false; setTimeout(()=>{ const i=$('np'); if(i) i.focus(); }, 50);
+}
+function mailAct(a, i){
+  if(a==='mailopen'){ MAIL.open=true; CLOUD.msg=''; render(); setTimeout(()=>{ const e=document.querySelector('[data-f=email]'); if(e) e.focus(); }, 30); return true; }
+  if(a==='mailclose'){ MAIL.open=false; CLOUD.msg=''; render(); return true; }
+  if(a==='mailmode'){ MAIL.mode=i; CLOUD.msg=''; render(); return true; }
+  if(a==='mailreset'){ mailReset(); return true; }
+  return false;
+}
+if(typeof document!=='undefined'){
+  document.addEventListener('input', ev=>{ const k=ev.target.dataset && ev.target.dataset.f; if(k) MAIL.f[k]=ev.target.value; });
+  document.addEventListener('submit', async ev=>{
+    const f=ev.target;
+    if(f.dataset.mailf){ ev.preventDefault(); return mailSubmit(); }
+    if(f.dataset.newpass){ ev.preventDefault(); const v=$('np').value, m=$('npm');
+      if(v.length<6){ m.textContent='Mínimo 6 caracteres.'; return; }
+      const {error}=await CLOUD.sb.auth.updateUser({password:v});
+      if(error){ m.textContent=AUTH_ES(error.message); return; }
+      $('sheet').hidden=true; toast('Contraseña cambiada', 'Ya puedes entrar con ella en cualquier dispositivo.'); }
+  });
 }
 async function cloudLogout(){ try{ sessionStorage.removeItem('tl-hi'); }catch(e){} await CLOUD.sb.auth.signOut(); }
 // trae el progreso de la nube y lo mezcla con el local (máximos y uniones); luego sube el resultado
