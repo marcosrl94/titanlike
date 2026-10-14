@@ -66,7 +66,7 @@ function nextTurn(){
   const u = C.queue.shift();
   if(u.s){
     if(u.s.hp<=0) return nextTurn();
-    C.active=u.s; C.busy=false; render();
+    C.active=u.s; C.busy=false; C.itemUsed=false; render();
   } else {
     if(u.t.hp<=0) return nextTurn();
     C.busy=true; render();
@@ -93,6 +93,7 @@ function strike(s, t, mult, o={}){
   if(exec){ d = t.hp; S.napes=(S.napes||0)+1; if(S.napes>=5) ach('nuca5'); }
   t.hp = Math.max(0, t.hp-d);
   t.lastHit = s.id; t.threat = t.threat || {}; t.threat[s.id] = (t.threat[s.id]||0) + d;
+  checkPhase(t);
   ev({k:'slash', s:s.id, t:C.titans.indexOf(t), d, crit, exec, kill:t.hp<=0, hp:t.hp, max:t.max, boom:!!o.pierce,
       m:`${nm(s)} ${o.verb||'corta a'} ${t.n}: ${d}${crit?' (crítico)':''}${t.hp<=0?'. ¡Abatido!':''}`});
   return t.hp<=0;
@@ -101,6 +102,8 @@ function doAction(kind, target){
   const s=C.active, R=ROSTER[s.id], f=C.fx[s.id], ti = target && C.titans.indexOf(target);
   const all = () => alive().map(a=>a.id);
   C.busy=true; C.pending=null;
+  // los objetos son una acción libre: una vez por turno, sin gastarlo
+  if(kind.startsWith('it:')){ useItem(s, kind.slice(3), target); C.itemUsed=true; planAll(); header(); busyUI(); return play(()=>{ C.busy=false; render(); }); }
   if(kind==='cut') strike(s, target, 1);
   else if(kind==='nape'){ S.gas-=1; strike(s, target, 1.6, {nape:true, verb:'va a la nuca de'}); }
   else if(kind.startsWith('pw:')) usePower(s, kind.slice(3), target);
@@ -199,3 +202,55 @@ function planIntent(t){
   t.intent = (s || a.find(x=>x.id===t.intent) || pick(a)).id;
 }
 function planAll(){ if(C) C.titans.forEach(planIntent); }
+
+// ---- previsión de daño: lo que haría cada orden contra cada titán, sin azar ----
+const SKILL_MULT = {eren:s=>s.hp<maxHp(s)/2?2.2:1.5, mikasa:()=>1.5, armin:()=>1, sasha:()=>1.2, hange:()=>2.6, annie:()=>1.3, ymir:()=>1.5, gabi:()=>2.1};
+function estimate(s, t, kind){
+  if(!s || !t || t.hp<=0) return null;
+  if(kind==='it:carga'){ const d=Math.min(t.hp, itemDmg()); return {lo:d, hi:d, kill:d>=t.hp}; }
+  const mult = kind==='cut' ? 1 : kind==='nape' ? 1.6 : kind==='skill' ? (SKILL_MULT[s.id] ? SKILL_MULT[s.id](s) : 0)
+    : kind==='pw:hembra' ? 2.2 : kind==='pw:mandibula' ? 2.8 : 0;
+  if(!mult) return null;
+  const pierce = kind==='pw:mandibula' || (kind==='skill' && s.id==='hange'), f=C.fx[s.id];
+  let d = atkOf(s)*mult;
+  if(!pierce) d *= eff(s,t);
+  d *= 1 + .15*rel('cuchillas'); if(t.boss) d *= 1 + .3*rel('lanzas');
+  if(f.up>0) d*=1.35; if(f.titan>0) d*=2; if(t.mark>0) d*=1.5; if(t.hard>0 && !pierce) d*=.4; if(f.crit>0) d*=1.5;
+  const lo=Math.max(1,Math.round(d*.9)), hi=Math.max(1,Math.round(d*1.1));
+  const exec = kind==='nape' && !t.boss && (t.hp-hi)/t.max < .25;
+  return {lo, hi, kill: lo>=t.hp || exec, exec};
+}
+
+// ---- objetos de un solo uso (máximo 3, acción libre una vez por turno) ----
+const ITEMS = {
+  humo:     {n:'Bengala de humo',  d:'Todos los titanes fallan su próximo ataque.', tgt:'none'},
+  carga:    {n:'Carga explosiva',  d:'Daño fijo que ignora resistencias y endurecimiento.', tgt:'enemy'},
+  botiquin: {n:'Botiquín',         d:'Todo el escuadrón recupera el 30 % de sus PV.', tgt:'none'},
+  cable:    {n:'Cable de rescate', d:'Un compañero recupera el 50 % de sus PV.', tgt:'ally'},
+  bombona:  {n:'Bombona de gas',   d:'+4 de gas.', tgt:'none'}
+};
+const itemDmg = () => Math.round(30 + 9*S.wave);
+function useItem(s, k, target){
+  S.items = S.items || []; const i=S.items.indexOf(k); if(i<0) return; S.items.splice(i,1);
+  const heal = (a,p) => { const h=Math.min(maxHp(a)-a.hp, Math.round(maxHp(a)*p)); a.hp+=h; ev({k:'heal', s:a.id, d:h, hp:a.hp, max:maxHp(a), m:h?`${nm(a)} recupera ${h} PV.`:''}); };
+  switch(k){
+    case 'humo': liveT().forEach(t=>t.blind=1); ev({k:'roarAll', txt:'HUMO', m:`${nm(s)} lanza una bengala de humo. Los titanes no ven nada.`}); break;
+    case 'carga': { const d=Math.min(target.hp, itemDmg()); target.hp-=d; checkPhase(target);
+      ev({k:'slash', s:s.id, t:C.titans.indexOf(target), d, crit:false, exec:false, kill:target.hp<=0, hp:target.hp, max:target.max, boom:true, m:`${nm(s)} detona una carga en ${target.n}: ${d}${target.hp<=0?'. ¡Abatido!':''}`}); break; }
+    case 'botiquin': alive().forEach(a=>heal(a,.3)); break;
+    case 'cable': heal(target,.5); break;
+    case 'bombona': S.gas=Math.min(S.gasMax, S.gas+4); ev({k:'buff', ids:[s.id], txt:'+4 GAS', m:`${nm(s)} cambia de bombona.`}); break;
+  }
+}
+
+// ---- jefes en dos fases: al bajar del 50 % se enfurecen ----
+function checkPhase(t){
+  if(!t.boss || t.phase || t.hp<=0 || t.hp>t.max/2) return;
+  t.phase=1; t.atk*=1.15; t.spd+=2;
+  const m = t.m = Object.assign({}, t.m);
+  if(m.aoe) m.aoe=Math.max(2, m.aoe-1);
+  if(m.harden) m.harden=Math.max(2, m.harden-1);
+  if(m.devour) m.devour=Math.max(2, m.devour-1);
+  if(!m.aoe && !m.devour && !m.summon && !m.harden) m.harden=3;
+  ev({k:'roar', t:C.titans.indexOf(t), txt:'SEGUNDA FASE', m:`${t.n} se enfurece: golpea más fuerte y más deprisa.`});
+}

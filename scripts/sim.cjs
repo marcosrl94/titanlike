@@ -12,6 +12,13 @@ function render(){} function header(){} function busyUI(){}
 function play(d){ C.ev=[]; d(); }
 function ai(){ const a=C.active,R=ROSTER[a.id],sk=R.sk,ts=liveT();
   const best=ts.slice().sort((x,y)=>eff(a,y)-eff(a,x)||x.hp-y.hp)[0];
+  if((S.items||[]).length && !C.itemUsed){
+    if(S.items.includes('carga') && C.titans[0].boss && C.titans[0].hp>0) return doAction('it:carga', C.titans[0]);
+    if(S.items.includes('botiquin') && alive().some(x=>x.hp<maxHp(x)*.35)) return doAction('it:botiquin');
+    if(S.items.includes('cable')){ const w=alive().find(x=>x.hp<maxHp(x)*.3); if(w) return doAction('it:cable', w); }
+    if(S.items.includes('humo') && C.titans.some(t=>t.boss&&t.phase)) return doAction('it:humo');
+    if(S.items.includes('bombona') && S.gas<2) return doAction('it:bombona');
+  }
   const pw=pwOf(a.id).find(k=>!C.usedPw[k]); if(pw && (C.titans.some(t=>t.boss) || Math.random()<.35)){ USE[pw]=(USE[pw]||0)+1; return doAction('pw:'+pw, best); }
   if(S.gas>=sk.gas && !(sk.once&&C.used[a.id]) && Math.random()<.6){
     if(sk.tgt==='ally'){ const w=alive().sort((x,y)=>x.hp/maxHp(x)-y.hp/maxHp(y))[0]; if(w.hp<maxHp(w)*.6) return doAction('skill',w); }
@@ -32,7 +39,7 @@ function run(ids, saga){ newRun(ids, saga); let n=0;
       sceneAct('go'); continue; }
     if(scr==='camp'){ const hp=S.squad.reduce((a,s)=>a+s.hp/maxHp(s),0)/S.squad.length; CAMP[hp<.6?0:1].f(); advance(); continue; }
     if(scr==='event'){ pick(EVENTS[S.pend.i].o).f(); if(S.q.length){ S.after='advance'; nextScene(); } else advance(); continue; }
-    if(scr==='reward'){ let i=S.rewards.findIndex(r=>r.t==='rec'&&S.squad.length<4); if(i<0) i=S.rewards.findIndex(r=>r.t==='upg'); const r=S.rewards[i]; r.t==='rec'?recruit(r.id):applyUpg(r.id); tookReward(i); continue; }
+    if(scr==='reward'){ let i=S.rewards.findIndex(r=>r.t==='rec'&&S.squad.length<4); if(i<0) i=S.rewards.findIndex(r=>r.t==='upg'); const r=S.rewards[i]; r.t==='rec'?recruit(r.id):r.t==='item'?(S.items=S.items||[]).push(r.id):applyUpg(r.id); tookReward(i); continue; }
     break; }
   if(scr==='victory') END[S.ending]=(END[S.ending]||0)+1;
   return scr==='victory'?TOTAL+1:S.wave; }

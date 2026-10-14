@@ -57,6 +57,7 @@ function act(a, i){
   if(a==='node'){ const [r,j]=i.split(',').map(Number); return enterNode(r,j); }
   if(a==='reward'){ const r=S.rewards[i];
     if(r.t==='upg'){ applyUpg(r.id); return tookReward(+i); }
+    if(r.t==='item'){ (S.items=S.items||[]).push(r.id); return tookReward(+i); }
     if(S.squad.length<4){ recruit(r.id); return tookReward(+i); }
     pendingRec={id:r.id, i:+i}; scr='replace'; return render(); }
   if(a==='swap' && scr==='replace'){ recruit(pendingRec.id, i); return tookReward(pendingRec.i); }
@@ -70,7 +71,8 @@ function act(a, i){
   if(scr!=='combat' || !C.active || C.busy) return;
   if(a==='order'){
     if(C.pending && C.pending.kind===i){ C.pending=null; return render(); }
-    const tgt = i==='skill' ? ROSTER[C.active.id].sk.tgt : i.startsWith('pw:') ? POWERS[i.slice(3)].tgt : 'enemy';
+    if(i.startsWith('it:') && C.itemUsed) return;
+    const tgt = i==='skill' ? ROSTER[C.active.id].sk.tgt : i.startsWith('pw:') ? POWERS[i.slice(3)].tgt : i.startsWith('it:') ? ITEMS[i.slice(3)].tgt : 'enemy';
     if(tgt==='none') return doAction(i);
     if(tgt==='enemy' && liveT().length===1) return doAction(i, liveT()[0]);
     C.pending={kind:i, tgt}; return render();

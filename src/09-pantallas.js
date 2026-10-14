@@ -117,11 +117,12 @@ const V = {
       const pk = canAct && P && P.tgt==='enemy' && t.hp>0;
       const e = a && t.hp>0 ? eff(a,t) : 1;
       const st=[t.mark>0&&'Marcado',t.stun>0&&'Derribado',t.blind>0&&'Cegado',t.hard>0&&'Endurecido'].filter(Boolean).join(' · ');
-      const cl=['titan','z-'+t.cls, t.boss&&'boss', t.hp<=0&&'dead', pk&&'pick'].filter(Boolean).join(' ');
+      const cl=['titan','z-'+t.cls, t.boss&&'boss', t.phase&&'enraged', t.hp<=0&&'dead', pk&&'pick'].filter(Boolean).join(' ');
       const inner=`${e!==1?`<span class="eff num ${e>1?'up':'down'}">×${String(e).replace('.',',')}</span>`:''}
         <span class="art" style="animation-delay:${ph-i*.7}s">${titanArt(t.id)}</span>
         <span class="plate"><h3>${t.n}</h3><span class="chip c-cls">${CLS[t.cls]}</span>
         <span class="bar"><i style="width:${t.hp/t.max*100}%"></i></span><span class="lbl num hpn">${t.hp} / ${t.max} PV</span><span class="st">${st}</span>
+        ${(()=>{ const e = canAct && estimate(a, t, P ? P.kind : 'cut'); return e ? `<span class="prev ${e.kill?'kill':''}">${P?'':'Corte '}≈ ${e.lo===e.hi?e.lo:e.lo+'–'+e.hi}${e.kill?' · abate':''}</span>` : ''; })()}
         ${t.hp>0 && t.intent ? `<span class="int ${t.intent==='all'?'all':''}" title="${AI_TXT[aiOf(t)]}">Ataca a: ${t.intent==='all' ? 'todo el escuadrón' : esc(ROSTER[t.intent].n)}</span>` : ''}</span>`;
       return pk ? `<button class="${cl}" data-u="t${i}" data-a="titan" data-i="${i}">${inner}</button>` : `<div class="${cl}" data-u="t${i}">${inner}</div>`;
     }).join('');
@@ -133,6 +134,7 @@ const V = {
         <button class="order ${sel('nape')}" data-a="order" data-i="nape" ${S.gas<1?'disabled':''}><b>A la nuca · 1 gas</b><span>Daño ×1,6. Remata a titanes normales por debajo del 25 %.</span></button>
         <button class="order ${sel('skill')}" data-a="order" data-i="skill" ${skOff?'disabled':''}><b>${sk.n}${sk.gas?` · ${sk.gas} gas`:''}</b><span>${sk.d}</span></button>`
         + pwOf(a.id).map(k=>`<button class="order pw ${sel('pw:'+k)}" data-a="order" data-i="pw:${k}" ${C.usedPw[k]?'disabled':''}><b>Transformarse · ${POWERS[k].n.replace(/^Titán (de )?/,'')}</b><span>${C.usedPw[k]?'Ya usado en este combate.':POWERS[k].d}</span></button>`).join('');
+      if((S.items||[]).length) orders += `<div class="items"><span class="lbl">Objetos${C.itemUsed?' · ya usaste uno este turno':' · acción libre'}</span>${S.items.map((k,j)=>`<button class="btn ghost sm ${sel('it:'+k)}" data-a="order" data-i="it:${k}" title="${ITEMS[k].d}" ${C.itemUsed?'disabled':''}>${ITEMS[k].n}</button>`).join('')}</div>`;
       hint = P ? (P.tgt==='enemy'?'Elige un titán.':'Elige a un compañero.') : `Turno de ${R.n}.`;
     }
     return `<div class="stage"><div class="titans">${tit}</div></div>
@@ -148,6 +150,7 @@ const V = {
       ${S.note?`<section class="panel note"><p>${S.note}</p></section>`:''}
       <div class="cards">${S.rewards.map((r,i)=> r.t==='rec'
         ? `<button class="card" data-a="reward" data-i="${i}"><span class="lbl kind">Recluta${ROSTER[r.id].rare?' veterano':''}</span>${solCard(r.id)}</button>`
+        : r.t==='item' ? `<button class="card" data-a="reward" data-i="${i}"><span class="lbl kind">Objeto · un solo uso</span><h3>${ITEMS[r.id].n}</h3><p>${ITEMS[r.id].d} Llevas ${(S.items||[]).length} de 3.</p></button>`
         : `<button class="card" data-a="reward" data-i="${i}"><span class="lbl kind">Mejora</span><h3>${UPG[r.id].n}</h3><p>${UPG[r.id].d}</p></button>`).join('')}</div>
       <span class="lbl">Tu escuadrón</span>${squadHTML()}${relicsHTML()}`;
   },

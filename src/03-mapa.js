@@ -34,7 +34,7 @@ const KIT_PW = [0, 1, 2, 2];   // mejoras de partida según la saga de inicio
 function newRun(ids, saga=0){
   const w = saga*PER + 1;
   saveMeta({runs:(meta().runs||0)+1});
-  S = {v:4, wave:w, squad:ids.map(id=>({id, lvl:w, hp:0})), fallen:[], rel:{}, pw:{}, q:[], loyal:{}, pity:0, after:null, scene:null, note:null, gas:8+4*saga, gasMax:8+4*saga, map:genMap(saga*3), rewards:null, picks:0, pend:null, kit:[]};
+  S = {v:4, wave:w, squad:ids.map(id=>({id, lvl:w, hp:0})), fallen:[], rel:{}, pw:{}, q:[], loyal:{}, pity:0, after:null, scene:null, note:null, gas:8+4*saga, gasMax:8+4*saga, map:genMap(saga*3), rewards:null, picks:0, pend:null, kit:[], items:[]};
   for(let i=0;i<KITS[saga];i++) S.kit.push(randomUpg());
   S.kitPw = KIT_PW[saga];
   S.squad.forEach(s=>{ s.hp=maxHp(s); bringPower(s.id); codex('s', s.id); });
@@ -109,6 +109,7 @@ function genRewards(t){
   const hurt = S.squad.some(s=>s.hp < maxHp(s)*.7);
   const ups = upgPool().filter(k=>k!=='raciones'||hurt).sort(()=>Math.random()-.5);
   while(out.length<total) out.push({t:'upg', id:ups.pop()});
+  if((S.items||[]).length<3 && Math.random()<.45) out[out.length-1] = {t:'item', id:pick(Object.keys(ITEMS))};
   return out;
 }
 function applyUpg(k){
