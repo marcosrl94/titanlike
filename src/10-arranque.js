@@ -3,7 +3,7 @@ let lastScr = null, lastBolt = null;
 function header(){
   $('bmus').classList.toggle('off', !AU.on.m); $('bsfx').classList.toggle('off', !AU.on.s);
   $('bmus').setAttribute('aria-pressed', AU.on.m); $('bsfx').setAttribute('aria-pressed', AU.on.s);
-  const on = S && !['title','starter','gallery','sagas','board','codex'].includes(scr) && S.map;
+  const on = S && !['title','starter','gallery','sagas','board','codex','settings'].includes(scr) && S.map;
   $('gas').hidden = $('prog').hidden = !on;
   if(!on) return;
   let g=''; for(let i=0;i<S.gasMax;i++) g+=`<i class="${i<S.gas?'on':''}"></i>`;
@@ -29,6 +29,7 @@ function render(){
   else if(scr!=='over') setTrack('map');
 }
 function act(a, i){
+  if(['cfg','cfganim','dcopy','dimport','derase','derase0','derase2'].includes(a)) return settingsAct(a, i);
   if(a==='tipok' || a==='tipoff' || a==='tipreset') return tipAct(a, i);
   if(a!=='order' && a!=='titan' && a!=='sol') sfx('click');
   if(a==='sagas'){ picked=[]; scr='sagas'; return render(); }
@@ -69,7 +70,7 @@ function act(a, i){
   if(a==='evok'){ if(S.q && S.q.length){ S.after='advance'; return nextScene(); } return advance(); }
   if(a==='scn') return sceneAct(i);
   if(a==='inject'){ S.q=[{k:'drop', p:NINE.find(k=>S.pw[k]==='reserva'), src:'camp'}]; S.after='advance'; return nextScene(); }
-  if(a==='speed'){ fast=!fast; store.set('fast', fast); const b=document.querySelector('[data-a=speed]'); if(b) b.textContent=`Velocidad ×${fast?2:1}`; return; }
+  if(a==='speed'){ const ks=Object.keys(ANIM), n=ks[(ks.indexOf(CFG.anim)+1)%ks.length]; setCfg('anim', n); fast = n!=='normal'; const b=document.querySelector('[data-a=speed]'); if(b) b.textContent=`Animación: ${ANIM[n].n}`; return; }
   if(scr!=='combat' || !C.active || C.busy) return;
   if(a==='order'){
     if(C.pending && C.pending.kind===i){ C.pending=null; return render(); }
@@ -85,6 +86,7 @@ function act(a, i){
 document.addEventListener('pointerdown', auUnlock);
 document.addEventListener('keydown', auUnlock);
 document.querySelector('.snd').addEventListener('click', ev=>{
+  if(ev.target.closest('#bmenu')){ auUnlock(); return openMenu(); }
   const b=ev.target.closest('[data-s]'); if(!b) return;
   auUnlock(); toggleSound(b.dataset.s); header(); sfx('click');
 });

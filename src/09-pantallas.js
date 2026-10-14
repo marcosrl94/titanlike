@@ -11,7 +11,7 @@ function solCard(id){
 function squadHTML(mode){   // mode: 'ally' (elegir compañero), 'swap' (relevar) o nada
   return `<div class="squad">`+S.squad.map(s=>{
     const R=ROSTER[s.id], m=maxHp(s), f=C&&C.fx[s.id]||{};
-    const aim = C && scr==='combat' && s.hp>0 ? C.titans.filter(t=>t.hp>0 && (t.intent===s.id || t.intent==='all')).length : 0;
+    const aim = C && CFG.intent && scr==='combat' && s.hp>0 ? C.titans.filter(t=>t.hp>0 && (t.intent===s.id || t.intent==='all')).length : 0;
     const st=[aim&&`En el punto de mira${aim>1?' ×'+aim:''}`,f.titan>0&&'Titán',f.up>0&&'Flanqueo',f.crit>0&&'Olfato',f.guard>0&&'Escudo',f.taunt>0&&'Señuelo'].filter(Boolean).join(' · ');
     const can = mode && s.hp>0;
     const cl=['sol', s.hp<=0&&'dead', C&&C.active===s&&'active', can&&'pick'].filter(Boolean).join(' ');
@@ -123,8 +123,8 @@ const V = {
         <span class="art" style="animation-delay:${ph-i*.7}s">${titanArt(t.id)}</span>
         <span class="plate"><h3>${t.n}</h3><span class="chip c-cls">${CLS[t.cls]}</span>
         <span class="bar"><i style="width:${t.hp/t.max*100}%"></i></span><span class="lbl num hpn">${t.hp} / ${t.max} PV</span><span class="st">${st}</span>
-        ${(()=>{ const e = canAct && estimate(a, t, P ? P.kind : 'cut'); return e ? `<span class="prev ${e.kill?'kill':''}">${P?'':'Corte '}≈ ${e.lo===e.hi?e.lo:e.lo+'–'+e.hi}${e.kill?' · abate':''}</span>` : ''; })()}
-        ${t.hp>0 && t.intent ? `<span class="int ${t.intent==='all'?'all':''}" title="${AI_TXT[aiOf(t)]}">Ataca a: ${t.intent==='all' ? 'todo el escuadrón' : esc(ROSTER[t.intent].n)}</span>` : ''}</span>`;
+        ${(()=>{ const e = canAct && CFG.preview && estimate(a, t, P ? P.kind : 'cut'); return e ? `<span class="prev ${e.kill?'kill':''}">${P?'':'Corte '}≈ ${e.lo===e.hi?e.lo:e.lo+'–'+e.hi}${e.kill?' · abate':''}</span>` : ''; })()}
+        ${CFG.intent && t.hp>0 && t.intent ? `<span class="int ${t.intent==='all'?'all':''}" title="${AI_TXT[aiOf(t)]}">Ataca a: ${t.intent==='all' ? 'todo el escuadrón' : esc(ROSTER[t.intent].n)}</span>` : ''}</span>`;
       return pk ? `<button class="${cl}" data-u="t${i}" data-a="titan" data-i="${i}">${inner}</button>` : `<div class="${cl}" data-u="t${i}">${inner}</div>`;
     }).join('');
     let orders='', hint='Los titanes se mueven…';
@@ -141,7 +141,7 @@ const V = {
     return `<div class="stage"><div class="titans">${tit}</div></div>
       <div class="log" id="log" aria-live="polite">${C.log.map(l=>`<div>${l}</div>`).join('')}</div>
       ${squadHTML(canAct && P && P.tgt==='ally' ? 'ally' : '')}
-      <div class="hint lbl"><span id="hint">${hint}</span><button class="btn ghost sm" data-a="speed">Velocidad ×${fast?2:1}</button></div>
+      <div class="hint lbl"><span id="hint">${hint}</span><button class="btn ghost sm" data-a="speed">Animación: ${ANIM[CFG.anim].n}</button></div>
       <div class="orders" id="orders">${orders}</div>${relicsHTML()}`;
   },
   reward(){

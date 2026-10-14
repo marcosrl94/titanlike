@@ -37,14 +37,14 @@ const pwOf = id => S && S.pw ? NINE.filter(k=>S.pw[k]===id) : [];
 const hasRoom = s => pwOf(s.id).length < cap(s);
 const owned = () => NINE.filter(k=>k in S.pw);
 const dropP = () => Math.min(1, .4 + (S.pity||0));
-function grant(k, holder){   // holder: id de soldado o 'reserva'
+function grant(k, holder, innate){   // holder: id de soldado o 'reserva'
   const s = S.squad.find(x=>x.id===holder), before = s ? maxHp(s) : 0;
-  S.pw[k] = holder; if(s){ s.hp += maxHp(s)-before; ach('poder'); }
+  S.pw[k] = holder; if(s){ s.hp += maxHp(s)-before; if(!innate) ach('poder'); }
   codex('t', POWERS[k].art, 0);
   const m = meta(); if(!m.nine.includes(k)) saveMeta({nine:m.nine.concat(k)});
 }
 function release(id){ pwOf(id).forEach(k=>S.pw[k]='reserva'); }
-function bringPower(id){ const k=BRINGS[id]; if(k && !(k in S.pw)) grant(k, id); }
+function bringPower(id){ const k=BRINGS[id]; if(k && !(k in S.pw)) grant(k, id, true); }
 
 // ---- transformaciones en combate ----
 function usePower(s, k, target){

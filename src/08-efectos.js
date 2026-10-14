@@ -3,13 +3,14 @@ const $ = id=>document.getElementById(id);
 const NS = 'http://www.w3.org/2000/svg';
 const REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 let fast = !!store.get('fast');
-const sleep = ms => new Promise(r=>setTimeout(r, ms*(REDUCED ? .15 : fast ? .5 : 1)));
+const animK = () => REDUCED || CFG.calm ? .15 : Math.min(ANIM[CFG.anim] ? ANIM[CFG.anim].k : 1, fast ? .5 : 1);
+const sleep = ms => new Promise(r=>setTimeout(r, ms*animK()));
 const U = u => document.querySelector(`[data-u="${u}"]`);
 const at = (el, fy=.4) => { const r=el.getBoundingClientRect(); return {x:r.left+r.width/2, y:r.top+r.height*fy}; };
-function cls(el, c, ms=420){ if(!el) return; el.classList.remove(c); void el.offsetWidth; el.classList.add(c); setTimeout(()=>el.classList.remove(c), ms); }
+function cls(el, c, ms=420){ if(!el || (c==='shake' && (!CFG.shake || CFG.calm))) return; el.classList.remove(c); void el.offsetWidth; el.classList.add(c); setTimeout(()=>el.classList.remove(c), ms); }
 function add(tag, c, css, ms){ const d=document.createElement(tag); d.className=c; Object.assign(d.style, css||{}); $('fx').appendChild(d); setTimeout(()=>d.remove(), ms); return d; }
 function float(p, txt, c=''){ add('div', 'float '+c, {left:p.x+'px', top:p.y+'px'}, 1000).textContent = txt; }
-function flash(color, o=.6){ if(REDUCED) return; add('div', 'flash', {background:color}, 420).style.setProperty('--o', o); }
+function flash(color, o=.6){ if(REDUCED || !CFG.flash || CFG.calm) return; add('div', 'flash', {background:color}, 420).style.setProperty('--o', o); }
 function line(a, b, c){
   const l=document.createElementNS(NS,'line');
   l.setAttribute('x1',a.x); l.setAttribute('y1',a.y); l.setAttribute('x2',b.x); l.setAttribute('y2',b.y);

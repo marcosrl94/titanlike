@@ -24,7 +24,7 @@ function auInit(){
   const A = window.AudioContext || window.webkitAudioContext; if(!A) return false;
   const c = AU.ctx = new A(), comp = c.createDynamicsCompressor();
   AU.out = c.createGain(); AU.out.gain.value=.9; AU.out.connect(comp); comp.connect(c.destination);
-  AU.sfxBus = c.createGain(); AU.sfxBus.gain.value=.7; AU.sfxBus.connect(AU.out);
+  AU.sfxBus = c.createGain(); AU.sfxBus.gain.value=.7*vol('sfx'); AU.sfxBus.connect(AU.out);
   const n = c.createBuffer(1, c.sampleRate, c.sampleRate), d = n.getChannelData(0);
   for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
   AU.noise = n; return true;
@@ -82,7 +82,7 @@ function setTrack(k){
   if(!AU.ctx || AU.cur===k) return;
   stopMusic();
   if(!k || !AU.on.m) return;
-  const c=AU.ctx, b=AU.bus=c.createGain(); b.gain.value=.8; b.connect(AU.out); AU.cur=k;
+  const c=AU.ctx, b=AU.bus=c.createGain(); b.gain.value=.8*vol('mus'); b.connect(AU.out); AU.cur=k;
   if(MY[k]){
     const go = buf => { if(AU.cur!==k || AU.bus!==b) return; const s=AU.src=c.createBufferSource(); s.buffer=buf; s.loop=true; s.connect(b); s.start(); };
     if(MY[k].buf) return go(MY[k].buf);
