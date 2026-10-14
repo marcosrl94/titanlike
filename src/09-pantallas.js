@@ -189,7 +189,7 @@ const V = {
         ${Object.keys(CUSTOM).length?`<button class="btn ghost" data-a="rmall">Quitar todas (${Object.keys(CUSTOM).length})</button>`:''}
         ${packMsg?`<span class="lbl" style="color:var(--gold)">${packMsg}</span>`:''}</div>
       <div class="row" style="justify-content:space-between"><span class="lbl">Música</span><label class="btn ghost sm file" for="pack" tabindex="0">Importar música (.json)</label></div>${packMsg?`<span class="lbl" style="color:var(--gold)" role="status">${esc(packMsg)}</span>`:''}${auMsg?`<span class="lbl" style="color:var(--gold)" role="status">${esc(auMsg)}</span>`:''}<div class="gal">${Object.keys(TRACKS).map(k=>`<div class="card slot"><b>${TRACKS[k]}</b>
-        <span class="dim" style="font-size:13px;overflow-wrap:anywhere">${MY[k]?MY[k].name:'Música del juego'}</span>
+        <span class="dim" style="font-size:13px;overflow-wrap:anywhere">${MY[k]?esc(MY[k].name.replace(/_/g,' ').replace(/\.[a-z0-9]+$/i,'')):'Música del juego'}</span>
         <label class="btn ghost sm file" for="au-${k}" tabindex="0">${MY[k]?'Cambiar audio':'Cargar audio'}</label><input class="vh" type="file" accept="audio/*" id="au-${k}" data-au="${k}">
         ${MY[k]?`<button class="btn ghost sm" data-a="rmau" data-i="${k}">Quitar</button>`:''}</div>`).join('')}</div>
       <span class="lbl">Soldados</span><div class="gal">${Object.keys(ROSTER).map(id=>cell(id,ROSTER[id].n,portrait(id,true))).join('')}</div>
