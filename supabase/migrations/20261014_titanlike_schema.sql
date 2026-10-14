@@ -65,3 +65,8 @@ create policy "imagenes propias: leer" on storage.objects for select to authenti
 create policy "imagenes propias: subir" on storage.objects for insert to authenticated with check (bucket_id = 'player-images' and (storage.foldername(name))[1] = (select auth.uid())::text);
 create policy "imagenes propias: cambiar" on storage.objects for update to authenticated using (bucket_id = 'player-images' and (storage.foldername(name))[1] = (select auth.uid())::text);
 create policy "imagenes propias: borrar" on storage.objects for delete to authenticated using (bucket_id = 'player-images' and (storage.foldername(name))[1] = (select auth.uid())::text);
+
+-- 2026-10-14 (2): logros y códice en progress.extra, sync_progress_v2 y expedición del día
+-- Ver la migración «logros_codice_y_diaria» aplicada en el proyecto: añade progress.extra (jsonb),
+-- la función sync_progress_v2 (unión de logros, máximo por titán en el códice), la tabla daily_scores
+-- con un intento por jugador y día, submit_daily (valida día y techo de puntuación) y la vista daily_board.

@@ -29,8 +29,10 @@ async function cloudPull(){
     if(pr.data) CLOUD.name = pr.data.display_name;
     if(p.data){ const m=meta(), r=p.data;
       store.set('meta', Object.assign(m, {unlocked:Math.max(m.unlocked, r.unlocked), best:Math.max(m.best, r.best),
-        nine:[...new Set(m.nine.concat(r.nine))], endings:[...new Set(m.endings.concat(r.endings))], runs:Math.max(m.runs||0, r.runs)})); }
+        nine:[...new Set(m.nine.concat(r.nine))], endings:[...new Set(m.endings.concat(r.endings))], runs:Math.max(m.runs||0, r.runs),
+        ach:[...new Set(m.ach.concat((r.extra&&r.extra.ach)||[]))], codex:mergeCodex(m.codex, r.extra&&r.extra.codex)})); }
     cloudPush(true);
+    const pend = store.get('dailyPending'); if(pend) cloudDaily(pend.day, pend.score, pend.wave);
     const img = await sb.storage.from('player-images').download(uid + '/pack.json');
     if(img.data) mergePack(await img.data.text());
   }catch(e){ CLOUD.msg = 'No se pudo sincronizar con la nube.'; }
@@ -41,12 +43,14 @@ function cloudPush(now){
   if(!CLOUD.user) return;
   clearTimeout(pushT);
   pushT = setTimeout(async ()=>{ const m=meta();
-    const {error} = await CLOUD.sb.rpc('sync_progress', {p_unlocked:m.unlocked, p_best:m.best, p_nine:m.nine, p_endings:m.endings, p_runs:m.runs||0});
+    const {error} = await CLOUD.sb.rpc('sync_progress_v2', {p_unlocked:m.unlocked, p_best:m.best, p_nine:m.nine, p_endings:m.endings, p_runs:m.runs||0, p_extra:{ach:m.ach, codex:m.codex}});
     if(error){ CLOUD.msg='No se pudo guardar el progreso en la nube.'; render(); } }, now ? 0 : 800);
 }
 async function cloudBoard(){
   CLOUD.board = null; render();
-  const {data, error} = await CLOUD.sb.from('leaderboard').select('display_name,best,endings,nine,user_id').limit(50);
+  const {data, error} = CLOUD.tab==='hoy'
+    ? await CLOUD.sb.from('daily_board').select('display_name,score,wave,user_id').eq('day', today()).limit(50)
+    : await CLOUD.sb.from('leaderboard').select('display_name,best,endings,nine,user_id').limit(50);
   CLOUD.board = error ? [] : data; if(error) CLOUD.msg='No se pudo cargar la clasificación.'; render();
 }
 async function cloudRename(n){
@@ -61,3 +65,15 @@ async function cloudUploadPack(){
   packMsg += error ? ' No se pudieron guardar en tu cuenta.' : ' Guardadas también en tu cuenta.'; render();
 }
 async function cloudDeletePack(){ if(CLOUD.user) await CLOUD.sb.storage.from('player-images').remove([CLOUD.user.id + '/pack.json']); }
+function mergeCodex(a, b){
+  const o={t:Object.assign({}, a&&a.t), s:Object.assign({}, a&&a.s)};
+  Object.entries((b&&b.t)||{}).forEach(([k,v])=>{ o.t[k]=Math.max(o.t[k]||0, +v||0); });
+  Object.keys((b&&b.s)||{}).forEach(k=>{ o.s[k]=1; });
+  return o;
+}
+// la expedición del día se envía una sola vez; si no hay sesión, queda guardada para enviarla al entrar
+async function cloudDaily(day, score, wave){
+  if(!CLOUD.user){ store.set('dailyPending', {day, score, wave}); return; }
+  const {error} = await CLOUD.sb.rpc('submit_daily', {p_day:day, p_score:score, p_wave:wave});
+  if(!error) store.del('dailyPending');
+}

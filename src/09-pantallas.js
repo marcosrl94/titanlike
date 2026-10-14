@@ -64,6 +64,8 @@ const V = {
         <div class="row">
           ${ok?`<button class="btn" data-a="continue">Continuar · ${sagaOf(run.wave).n}, jornada ${dayOf(run.wave)}</button>`:''}
           <button class="btn ${ok?'ghost':''}" data-a="sagas">${ok?'Nueva expedición':'Salir de las murallas'}</button>
+          <button class="btn ghost" data-a="daily" ${dailyDone()?'disabled title="Ya has jugado la de hoy"':''}>${dailyDone()?'Expedición del día: vuelve mañana':'Expedición del día'}</button>
+          <button class="btn ghost" data-a="codex">Logros y códice · ${M.ach.length}/${ACH.length}</button>
           <button class="btn ghost" data-a="gallery">Tus imágenes y música</button>
           ${Object.keys(tipsSeen).length?'<button class="btn ghost sm" data-a="tipreset">Repetir consejos</button>':''}
         </div>
@@ -93,7 +95,8 @@ const V = {
   starter(){
     const g=pendingSaga;
     if(g===0) return `<div><span class="lbl">Saga 1 · ${SAGAS[0].n}</span><h2>Elige a tu primer recluta</h2></div>
-      <div class="cards">${SAGAS[0].start.map(id=>`<button class="card" data-a="start" data-i="${id}">${solCard(id)}</button>`).join('')}</div>`;
+      <div class="cards">${starters().map(id=>`<button class="card" data-a="start" data-i="${id}">${solCard(id)}</button>`).join('')}
+        ${ACH.filter(a=>a.unlock && !starters().includes(a.unlock)).map(a=>`<div class="card locked"><div class="who">${portrait(a.unlock,true)}<div><h3>${ROSTER[a.unlock].n}</h3><span class="lbl">Bloqueado</span></div></div><p>Se desbloquea con el logro «${a.n}»: ${a.d}</p></div>`).join('')}</div>`;
     const pool=Object.keys(ROSTER).filter(id=>ROSTER[id].sg<=g && !ROSTER[id].rare);
     return `<div><span class="lbl">Saga ${g+1} · ${SAGAS[g].n}</span><h2>Forma un escuadrón de tres</h2>
       <p class="dim">Empiezan en nivel ${g*PER+1} y con ${KITS[g]} mejoras al azar, como si vinieran de la saga anterior.</p></div>
@@ -102,7 +105,8 @@ const V = {
   },
   map(){
     const z=zoneOf(S.wave);
-    return `<div><span class="lbl">${sagaLbl(S.wave)}</span><h2>${z.n}</h2><p class="dim">${S.map.pos?'Elige el siguiente paso de la ruta.':'Elige por dónde entra el escuadrón.'} Al fondo espera el ${TITANS[z.boss].n}.${BOSS_PW[z.boss] && !(BOSS_PW[z.boss] in S.pw) ? ` Puede soltar el poder del ${POWERS[BOSS_PW[z.boss]].n}: <b class="num" style="color:var(--gold)">${Math.round(dropP()*100)} %</b>.` : ''}</p></div>
+    const D = S.daily ? DAILY_MODS.find(x=>x.k===S.mod) : null;
+    return `${D?`<section class="panel daily"><span class="lbl">Expedición del día · ${S.daily}</span><p><b>${D.n}.</b> ${D.d} Mismo mapa, titanes y recompensas para todos; termina al acabar la saga 1.</p></section>`:''}<div><span class="lbl">${sagaLbl(S.wave)}</span><h2>${z.n}</h2><p class="dim">${S.map.pos?'Elige el siguiente paso de la ruta.':'Elige por dónde entra el escuadrón.'} Al fondo espera el ${TITANS[z.boss].n}.${BOSS_PW[z.boss] && !(BOSS_PW[z.boss] in S.pw) ? ` Puede soltar el poder del ${POWERS[BOSS_PW[z.boss]].n}: <b class="num" style="color:var(--gold)">${Math.round(dropP()*100)} %</b>.` : ''}</p></div>
       <div class="mapwrap">${mapSVG()}</div>
       <ul class="legend">${Object.keys(NODE).map(k=>`<li><b>${NODE[k].n}.</b> ${NODE[k].d}</li>`).join('')}</ul>
       <span class="lbl">Tu escuadrón</span>${squadHTML()}${relicsHTML()}`;
@@ -184,6 +188,11 @@ const V = {
   },
   end(won){
     const f=S.fallen.map(id=>`<li>${ROSTER[id].n}</li>`).join('');
+    if(S.daily) return `<section class="hero"><div class="txt"><span class="lbl">Expedición del día · ${S.daily}</span>
+      <h1>${S.dailyDone?'Trost <em>resiste</em>':'Nadie <em>regresa</em>'}</h1>
+      <p>${S.dailyDone?'Has completado la saga 1 de hoy.':`Caída en la jornada ${dayOf(S.wave)} de ${PER}.`} Puntuación: <b class="num">${S.dailyScore}</b> (100 por jornada, 10 por superviviente y 500 por terminar).</p>
+      <div class="row">${cloudOn()&&CLOUD.user?'<button class="btn" data-a="board" data-i="hoy">Ver la clasificación de hoy</button>':''}<button class="btn ghost" data-a="home">Portada</button></div></div>
+      <div class="peek">${titanFig(TITANS.col.a)}</div></section>${f?`<section class="panel"><span class="lbl">Entregaron su corazón</span><ul class="fallen">${f}</ul></section>`:''}`;
     return `<section class="hero"><div class="txt"><span class="lbl">Parte de expedición</span>
       <h1>${won?(S.ending==='nueve'?'Los <em>Nueve</em>':S.ending==='coordenada'?'La <em>Coordenada</em>':'El Retumbar <em>se detiene</em>'):'Nadie <em>regresa</em>'}</h1>
       <p>${won?`${ENDINGS[S.ending].d} ${S.erenFell?'Eren se volvió contra vosotros y lo habéis detenido. ':''}${S.squad.map(nm).join(', ')} ${S.squad.length>1?'siguen':'sigue'} en pie tras ${TOTAL} jornadas. Poderes reunidos: ${owned().length} de 9.`:`La expedición acaba en la saga ${sagaIx(S.wave)+1}, «${sagaOf(S.wave).n}»: jornada ${dayOf(S.wave)} de ${PER}, en ${zoneOf(S.wave).n}.`}</p>
@@ -212,15 +221,29 @@ const V = {
     return '';
   },
   board(){
-    const B=CLOUD.board, me=CLOUD.user&&CLOUD.user.id;
-    return `<div><h2>Clasificación</h2><p class="dim">Jornadas alcanzadas, finales conseguidos y poderes del registro. Solo la ven los jugadores con sesión.</p></div>
+    const B=CLOUD.board, me=CLOUD.user&&CLOUD.user.id, hoy=CLOUD.tab==='hoy';
+    return `<div><h2>Clasificación</h2><p class="dim">${hoy?`Expedición del día ${today()}: misma semilla para todos, un intento.`:'Jornadas alcanzadas, finales conseguidos y poderes del registro.'} Solo la ven los jugadores con sesión.</p></div>
+      <div class="row"><button class="btn ${hoy?'ghost':''} sm" data-a="board" data-i="general">General</button><button class="btn ${hoy?'':'ghost'} sm" data-a="board" data-i="hoy">Hoy</button></div>
       <div class="row"><button class="btn ghost" data-a="home">Volver</button>
         <label class="lbl" for="nm">Tu nombre</label><input id="nm" maxlength="32" value="${esc(CLOUD.name)}" style="background:var(--stone-2);color:var(--bone);border:1px solid var(--stone-4);padding:8px;font:inherit">
         <button class="btn ghost sm" data-a="rename">Guardar nombre</button>${CLOUD.msg?`<span class="lbl" style="color:var(--gold)">${esc(CLOUD.msg)}</span>`:''}</div>
+      ${hoy ? `<section class="panel"><div class="tablewrap"><table class="chart num"><thead><tr><td class="lbl">#</td><td class="lbl">Jugador</td><td class="lbl">Puntos</td><td class="lbl">Jornadas</td></tr></thead><tbody>
+      ${!B ? '<tr><td colspan="4">Cargando…</td></tr>' : !B.length ? '<tr><td colspan="4">Nadie ha terminado la expedición de hoy todavía.</td></tr>'
+        : B.map((r,i)=>`<tr style="${r.user_id===me?'color:var(--gold)':''}"><td>${i+1}</td><td>${esc(r.display_name)}</td><td>${r.score}</td><td>${r.wave} / ${PER}</td></tr>`).join('')}</tbody></table></div></section>` : `
       <section class="panel"><div class="tablewrap"><table class="chart num"><thead><tr><td class="lbl">#</td><td class="lbl">Jugador</td><td class="lbl">Jornadas</td><td class="lbl">Finales</td><td class="lbl">Los Nueve</td></tr></thead><tbody>
       ${!B ? '<tr><td colspan="5">Cargando…</td></tr>' : !B.length ? '<tr><td colspan="5">Aún no hay nadie. La primera expedición marca el listón.</td></tr>'
         : B.map((r,i)=>`<tr style="${r.user_id===me?'color:var(--gold)':''}"><td>${i+1}</td><td>${esc(r.display_name)}</td><td>${r.best} / ${TOTAL}</td><td>${r.endings} / 3</td><td>${r.nine} / 9</td></tr>`).join('')}
-      </tbody></table></div></section>`;
+      </tbody></table></div></section>`}`;
+  },
+  codex(){
+    const M=meta(), c=M.codex||{t:{},s:{}};
+    return `<div><h2>Logros y códice</h2><p class="dim">${M.ach.length} de ${ACH.length} logros. Algunos desbloquean reclutas iniciales para la saga 1.</p></div>
+      <div><button class="btn ghost" data-a="home">Volver</button></div>
+      <div class="achs">${ACH.map(a=>{ const got=M.ach.includes(a.k); return `<div class="ach ${got?'got':''}"><b>${a.n}</b><span>${a.d}</span>${a.unlock?`<span class="lbl">${got?'Desbloquea':'Desbloqueará'} a ${ROSTER[a.unlock].n}</span>`:''}</div>`; }).join('')}</div>
+      <span class="lbl">Titanes · ${Object.keys(c.t||{}).length} de ${Object.keys(TITANS).length} vistos</span>
+      <div class="gal">${Object.keys(TITANS).map(id=>{ const seen=codexSeen('t',id); return `<div class="card cx ${seen?'':'unk'}"><span class="art">${titanArt(id)}</span><b>${seen?TITANS[id].n:'Sin descubrir'}</b>${seen?`<span class="lbl num">${CLS[TITANS[id].cls]} · abatidos: ${c.t[id]||0}</span>${TITANS[id].boss?`<span class="dim" style="font-size:13px">${BOSS_PW[id]?'Puede soltar el '+POWERS[BOSS_PW[id]].n+'.':'Jefe final.'}</span>`:''}`:''}</div>`; }).join('')}</div>
+      <span class="lbl">Soldados · ${Object.keys(c.s||{}).length} de ${Object.keys(ROSTER).length} reclutados</span>
+      <div class="gal">${Object.keys(ROSTER).map(id=>{ const seen=codexSeen('s',id); return `<div class="card cx ${seen?'':'unk'}">${portrait(id,true)}<b>${seen?ROSTER[id].n:'Sin reclutar'}</b>${seen?`<span class="lbl">${STYLE[ROSTER[id].st]} · ${ROSTER[id].sk.n}</span>`:''}</div>`; }).join('')}</div>`;
   },
   over(){ return V.end(false); }, victory(){ return V.end(true); }
 };

@@ -39,7 +39,8 @@ const owned = () => NINE.filter(k=>k in S.pw);
 const dropP = () => Math.min(1, .4 + (S.pity||0));
 function grant(k, holder){   // holder: id de soldado o 'reserva'
   const s = S.squad.find(x=>x.id===holder), before = s ? maxHp(s) : 0;
-  S.pw[k] = holder; if(s) s.hp += maxHp(s)-before;
+  S.pw[k] = holder; if(s){ s.hp += maxHp(s)-before; ach('poder'); }
+  codex('t', POWERS[k].art, 0);
   const m = meta(); if(!m.nine.includes(k)) saveMeta({nine:m.nine.concat(k)});
 }
 function release(id){ pwOf(id).forEach(k=>S.pw[k]='reserva'); }
@@ -88,8 +89,8 @@ function nextScene(){
 }
 function sceneAct(i){
   const sc = S.scene;
-  if(i==='rescue'){ S.squad.push({id:sc.id, lvl:sc.lvl, hp:0}); const s=S.squad[S.squad.length-1]; s.hp=Math.round(maxHp(s)*.3); S.loyal[sc.id]=true; }
-  else if(i==='take'){ S.fallen.push(sc.id); const k=BETRAY[sc.id].pw; if(!(k in S.pw) || S.pw[k]==='reserva') S.q.unshift({k:'drop', p:k, src:'betray'}); }
+  if(i==='rescue'){ S.squad.push({id:sc.id, lvl:sc.lvl, hp:0}); const s=S.squad[S.squad.length-1]; s.hp=Math.round(maxHp(s)*.3); S.loyal[sc.id]=true; ach('perdon'); }
+  else if(i==='take'){ S.fallen.push(sc.id); ach('sin_piedad'); const k=BETRAY[sc.id].pw; if(!(k in S.pw) || S.pw[k]==='reserva') S.q.unshift({k:'drop', p:k, src:'betray'}); }
   else if(i==='keep'){ grant(sc.p, 'reserva'); }
   else if(i && i.startsWith('give:')){ const id=i.slice(5); if(S.pw[sc.p]) S.pw[sc.p]=null; grant(sc.p, id); }
   nextScene();

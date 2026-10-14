@@ -3,7 +3,7 @@ let lastScr = null, lastBolt = null;
 function header(){
   $('bmus').classList.toggle('off', !AU.on.m); $('bsfx').classList.toggle('off', !AU.on.s);
   $('bmus').setAttribute('aria-pressed', AU.on.m); $('bsfx').setAttribute('aria-pressed', AU.on.s);
-  const on = S && !['title','starter','gallery','sagas','board'].includes(scr) && S.map;
+  const on = S && !['title','starter','gallery','sagas','board','codex'].includes(scr) && S.map;
   $('gas').hidden = $('prog').hidden = !on;
   if(!on) return;
   let g=''; for(let i=0;i<S.gasMax;i++) g+=`<i class="${i<S.gas?'on':''}"></i>`;
@@ -37,9 +37,11 @@ function act(a, i){
   if(a==='rm'){ delete CUSTOM[i]; store.set('img', CUSTOM); return render(); }
   if(a==='rmau') return delMyAudio(i);
   if(a==='rmall'){ CUSTOM={}; store.set('img', CUSTOM); packMsg=''; cloudDeletePack(); return render(); }
+  if(a==='daily'){ if(dailyDone()) return; newDaily(); return render(); }
+  if(a==='codex'){ scr='codex'; return render(); }
   if(a==='login') return cloudLogin();
   if(a==='logout') return cloudLogout();
-  if(a==='board'){ scr='board'; cloudBoard(); return; }
+  if(a==='board'){ CLOUD.tab = i || CLOUD.tab || 'general'; scr='board'; cloudBoard(); return; }
   if(a==='rename'){ const f=document.getElementById('nm'); return cloudRename(f && f.value); }
   if(a==='continue'){
     S=store.get('run'); C=null;

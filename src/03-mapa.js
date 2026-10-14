@@ -1,5 +1,5 @@
 // ---------- Mapa, nodos, recompensas y sagas ----------
-const meta = () => Object.assign({unlocked:1, best:0, nine:[], endings:[]}, store.get('meta')||{});
+const meta = () => Object.assign({unlocked:1, best:0, nine:[], endings:[], ach:[], codex:{t:{},s:{}}}, store.get('meta')||{});
 function saveMeta(p){ store.set('meta', Object.assign(meta(), p)); if(typeof cloudPush==='function') cloudPush(); }
 function rollType(r, z){
   const w = (z>0 ? r>=1 : r>=3) ? [['c',40],['e',18],['v',22],['k',20]] : [['c',50],['v',28],['k',22]];
@@ -37,7 +37,7 @@ function newRun(ids, saga=0){
   S = {v:4, wave:w, squad:ids.map(id=>({id, lvl:w, hp:0})), fallen:[], rel:{}, pw:{}, q:[], loyal:{}, pity:0, after:null, scene:null, note:null, gas:8+4*saga, gasMax:8+4*saga, map:genMap(saga*3), rewards:null, picks:0, pend:null, kit:[]};
   for(let i=0;i<KITS[saga];i++) S.kit.push(randomUpg());
   S.kitPw = KIT_PW[saga];
-  S.squad.forEach(s=>{ s.hp=maxHp(s); bringPower(s.id); });
+  S.squad.forEach(s=>{ s.hp=maxHp(s); bringPower(s.id); codex('s', s.id); });
   // quien empieza en una saga avanzada trae los poderes que de media se consiguen antes (medido en simulación)
   for(let i=0;i<S.kitPw;i++){ const miss=MINOR.filter(k=>!(k in S.pw)), who=S.squad.filter(hasRoom); if(miss.length&&who.length){ const s=pick(who); grant(pick(miss), s.id); s.hp=maxHp(s); } }
   C=null; scr='map'; store.set('run', S);
@@ -47,7 +47,7 @@ function enterNode(r, j){
   S.map.pos=[r,j]; S.map.path.push(j);
   const t = curNode().t;
   if(t==='b'){ const boss=zoneOf(S.wave).boss, b=betrayer(boss); if(b) return startBetrayal(b, boss); }
-  if(t==='v'){ const ok=EVENTS.map((e,i)=>i).filter(i=>!EVENTS[i].when || EVENTS[i].when()); S.pend={k:'event', i:pick(ok), res:null}; scr='event'; }
+  if(t==='v'){ const ok=EVENTS.map((e,i)=>i).filter(i=>!EVENTS[i].when || EVENTS[i].when()); S.pend={k:'event', i:seeded('ev'+S.wave+'-'+r+'-'+j, ()=>pick(ok)), res:null}; scr='event'; }
   else if(t==='k'){ S.pend={k:'camp'}; scr='camp'; }
   else S.pend={k:'fight'};
   store.set('run', S);
@@ -58,7 +58,7 @@ function advance(){
   const t = curNode().t, boss = t==='b';
   if(t==='v' || t==='k') S.squad.forEach(levelUp);   // la veteranía sube con cada jornada
   S.pend=null; S.rewards=null; S.picks=0; S.sagaDone=false; S.note=null; S.wave++; C=null;
-  if(boss) S.map = genMap(S.map.z+1);
+  if(boss){ const z=S.map.z+1; S.map = seeded('map'+z, ()=>genMap(z)); }
   store.set('run', S); scr='map'; render();
 }
 function levelUp(s){ const b=maxHp(s); s.lvl++; s.hp += maxHp(s)-b; }
@@ -68,6 +68,12 @@ function saveBest(w){ if(w>meta().best) saveMeta({best:w}); }
 function win(){
   const t = curNode().t, sagaEnd = t==='b' && dayOf(S.wave)===PER, btr = S.pend && S.pend.btr, bossId = t==='b' ? C.titans[0].id : null;
   S.q = []; S.note = null;
+  const lost = S.squad.filter(s=>s.hp<=0).length;
+  C.titans.forEach(x=>{ if(x.hp<=0) codex('t', x.id); });
+  if(t==='b'){ ach('primer_jefe'); if(!lost) ach('impecable'); }
+  if(C.start===4 && alive().length===1) ach('solo');
+  if(sagaEnd) ach('saga'+(sagaIx(S.wave)+1));
+  if(S.wave>=30) ach('jornada30');
   S.squad.filter(s=>s.hp<=0).forEach(s=>{ S.fallen.push(s.id); if(pwOf(s.id).length){ S.note=`${nm(s)} ha caído. Su poder pasa a la reserva: se puede inyectar en un campamento.`; release(s.id); } });
   S.squad = alive();
   S.squad.forEach(levelUp);
@@ -78,13 +84,16 @@ function win(){
   if(btr && btr.id==='eren'){ S.fallen.push('eren'); btr.pws.forEach(k=>grant(k,'reserva')); S.erenFell=true; }
   else if(btr) S.q.push({k:'spare', id:btr.id, lvl:btr.lvl});
   else rollDrop(t, bossId);
-  if(S.wave>=TOTAL){ S.ending=endingOf(); const m=meta(); if(!m.endings.includes(S.ending)) saveMeta({endings:m.endings.concat(S.ending)}); store.del('run'); scr='victory'; return render(); }
+  if(owned().length>=3) ach('tres_poderes');
+  if(S.daily && sagaEnd){ finishDaily(true); store.del('run'); scr='victory'; return render(); }
+  if(S.wave>=TOTAL){ S.ending=endingOf(); ach(S.ending==='retumbar' ? 'saga4' : S.ending); ach('saga4'); if(S.erenFell) ach('detener_eren'); const m=meta(); if(!m.endings.includes(S.ending)) saveMeta({endings:m.endings.concat(S.ending)}); store.del('run'); scr='victory'; return render(); }
   S.sagaDone = sagaEnd;
-  S.picks = t==='e' || sagaEnd ? 2 : 1;
-  S.rewards = genRewards(t); S.pend=null; S.after='reward';
+  S.picks = (t==='e' || sagaEnd ? 2 : 1) + (S.mod==='botin' ? 1 : 0);
+  S.rewards = seeded('r'+S.wave+'-'+S.map.pos, ()=>genRewards(t)); S.pend=null; S.after='reward';
   nextScene();
 }
 function lose(){
+  if(S.daily) finishDaily(false);
   S.squad.forEach(s=>S.fallen.push(s.id)); saveBest(S.wave-1);
   store.del('run'); scr='over'; render();
 }
@@ -94,7 +103,7 @@ function genRewards(t){
   let cands = recruitPool();
   const rare = cands.filter(id=>ROSTER[id].rare);
   cands = t==='b' && rare.length ? rare : cands.filter(id=>!ROSTER[id].rare);
-  const out=[], total = S.picks>1 ? 4 : 3;
+  const out=[], total = Math.min(5, S.picks+2);
   if(cands.length){ const a=pick(cands); out.push({t:'rec', id:a});
     const rest=cands.filter(c=>c!==a); if(S.squad.length<=2 && rest.length) out.push({t:'rec', id:pick(rest)}); }
   const hurt = S.squad.some(s=>s.hp < maxHp(s)*.7);
@@ -114,6 +123,7 @@ function randomUpg(){ const k=pick(upgPool().filter(x=>UPG[x].stack)); applyUpg(
 function recruit(id, replaceId, hpPct=1){
   if(replaceId){ if(pwOf(replaceId).length) S.note=`${ROSTER[replaceId].n} vuelve a las murallas. Su poder queda en la reserva.`; release(replaceId); S.squad = S.squad.filter(s=>s.id!==replaceId); }
   const s={id, lvl:Math.max(1,S.wave), hp:0}; S.squad.push(s); bringPower(id); s.hp=Math.max(1, Math.round(maxHp(s)*hpPct));
+  codex('s', id); if(S.squad.length>=4) ach('escuadron');
 }
 function tookReward(i){
   S.rewards.splice(i,1); S.picks--;

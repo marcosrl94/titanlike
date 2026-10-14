@@ -40,9 +40,11 @@ function genWave(w, type){
 }
 function startWave(){
   const type = curNode().t;
-  C = {titans:genWave(S.wave, type), queue:[], active:null, pending:null, log:[], ev:[], fx:{}, busy:false, used:{}, usedPw:{}};
+  C = {titans:seeded('w'+S.wave+'-'+S.map.pos, ()=>genWave(S.wave, type)), start:S.squad.filter(s=>s.hp>0).length, queue:[], active:null, pending:null, log:[], ev:[], fx:{}, busy:false, used:{}, usedPw:{}};
   const btr = S.pend && S.pend.btr;
   if(btr){ const b=C.titans[0]; b.n=`${ROSTER[btr.id].n} · ${b.n}`; b.max=b.hp=Math.round(b.max*(btr.id==='eren' ? 1+.15*btr.pws.length : 1.2)); b.atk*=1.1; }
+  if(S.mod==='veloces') C.titans.forEach(t=>t.spd+=3);
+  C.titans.forEach(t=>codex('t', t.id, 0));
   S.squad.forEach(s=>{ C.fx[s.id]={up:0,guard:0,taunt:0,evade:0,titan:0,crit:0,armor:0,ward:0,form:null,formT:0}; });
   S.gas = Math.min(S.gasMax, S.gas + 2*rel('bengala'));
   C.log.push(type==='b' ? `¡${C.titans[0].n} a la vista!` : `${type==='e'?'Grupo de élite: ':''}${C.titans.length===1?'un titán':C.titans.length+' titanes'} en ${zoneOf(S.wave).n}.`);
@@ -88,7 +90,7 @@ function strike(s, t, mult, o={}){
   if(crit) d *= 1.5;
   d = Math.max(1, Math.round(d));
   const exec = !!o.nape && !t.boss && (t.hp-d)/t.max < .25 && d < t.hp;
-  if(exec) d = t.hp;
+  if(exec){ d = t.hp; S.napes=(S.napes||0)+1; if(S.napes>=5) ach('nuca5'); }
   t.hp = Math.max(0, t.hp-d);
   t.lastHit = s.id; t.threat = t.threat || {}; t.threat[s.id] = (t.threat[s.id]||0) + d;
   ev({k:'slash', s:s.id, t:C.titans.indexOf(t), d, crit, exec, kill:t.hp<=0, hp:t.hp, max:t.max, boom:!!o.pierce,
