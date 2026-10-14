@@ -59,6 +59,7 @@ function act(a, i){
   if(a==='logout') return cloudLogout();
   if(a==='board'){ CLOUD.tab = i || CLOUD.tab || 'general'; scr='board'; if(CLOUD.tab==='jefes') return cloudBossBoard(CLOUD.bossSel || BOSSES[0]); cloudBoard(); return; }
   if(a==='bossb') return cloudBossBoard(i);
+  if(a==='arbol'){ scr='arbol'; window.scrollTo(0,0); return render(); }
   if(a==='moment') return showMoment(+i, 'Momento', true);
   if(a==='ficha'){ fichaId=i; scr='ficha'; window.scrollTo(0,0); return render(); }
   if(a==='comps'){ compsTab=i||'mine'; scr='comps'; if(compsTab==='all') return cloudComps(); return render(); }

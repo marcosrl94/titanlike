@@ -1,5 +1,14 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-15.4', t:'Grisha, los Reiss, Kenny, Zeke y Floch: el árbol de la historia', items:[
+    'Grisha Jaeger: Eren lleva su llave desde la saga 1 y, si llega con ella a la saga 3, puede bajar al sótano y leer los diarios. Eso cambia su epílogo.',
+    'La familia Reiss en «La reina de las murallas»: la capilla esconde un recuerdo del Titán de Frieda Reiss, Rod espera en Orvud y detrás de la capilla hay una tumba con el nombre de Uri.',
+    'Kenny Ackerman manda la brigada antipersonal. Al vencerle puedes quedarte con su jeringa o llevártelo: es un recluta nuevo, con escopeta y dos pistolas.',
+    'Zeke Jaeger: al vencer a la Bestia puedes capturarlo. Se une con su poder y una lluvia de piedras que derriba a los titanes normales.',
+    'Floch: si en la saga 3 le das la razón y Eren sigue con vosotros, se lleva a los jaegeristas. Nueva senda «La isla tomada», en lugar de la saga 4: Shiganshina tomada con Floch como jefe, el puerto y el Retumbar. Al vencerle decides si lo perdonas.',
+    'Árbol de la historia (menú y códice): sagas, sendas y finales. Lo que te falta sale como «???» con la pista del camino. Cuatro epílogos nuevos (catorce en total) y dos momentos nuevos.',
+    'Kenny y Zeke solo llegan por su escena; una vez conocidos, se pueden elegir al empezar en sagas avanzadas.'
+  ]},
   {v:'2026-10-15.3', t:'Sendas alternativas, un final nuevo y epílogos de personaje', items:[
     'Lo que haces en la partida abre sendas. Al cerrar una saga puede aparecer una encrucijada: seguir la historia de siempre o tomar otra saga, con sus enemigos, sus jefes y sus escenas.',
     '«La reina de las murallas» (en lugar de la saga 3): si en la saga 2 proteges a Historia cuando la Policía Militar viene a por ella. Golpe de Estado en el interior: Policía Militar, la brigada antipersonal y su capitán, y lo que esconden los Reiss bajo la capilla.',

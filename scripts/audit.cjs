@@ -129,13 +129,21 @@ T('senda de Paradis sin Eren y su final', ()=>{ setup(['mikasa','armin'],['t3'])
 T('con Eren no se abre Paradis', ()=>{ setup(['eren','mikasa'],['t3']); return crossroadAt(2)===null || crossroadAt(2); });
 T('epílogos: Levi y la Bestia', ()=>{ setup(['levi','hange'],['t3']); S.flags.lastHit={bes:'levi'}; return epiloguesNow().some(e=>e.k==='levi') || 'no sale'; });
 T('encrucijada en el cierre de saga', ()=>{ setup(['historia','mikasa'],['kap'],{wave:30, node:'b'}); S.flags.reina=1; C.titans[0].hp=0; win(); return (S.scene && S.scene.k==='cross' && S.scene.alt==='reina') || S.q.some(x=>x.k==='cross') || JSON.stringify(S.scene); });
+T('Kenny: escena tras vencerle y reclutarlo', ()=>{ setup(['levi','mikasa'],['kap'],{wave:35, node:'b'}); C.titans[0].hp=0; win(); let g=0; while(S.scene && S.scene.k!=='story' && g++<5) sceneAct('keep');
+  if(!S.scene || S.scene.id!=='kenny') return 'sin escena: '+JSON.stringify(S.scene); sceneAct('st:1'); return S.squad.some(x=>x.id==='kenny' && x.hp>0) || 'no se une'; });
+T('Zeke capturado trae la Bestia', ()=>{ setup(['eren','mikasa'],['bes'],{wave:20, node:'b'}); C.titans[0].hp=0; win(); let g=0; while(S.scene && !(S.scene.k==='story'&&S.scene.id==='zeke') && g++<5) sceneAct(S.scene.k==='drop'?'keep':'go');
+  if(!S.scene) return 'sin escena'; sceneAct('st:0'); return S.squad.some(x=>x.id==='zeke') && S.pw.bestia && (S.pw.bestia==='zeke'||S.pw.bestia==='reserva') || JSON.stringify(S.pw); });
+T('senda jaegerista: Floch se va y es el jefe', ()=>{ setup(['eren','floch','mikasa'],['t3'],{wave:44}); S.flags.jaeger=1; if(crossroadAt(2)!=='jaeger') return crossroadAt(2); takeRoute('jaeger');
+  return !S.squad.some(x=>x.id==='floch') && zoneOf(46).boss==='flochb' && !recruitPool().includes('floch') || 'floch sigue'; });
+T('los personajes de historia no salen al azar', ()=>{ setup(['eren','mikasa'],['t3'],{wave:50}); const p=recruitPool(); return !p.includes('kenny') && !p.includes('zeke') || p.join(); });
+T('epílogo Hermanos', ()=>{ setup(['eren','zeke'],['t3']); return epiloguesNow().some(e=>e.k==='hermanos') || 'no'; });
 // ======== 3) fuzz: combates enteros con acciones al azar ========
 const RES={}; const N=+process.argv[2]||600; let fights=0, turns=0;
 const IDS=Object.keys(ROSTER);
 for(let i=0;i<N;i++){
   const ids=IDS.slice().sort(()=>Math.random()-.5).slice(0, 1+Math.floor(Math.random()*4));
   const w = 1+Math.floor(Math.random()*60);
-  if(S) S.route={}; const rt = Math.random()<.4 ? {2:'reina'} : Math.random()<.5 ? {3:'paradis'} : {}; if(S) S.route=rt; const z = zoneOf(w), boss=Math.random()<.3;
+  if(S) S.route={}; const rt = Math.random()<.3 ? {2:'reina'} : Math.random()<.4 ? {3:'paradis'} : Math.random()<.4 ? {3:'jaeger'} : {}; if(S) S.route=rt; const z = zoneOf(w), boss=Math.random()<.3;
   const en = boss ? [z.boss] : Array.from({length:1+Math.floor(Math.random()*3)}, ()=>pick(z.pool));
   const pws = NINE.slice().sort(()=>Math.random()-.5).slice(0, Math.floor(Math.random()*4)).map((k,j)=>[k, ids[j%ids.length]]).filter(([k,id],j,a)=>id==='eren' ? a.filter(x=>x[1]==='eren').indexOf(a[j])<3 : a.filter(x=>x[1]===id)[0][0]===k);
   CTX='fuzz '+ids.join('+')+' vs '+en.join('+')+' w'+w;

@@ -332,6 +332,18 @@ body.calm .m-art svg,body.calm .m-art *{animation:none!important}
 .card.mo .m-thumb{display:block;aspect-ratio:800/360;border-radius:6px;overflow:hidden;background:#0b0d0e;margin-bottom:6px}
 .card.mo .m-thumb svg{width:100%;height:100%;display:block}
 @media (max-width:620px){.m-txt{margin-top:-30px;padding:4px 14px}.moment-in .row{padding:6px 14px 14px}}
+/* ---- árbol de la historia ---- */
+.tree{padding:10px}
+.tree-wrap{overflow-x:auto} .tree-wrap svg{display:block;min-width:860px;width:100%;height:auto}
+.tedge{fill:none;stroke:var(--stone-4);stroke-width:2;stroke-dasharray:5 6} .tedge.on{stroke:var(--cloak-hi);stroke-dasharray:none;opacity:.8} .tedge.alt.on{stroke:var(--gold)}
+.tlbl{fill:var(--steel);font:600 11px var(--label);letter-spacing:.04em}
+.tnode rect{fill:var(--stone-2);stroke:var(--stone-4);stroke-width:1.5;stroke-dasharray:5 5}
+.tnode.seen rect{fill:var(--stone-3);stroke:var(--cloak-hi);stroke-dasharray:none}
+.tnode.alt.seen rect{stroke:var(--gold)} .tnode.end.seen rect{stroke:var(--bone)}
+.tnode .tsub{fill:var(--steel);font:600 10.5px var(--label);letter-spacing:.14em}
+.tnode .ttl{fill:var(--bone);font:16px var(--display)} .tnode:not(.seen) .ttl{fill:var(--steel);letter-spacing:.3em}
+.tnode .tev{fill:var(--gold);font:600 10.5px var(--label);letter-spacing:.03em;opacity:.9} .tnode .thint{fill:var(--steel);font:italic 10.5px var(--label)}
+.cards.people .card{display:flex;gap:12px;align-items:flex-start} .cards.people .pt{width:48px;height:48px;flex:none} .cards.people p{margin:4px 0 0;font-size:14px}
 /* ---- sendas alternativas, encrucijada y epílogos ---- */
 .sagas.alts .card.alt{border-style:dashed}
 .sagas.alts .card.alt:not([disabled]){border-color:rgba(216,180,95,.6);background:linear-gradient(160deg,rgba(216,180,95,.08),var(--stone-2) 60%)}

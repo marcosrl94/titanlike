@@ -109,6 +109,7 @@ function win(){
   if(btr && btr.id==='eren'){ S.fallen.push('eren'); btr.pws.forEach(k=>grant(k,'reserva')); S.erenFell=true; }
   else if(btr) S.q.push({k:'spare', id:btr.id, lvl:btr.lvl});
   else rollDrop(t, bossId);
+  if(t==='b' && typeof storyScenesAfter==='function') S.q.push(...storyScenesAfter(bossId));
   if(owned().length>=3) ach('tres_poderes');
   if(S.daily && sagaEnd){ finishDaily(true); if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, PER+1, null); store.del('run'); scr='victory'; return render(); }
   if(S.wave>=TOTAL){ const ck = typeof recordRun==='function' ? recordRun(true) : null; if(typeof cloudTelemetry==='function') cloudTelemetry('end', {win:true, comp:ck, route:S.route, squad:S.squad.map(x=>x.id+':'+x.lvl), fallen:S.fallen, rel:S.rel, pw:S.pw, gasMax:S.gasMax}); S.ending=endingOf(); ach(S.ending==='retumbar' ? 'saga4' : S.ending); ach('saga4'); if(S.erenFell) ach('detener_eren'); if(onRoute('reina')) ach('reina');
@@ -129,7 +130,7 @@ function lose(){
   S.squad.forEach(s=>S.fallen.push(s.id)); saveBest(S.wave-1);
   store.del('run'); scr='over'; render();
 }
-function recruitPool(){ const g=sagaIx(S.wave); return Object.keys(ROSTER).filter(id=>ROSTER[id].sg<=g && !S.squad.some(s=>s.id===id) && !S.fallen.includes(id)); }
+function recruitPool(){ const g=sagaIx(S.wave); return Object.keys(ROSTER).filter(id=>ROSTER[id].sg<=g && !ROSTER[id].story && !((S.flags&&S.flags.away)||[]).includes(id) && !S.squad.some(s=>s.id===id) && !S.fallen.includes(id)); }
 function upgPool(){ return Object.keys(UPG).filter(k=>(!UPG[k].max || rel(k)<UPG[k].max) && (k!=='lanzas' || sagaIx(S.wave)>=1)); }
 function genRewards(t){
   let cands = recruitPool();

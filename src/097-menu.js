@@ -13,6 +13,7 @@ function menuHTML(){
     ${item('sagas', 'Nueva expedición', inRun() ? 'Sustituye a la expedición en curso' : '')}
     ${item('daily', 'Expedición del día', dailyDone() ? 'Ya la has jugado hoy' : `${dailyInfo().mod.n}: ${dailyInfo().mod.d}`, dailyDone() ? 'disabled' : '')}
     ${item('codex', 'Logros y códice', `${meta().ach.length} de ${ACH.length} logros`)}
+    ${item('arbol', 'Árbol de la historia', `Sendas ${(statsOf().alts||[]).length} de ${Object.keys(ALT_SAGAS).length} · finales ${meta().endings.length} de ${Object.keys(ENDINGS).length}`)}
     ${item('ficha', 'Fichas de personaje', 'Estadísticas, rasgos e historial de cada soldado')}
     ${item('comps', 'Escuadrones', `${statsOf().f} combates calificados${statsOf().g['S+']?' · '+statsOf().g['S+']+' S+':''}`)}
     

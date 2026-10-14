@@ -117,7 +117,7 @@ const V = {
     if(g===0) return `<div><span class="lbl">Saga 1 · ${SAGAS[0].n}</span><h2>Elige a tu primer recluta</h2></div>
       <div class="cards">${starters().map(id=>`<button class="card" data-a="start" data-i="${id}">${solCard(id)}</button>`).join('')}
         ${ACH.filter(a=>a.unlock && !starters().includes(a.unlock)).map(a=>`<div class="card locked"><div class="who">${portrait(a.unlock,true)}<div><h3>${ROSTER[a.unlock].n}</h3><span class="lbl">Bloqueado</span></div></div><p>Se desbloquea con el logro «${a.n}»: ${a.d}</p></div>`).join('')}</div>`;
-    const pool=Object.keys(ROSTER).filter(id=>ROSTER[id].sg<=g).sort((a,b)=>(ROSTER[b].rare?1:0)-(ROSTER[a].rare?1:0));
+    const pool=Object.keys(ROSTER).filter(id=>ROSTER[id].sg<=g && (!ROSTER[id].story || codexSeen('s',id))).sort((a,b)=>(ROSTER[b].rare?1:0)-(ROSTER[a].rare?1:0));
     const n=startSize(g), npw=KIT_PW[g];
     return `<div><span class="lbl">Saga ${g+1} · ${pendingAlt?ALT_SAGAS[pendingAlt].n+' (senda alternativa)':SAGAS[g].n}</span><h2>Forma un escuadrón de ${n===4?'cuatro':'tres'}</h2>
       <p class="dim">Veteranos de nivel ${startLvl(g)} con ${KITS[g]} mejoras al azar, como si vinieran de las sagas anteriores. Los soldados raros también están disponibles.</p></div>
@@ -259,6 +259,9 @@ const V = {
       return wrap('Tras el combate', `${ROSTER[sc.id].n} sigue vivo`, portrait(sc.id,true), `<p>${B.post}</p>`,
         `<div class="cards"><button class="card" data-a="scn" data-i="rescue"><h3>Sacarlo y perdonarlo</h3><p>Vuelve al escuadrón con el 30 % de sus PV y no volverá a traicionaros.</p></button>
          <button class="card" data-a="scn" data-i="take"><h3>Quitarle el poder</h3><p>${have?'Ya tenéis ese poder. ':`El escuadrón hereda el ${POWERS[k].n}. `}${ROSTER[sc.id].n} queda preso y no vuelve.</p></button></div>`); }
+    if(sc.k==='story'){ const T=STORY_SCENES[sc.id];
+      return wrap('Tras el combate', T.title, T.art(), `<p>${T.body}</p>`,
+        `<div class="cards">${T.o.map((o,i)=>{ const ok=!o.ok||o.ok(); return `<button class="card" data-a="scn" data-i="st:${i}" ${ok?'':'disabled'}><h3>${o.l}</h3><p>${o.d}${ok?'':' <b>No hay hueco en el escuadrón.</b>'}</p></button>`; }).join('')}</div>`); }
     if(sc.k==='cross'){ const A=ALT_SAGAS[sc.alt], C0=SAGAS[A.slot];
       return wrap('Encrucijada', 'Dos caminos', `<span class="art">${momentSVG(A.zones[0].mo)}</span>`,
         `<p>Lo que habéis hecho hasta aquí abre otra senda. La saga ${A.slot+1} puede ser la de siempre o una distinta, con otros enemigos, otros jefes y otro final.</p>`,
@@ -294,7 +297,7 @@ const V = {
   codex(){
     const M=meta(), c=M.codex||{t:{},s:{}};
     return `<div><h2>Logros y códice</h2><p class="dim">${M.ach.length} de ${ACH.length} logros. Algunos desbloquean reclutas iniciales para la saga 1.</p></div>
-      <div class="row"><button class="btn ghost" data-a="home">Volver</button><button class="btn ghost" data-a="ficha" data-i="${Object.keys(ROSTER).find(id=>codexSeen('s',id))||'eren'}">Fichas de personaje</button><button class="btn ghost" data-a="comps" data-i="mine">Escuadrones</button></div>
+      <div class="row"><button class="btn ghost" data-a="home">Volver</button><button class="btn ghost" data-a="ficha" data-i="${Object.keys(ROSTER).find(id=>codexSeen('s',id))||'eren'}">Fichas de personaje</button><button class="btn ghost" data-a="comps" data-i="mine">Escuadrones</button><button class="btn ghost" data-a="arbol">Árbol de la historia</button></div>
       <div class="achs">${ACH.map(a=>{ const got=M.ach.includes(a.k); return `<div class="ach ${got?'got':''}"><b>${a.n}</b><span>${a.d}</span>${a.unlock?`<span class="lbl">${got?'Desbloquea':'Desbloqueará'} a ${ROSTER[a.unlock].n}</span>`:''}</div>`; }).join('')}</div>
       <span class="lbl">Titanes y enemigos · ${Object.keys(c.t||{}).length} de ${Object.keys(TITANS).length} vistos</span>
       <div class="gal">${Object.keys(TITANS).map(id=>{ const seen=codexSeen('t',id); return `<div class="card cx ${seen?'':'unk'}"><span class="art">${titanArt(id)}</span><b>${seen?TITANS[id].n:'Sin descubrir'}</b>${seen?`<span class="lbl num">${CLS[TITANS[id].cls]} · abatidos: ${c.t[id]||0}</span>${TITANS[id].boss?`<span class="dim" style="font-size:13px">${BOSS_PW[id]?'Puede soltar el '+POWERS[BOSS_PW[id]].n+'.':'Jefe final.'}</span>`:''}`:''}</div>`; }).join('')}</div>
