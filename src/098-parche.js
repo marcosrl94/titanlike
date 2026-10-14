@@ -1,5 +1,13 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-15.3', t:'Sendas alternativas, un final nuevo y epílogos de personaje', items:[
+    'Lo que haces en la partida abre sendas. Al cerrar una saga puede aparecer una encrucijada: seguir la historia de siempre o tomar otra saga, con sus enemigos, sus jefes y sus escenas.',
+    '«La reina de las murallas» (en lugar de la saga 3): si en la saga 2 proteges a Historia cuando la Policía Militar viene a por ella. Golpe de Estado en el interior: Policía Militar, la brigada antipersonal y su capitán, y lo que esconden los Reiss bajo la capilla.',
+    '«Defender Paradis» (en lugar de la saga 4): si llegas al final de la saga 3 sin Eren en el escuadrón o con un guerrero perdonado. Sin Eren no hay Retumbar: Marley desembarca en la isla. Tiene final propio, «Paradis resiste».',
+    'Epílogos de personaje: al terminar la campaña, según quién siga vivo y qué haya hecho (quién dio el último golpe a la Bestia o al Fundador, quién heredó el Colosal, a quién perdonasteis…). Hay diez y se pueden juntar varios en la misma partida.',
+    'Finales, epílogos y sendas se apuntan en el códice; los que no tienes muestran una pista. Las sendas descubiertas se pueden empezar directamente desde «Nueva expedición».',
+    'La pantalla de sagas ya no desvela qué jefe hay en cada zona.'
+  ]},
   {v:'2026-10-15.2', t:'Nota en cada combate, fichas de personaje y momentos en el mapa', items:[
     'Cada combate ganado recibe una nota de E a S+: Rapidez (rondas contra el par del combate, 30 puntos), Daño recibido (30), Daño por acción (25; curar o cubrir cuenta media) y Suerte del d20 (tu media en cortes y esquivas, más los 20 naturales, menos las pifias; 15). Los remates a la nuca y acabar sin un rasguño suman; cada baja resta 15 y con bajas no hay S. Durante el combate se ve la ronda y el par.',
     'Calibrada para que cueste: jugando bien, la S+ sale en uno de cada cincuenta combates. Tres logros nuevos para quien la saque.',

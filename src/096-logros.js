@@ -20,6 +20,9 @@ const ACH = [
   {k:'diaria',       n:'Parte del día',           d:'Termina una expedición del día.'},
   {k:'vuelta',       n:'Segunda vuelta',           d:'Completa una campaña en New Game+.'},
   {k:'vuelta3',      n:'Más allá del mar, otra vez', d:'Completa la vuelta 3 o superior.'},
+  {k:'reina',        n:'Larga vida a la reina',   d:'Completa la campaña por la senda «La reina de las murallas».'},
+  {k:'paradis',      n:'Paradis resiste',         d:'Completa la campaña por la senda «Defender Paradis».'},
+  {k:'epilogo',      n:'Epílogo',                 d:'Termina la campaña con el epílogo de un personaje.'},
   {k:'nota_s',       n:'Sobresaliente',           d:'Saca una S en un combate.'},
   {k:'nota_splus',   n:'Matrícula de honor',      d:'Saca una S+ en un combate.'},
   {k:'jefe_s',       n:'Sin despeinarse',         d:'Saca una S o más contra un cambiante.'}

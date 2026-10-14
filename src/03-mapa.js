@@ -4,7 +4,7 @@ let skipRunStart = false;   // la diaria registra su propia expedición
 function migrateRun(r){
   if(!r || !r.v || r.v<3 || !r.map) return null;
   if(r.v===3){ Object.assign(r, {pw:{}, q:[], loyal:{}, pity:0, after:null, scene:null, note:null}); r.v=4; }
-  r.items = r.items || []; r.napes = r.napes || 0; r.fallen = r.fallen || []; r.rel = r.rel || {}; r.diff = r.diff || 'explorador'; r.ng = r.ng || 0;
+  r.items = r.items || []; r.napes = r.napes || 0; r.fallen = r.fallen || []; r.rel = r.rel || {}; r.diff = r.diff || 'explorador'; r.ng = r.ng || 0; r.route = r.route || {}; r.flags = r.flags || {};
   return r;
 }
 const meta = () => Object.assign({unlocked:1, best:0, nine:[], endings:[], ach:[], codex:{t:{},s:{}}}, store.get('meta')||{});
@@ -47,7 +47,7 @@ const relicsMax = n => Math.min(3, n);   // reliquias que se pueden llevar en la
 function newRun(ids, saga=0, diff, ng){
   const w = saga*PER + 1;
   saveMeta({runs:(meta().runs||0)+1});
-  S = {v:4, diff: diff || (typeof CFG!=='undefined' && DIFF[CFG.diff] ? CFG.diff : 'explorador'), ng:(ng&&ng.level)||0, wave:w, squad:ids.map(id=>({id, lvl:saga?startLvl(saga):w, hp:0})), fallen:[], rel:{}, pw:{}, q:[], loyal:{}, pity:0, after:null, scene:null, note:null, gas:10+2*saga, gasMax:10+2*saga, map:genMap(saga*3), rewards:null, picks:0, pend:null, kit:[], items:[]};
+  S = {v:4, diff: diff || (typeof CFG!=='undefined' && DIFF[CFG.diff] ? CFG.diff : 'explorador'), ng:(ng&&ng.level)||0, wave:w, squad:ids.map(id=>({id, lvl:saga?startLvl(saga):w, hp:0})), fallen:[], rel:{}, pw:{}, q:[], loyal:{}, pity:0, after:null, scene:null, note:null, gas:10+2*saga, gasMax:10+2*saga, route:{}, flags:{}, map:genMap(saga*3), rewards:null, picks:0, pend:null, kit:[], items:[]};
   for(let i=0;i<KITS[saga];i++) S.kit.push(randomUpg());
   S.kitPw = KIT_PW[saga];
   S.squad.forEach(s=>{ s.hp=maxHp(s); bringPower(s.id); codex('s', s.id); });
@@ -67,7 +67,7 @@ function enterNode(r, j){
   S.map.pos=[r,j]; S.map.path.push(j);
   const t = curNode().t;
   if(t==='b'){ const boss=zoneOf(S.wave).boss, b=betrayer(boss); if(b) return startBetrayal(b, boss); }
-  if(t==='v'){ const ok=EVENTS.map((e,i)=>i).filter(i=>!EVENTS[i].when || EVENTS[i].when()); S.pend={k:'event', i:seeded('ev'+S.wave+'-'+r+'-'+j, ()=>pick(ok)), res:null}; scr='event'; }
+  if(t==='v'){ const ok=EVENTS.map((e,i)=>i).filter(i=>!EVENTS[i].when || EVENTS[i].when()); const pr=ok.filter(i=>EVENTS[i].prio); S.pend={k:'event', i:pr.length ? pr[0] : seeded('ev'+S.wave+'-'+r+'-'+j, ()=>pick(ok.filter(i=>!EVENTS[i].prio))), res:null}; scr='event'; }
   else if(t==='k'){ S.pend={k:'camp'}; scr='camp'; }
   else S.pend={k:'fight'};
   store.set('run', S);
@@ -95,7 +95,7 @@ function win(){
   const lost = S.squad.filter(s=>s.hp<=0).length;
   if(typeof cloudTelemetry==='function') cloudTelemetry('fight', {node:t, win:true, titans:C.titans.map(x=>x.id), rounds:C.rounds, taken:C.taken, gas:[C.gas0, S.gas], lost, squad:S.squad.map(x=>x.id+':'+x.lvl+':'+Math.round(x.hp/maxHp(x)*100)), pw:Object.keys(C.usedPw), acts:C.acts, comp:C.comp, grade:G.g, score:G.score, boss:G.boss});
   C.titans.forEach(x=>{ if(x.hp<=0) codex('t', x.id); });
-  if(t==='b'){ ach('primer_jefe'); if(!lost) ach('impecable'); }
+  if(t==='b'){ ach('primer_jefe'); if(!lost) ach('impecable'); (S.flags.lastHit = S.flags.lastHit || {})[bossId] = C.titans[0].lastHit || null; }
   if(C.start===4 && alive().length===1) ach('solo');
   if(sagaEnd) ach('saga'+(sagaIx(S.wave)+1));
   if(S.wave>=30) ach('jornada30');
@@ -111,8 +111,11 @@ function win(){
   else rollDrop(t, bossId);
   if(owned().length>=3) ach('tres_poderes');
   if(S.daily && sagaEnd){ finishDaily(true); if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, PER+1, null); store.del('run'); scr='victory'; return render(); }
-  if(S.wave>=TOTAL){ const ck = typeof recordRun==='function' ? recordRun(true) : null; if(typeof cloudTelemetry==='function') cloudTelemetry('end', {win:true, comp:ck, squad:S.squad.map(x=>x.id+':'+x.lvl), fallen:S.fallen, rel:S.rel, pw:S.pw, gasMax:S.gasMax}); S.ending=endingOf(); ach(S.ending==='retumbar' ? 'saga4' : S.ending); ach('saga4'); if(S.erenFell) ach('detener_eren');
+  if(S.wave>=TOTAL){ const ck = typeof recordRun==='function' ? recordRun(true) : null; if(typeof cloudTelemetry==='function') cloudTelemetry('end', {win:true, comp:ck, route:S.route, squad:S.squad.map(x=>x.id+':'+x.lvl), fallen:S.fallen, rel:S.rel, pw:S.pw, gasMax:S.gasMax}); S.ending=endingOf(); ach(S.ending==='retumbar' ? 'saga4' : S.ending); ach('saga4'); if(S.erenFell) ach('detener_eren'); if(onRoute('reina')) ach('reina');
+    { const ep=epiloguesNow(); S.epilogues=ep.map(e=>e.k); recordEpilogues(ep); if(ep.length) ach('epilogo'); }
     { const m=meta(); saveMeta({ngLevel:Math.max(m.ngLevel||0, (S.ng||0)+1), relics:[...new Set((m.relics||[]).concat(owned()))]}); if(S.ng>0) ach('vuelta'); if(S.ng>=2) ach('vuelta3'); } if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, TOTAL+1, S.ending); const m=meta(); if(!m.endings.includes(S.ending)) saveMeta({endings:m.endings.concat(S.ending)}); store.del('run'); scr='victory'; return render(); }
+  // encrucijada: lo hecho en la saga abre una senda alternativa para la siguiente
+  if(sagaEnd){ const alt=crossroadAt(sagaIx(S.wave)); if(alt && !(S.route||{})[ALT_SAGAS[alt].slot]) S.q.push({k:'cross', alt}); }
   S.sagaDone = sagaEnd;
   S.picks = (t==='e' || sagaEnd ? 2 : 1) + (S.mod==='botin' ? 1 : 0);
   S.rewards = seeded('r'+S.wave+'-'+S.map.pos, ()=>genRewards(t)); S.pend=null; S.after='reward';
@@ -120,7 +123,7 @@ function win(){
 }
 function lose(){
   const ck = typeof recordRun==='function' ? recordRun(false) : null;
-  if(typeof cloudTelemetry==='function') cloudTelemetry('end', {win:false, comp:ck, node:C&&curNode()?curNode().t:null, titans:C?C.titans.map(x=>x.id):[], rounds:C?C.rounds:0, squad:S.squad.map(x=>x.id+':'+x.lvl), fallen:S.fallen, rel:S.rel, pw:S.pw, gasMax:S.gasMax, items:S.items});
+  if(typeof cloudTelemetry==='function') cloudTelemetry('end', {win:false, comp:ck, route:S.route, node:C&&curNode()?curNode().t:null, titans:C?C.titans.map(x=>x.id):[], rounds:C?C.rounds:0, squad:S.squad.map(x=>x.id+':'+x.lvl), fallen:S.fallen, rel:S.rel, pw:S.pw, gasMax:S.gasMax, items:S.items});
   if(S.daily) finishDaily(false);
   if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, S.wave, null);
   S.squad.forEach(s=>S.fallen.push(s.id)); saveBest(S.wave-1);
@@ -171,7 +174,7 @@ const CAMP = [
   {n:'Reabastecer', d:'Depósito de gas lleno.', f(){ S.gas=S.gasMax; }}
 ];
 // cada opción devuelve el texto del desenlace
-const inParadis = () => sagaIx(S.wave)<3, inMarley = () => sagaIx(S.wave)>=3;
+const inParadis = () => sagaIx(S.wave)<3 || onRoute('paradis'), inMarley = () => sagaIx(S.wave)>=3 && !onRoute('paradis');
 const has = id => S.squad.some(s=>s.id===id && s.hp>0);
 const who = id => S.squad.find(s=>s.id===id);
 const EVENTS = [
@@ -233,6 +236,17 @@ const EVENTS = [
   {n:'La aldea de Ragako', when:()=>inParadis() && has('connie'), d:'Es el pueblo de Connie. No queda nadie, y en su casa hay un titán tumbado que no puede moverse.',
    o:[{l:'Quedarse a investigar', d:'Una mejora al azar. Connie pierde el 30 % de sus PV.', f(){ const s=who('connie'); s.hp=Math.max(1,s.hp-Math.round(maxHp(s)*.3)); return `Connie no dice una palabra. Entre las casas encontráis equipo de la Guarnición: ${randomUpg()}.`; }},
       {l:'Seguir sin mirar atrás', d:'Connie sube 2 niveles.', f(){ const s=who('connie'); levelUp(s); levelUp(s); return 'Connie cabalga delante todo el día. Nadie le pregunta.'; }}]},
+  // ---- eventos que abren sendas (salen antes que los demás cuando se cumplen) ----
+  {n:'Vienen a por Historia', prio:true, when:()=>sagaIx(S.wave)===1 && has('historia') && !S.flags.reina && !S.flags.entregada,
+   d:'Un destacamento de la Policía Militar os corta el paso. Traen una orden con el sello real: Historia tiene que acompañarlos a la capital.',
+   o:[{l:'Esconderla y huir', d:'Prueba de Sigilo (13). Si falla, el escuadrón pierde un 15 % de PV. Puede abrir otra senda.', f(){ const c=check('sigilo',13); if(!c.ok) hurtAll(.15); S.flags.reina=1;
+        return `${c.txt} ${c.ok?'Os perdéis entre los callejones antes de que den la alarma.':'Hay disparos antes de que podáis escabulliros.'} Historia no dice nada en toda la noche. Al amanecer pregunta por qué la quieren tanto los Reiss.`; }},
+      {l:'Entregarla', d:'Historia deja el escuadrón. A cambio, dos mejoras al azar.', f(){ const h=who('historia'); S.squad=S.squad.filter(x=>x!==h); S.flags.entregada=1; const a=randomUpg(), b=randomUpg();
+        return `Historia se va sin mirar atrás. El oficial os deja material de sobra: ${a} y ${b}.`; }}]},
+  {n:'Una carta de Marley', prio:true, when:()=>sagaIx(S.wave)===2 && ['reiner','annie'].some(id=>S.loyal[id] && has(id)) && !S.flags.alianza && !S.flags.carta,
+   d:'Un pájaro mensajero trae una carta cifrada al cuartel. Solo el guerrero que perdonasteis sabe leerla.',
+   o:[{l:'Que la lea en voz alta', d:'Puede abrir otra senda al final de la saga.', f(){ S.flags.alianza=1; S.flags.carta=1; return 'Marley prepara un desembarco en la isla. El guerrero dibuja en la mesa dónde van a atacar y cuántos son.'; }},
+      {l:'Quemarla', d:'Todos suben 1 nivel.', f(){ S.flags.carta=1; S.squad.forEach(levelUp); return 'La carta arde en la chimenea. Nadie pregunta qué decía.'; }}]},
   {n:'Una reina en el escuadrón', when:()=>inParadis() && has('historia'), d:'Un pueblo reconoce a Historia y os ofrece lo poco que tiene.',
    o:[{l:'Aceptar la ayuda', d:'Todos recuperan el 35 % de sus PV.', f(){ healAll(.35); return 'Comida, vendas y camas limpias. Historia da las gracias casa por casa.'; }},
       {l:'Rechazarla', d:'Historia sube 2 niveles y el escuadrón 1.', f(){ S.squad.forEach(levelUp); levelUp(who('historia')); return 'Historia insiste en que el pueblo lo necesita más. Nadie discute con ella.'; }}]},

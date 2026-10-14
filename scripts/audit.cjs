@@ -5,7 +5,7 @@ const fs=require('fs');
 const q=[]; global.setTimeout=(f)=>q.push(f);
 const mem={}; global.localStorage={getItem(k){return mem[k]||null},setItem(k,v){mem[k]=v},removeItem(k){delete mem[k]}};
 const D=__dirname+'/../src/';
-let src=['01-datos.js','02-combate.js','03-mapa.js','04-los-nueve.js','096-logros.js'].map(f=>fs.readFileSync(D+f,'utf8')).join('\n');
+let src=['01-datos.js','02-combate.js','03-mapa.js','04-los-nueve.js','045-sendas.js','096-logros.js','0965-estadisticas.js'].map(f=>fs.readFileSync(D+f,'utf8')).join('\n');
 const FXK=[...fs.readFileSync(D+'08-efectos.js','utf8').matchAll(/^  async (\w+)\(e\)/gm)].map(m=>m[1]);
 src+=`
 const FXK=${JSON.stringify(FXK)}; const GRADE_ORDER_T=['S+','S','A','B','C','D','E'];
@@ -122,13 +122,20 @@ T('las tiradas de los eventos quedan registradas', ()=>{ setup(['mikasa','eren']
 T('la nota del combate es coherente', ()=>{ setup(['mikasa','eren'],['t5']); const t=C.titans[0]; giveTurn('mikasa'); doAction('cut', t); runUntil(null); const G=rateFight('c');
   return G && isFinite(G.score) && GRADE_ORDER_T.includes(G.g) && G.parts.every(p=>p.v>=0 && p.v<=p.max) || JSON.stringify(G); });
 T('con bajas no hay S', ()=>{ setup(['mikasa','eren'],['t5']); S.squad[1].hp=0; C.rounds=1; C.taken=0; C.sacts=1; C.dealt=999; C.rolls=[20,20,20]; C.nat20=3; const G=rateFight('c'); return ['A','B','C','D','E'].includes(G.g) || G.g; });
+T('senda de la reina: evento, encrucijada y zonas', ()=>{ setup(['historia','eren'],['t3']); S.wave=25; const i=EVENTS.findIndex(e=>e.n==='Vienen a por Historia'); if(!EVENTS[i].when()) return 'el evento no aparece';
+  S.pend={k:'event'}; EVENTS[i].o[0].f(); if(!S.flags.reina) return 'sin flag'; if(crossroadAt(1)!=='reina') return 'sin encrucijada'; takeRoute('reina'); return zoneOf(31).boss==='kap' && zoneOf(45).boss==='rod' && zoneOf(46).boss==='mar' || zoneOf(31).boss; });
+T('senda de Paradis sin Eren y su final', ()=>{ setup(['mikasa','armin'],['t3']); if(crossroadAt(2)!=='paradis') return 'sin encrucijada'; takeRoute('paradis'); S.wave=50; if(inMarley()) return 'eventos de Marley en Paradis';
+  return zoneOf(46).boss==='man' && zoneOf(60).boss==='mar2' && endingOf()==='paradis' || zoneOf(60).boss; });
+T('con Eren no se abre Paradis', ()=>{ setup(['eren','mikasa'],['t3']); return crossroadAt(2)===null || crossroadAt(2); });
+T('epílogos: Levi y la Bestia', ()=>{ setup(['levi','hange'],['t3']); S.flags.lastHit={bes:'levi'}; return epiloguesNow().some(e=>e.k==='levi') || 'no sale'; });
+T('encrucijada en el cierre de saga', ()=>{ setup(['historia','mikasa'],['kap'],{wave:30, node:'b'}); S.flags.reina=1; C.titans[0].hp=0; win(); return (S.scene && S.scene.k==='cross' && S.scene.alt==='reina') || S.q.some(x=>x.k==='cross') || JSON.stringify(S.scene); });
 // ======== 3) fuzz: combates enteros con acciones al azar ========
 const RES={}; const N=+process.argv[2]||600; let fights=0, turns=0;
 const IDS=Object.keys(ROSTER);
 for(let i=0;i<N;i++){
   const ids=IDS.slice().sort(()=>Math.random()-.5).slice(0, 1+Math.floor(Math.random()*4));
   const w = 1+Math.floor(Math.random()*60);
-  const z = zoneOf(w), boss=Math.random()<.3;
+  if(S) S.route={}; const rt = Math.random()<.4 ? {2:'reina'} : Math.random()<.5 ? {3:'paradis'} : {}; if(S) S.route=rt; const z = zoneOf(w), boss=Math.random()<.3;
   const en = boss ? [z.boss] : Array.from({length:1+Math.floor(Math.random()*3)}, ()=>pick(z.pool));
   const pws = NINE.slice().sort(()=>Math.random()-.5).slice(0, Math.floor(Math.random()*4)).map((k,j)=>[k, ids[j%ids.length]]).filter(([k,id],j,a)=>id==='eren' ? a.filter(x=>x[1]==='eren').indexOf(a[j])<3 : a.filter(x=>x[1]===id)[0][0]===k);
   CTX='fuzz '+ids.join('+')+' vs '+en.join('+')+' w'+w;

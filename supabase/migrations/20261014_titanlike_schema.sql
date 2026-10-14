@@ -90,3 +90,10 @@ create policy "imagenes propias: borrar" on storage.objects for delete to authen
 -- Migraciones seasons_table y leaderboard_v2_by_season: tabla seasons (name, started_at; lectura pública) con la vista
 -- season_current (la última). leaderboard_v2 solo cuenta runs con started_at >= inicio de la temporada en curso.
 -- Reiniciar la clasificación = insert into public.seasons (name) values ('Temporada N'); no se borra ninguna partida.
+
+-- 2026-10-15: notas, récords y sendas
+-- sync_keeps_relics_and_stats: sync_progress_v2 conserva extra.relics, extra.stats (la copia con más combates) y logros nuevos.
+-- boss_records_and_comp_stats: tabla boss_records (mejor nota por jugador, jefe y temporada) con submit_boss_record
+-- (solo guarda si mejora; jefes, notas y dificultad validados), vista boss_board (temporada en curso) y vista comp_stats
+-- (agregados anónimos de telemetría por escuadrón: combates, nota media, % de S, expediciones, campañas, mejor jornada).
+-- ach_routes_epilogues: logros reina, paradis y epilogo permitidos en sync_progress_v2.

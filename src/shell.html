@@ -332,6 +332,16 @@ body.calm .m-art svg,body.calm .m-art *{animation:none!important}
 .card.mo .m-thumb{display:block;aspect-ratio:800/360;border-radius:6px;overflow:hidden;background:#0b0d0e;margin-bottom:6px}
 .card.mo .m-thumb svg{width:100%;height:100%;display:block}
 @media (max-width:620px){.m-txt{margin-top:-30px;padding:4px 14px}.moment-in .row{padding:6px 14px 14px}}
+/* ---- sendas alternativas, encrucijada y epílogos ---- */
+.sagas.alts .card.alt{border-style:dashed}
+.sagas.alts .card.alt:not([disabled]){border-color:rgba(216,180,95,.6);background:linear-gradient(160deg,rgba(216,180,95,.08),var(--stone-2) 60%)}
+.sagas.alts .card.alt[disabled] h3{letter-spacing:.2em}
+.card.alt{border-color:rgba(216,180,95,.55)}
+.scene .sart .art svg{width:100%;height:auto;border-radius:8px}
+.epis{display:flex;flex-direction:column;gap:12px}
+.epi{display:flex;gap:14px;align-items:flex-start}
+.epi .pt{width:64px;height:64px;flex:none}
+.epi b{font-family:var(--display);font-size:20px} .epi p{margin:4px 0 0;max-width:64ch}
 /* ---- notas de combate (E a S+) ---- */
 .grade{display:inline-grid;place-items:center;min-width:30px;height:26px;padding:0 6px;border-radius:6px;font-family:var(--label);font-weight:700;font-size:16px;letter-spacing:0;line-height:1;border:1.5px solid currentColor;vertical-align:middle;background:rgba(0,0,0,.25)}
 .grade.g-Sp{color:#ffe08a;border-color:#ffe08a;background:linear-gradient(135deg,rgba(255,224,138,.25),rgba(216,180,95,.05));text-shadow:0 0 8px rgba(255,224,138,.8)}

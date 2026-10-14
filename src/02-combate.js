@@ -18,7 +18,7 @@ const alive = () => S.squad.filter(s=>s.hp>0);
 const liveT = () => C.titans.filter(t=>t.hp>0);
 const clampW = w => Math.min(TOTAL, Math.max(1, w));
 const sagaIx = w => Math.floor((clampW(w)-1)/PER);
-const sagaOf = w => SAGAS[sagaIx(w)];
+const sagaOf = w => (typeof altSaga==='function' && altSaga(sagaIx(w))) || SAGAS[sagaIx(w)];   // la senda alternativa sustituye a la canónica
 const zoneOf = w => sagaOf(w).zones[Math.floor(((clampW(w)-1)%PER)/5)];
 const dayOf = w => (clampW(w)-1)%PER + 1;
 const curNode = () => S.map.pos ? S.map.rows[S.map.pos[0]][S.map.pos[1]] : null;

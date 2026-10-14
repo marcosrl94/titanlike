@@ -2,7 +2,7 @@ const fs=require('fs');
 const q=[]; global.setTimeout=(f)=>q.push(f);
 const mem={}; global.localStorage={getItem(k){return mem[k]||null},setItem(k,v){mem[k]=v},removeItem(k){delete mem[k]}};
 const D=__dirname+'/../src/';
-let src=['01-datos.js','02-combate.js','03-mapa.js','04-los-nueve.js','096-logros.js'].map(f=>fs.readFileSync(D+f,'utf8')).join('\n');
+let src=['01-datos.js','02-combate.js','03-mapa.js','04-los-nueve.js','045-sendas.js','096-logros.js','0965-estadisticas.js'].map(f=>fs.readFileSync(D+f,'utf8')).join('\n');
 if(process.env.MUL) src=src.replace(/const SAGA_MUL = \[[^\]]*\]/, 'const SAGA_MUL = ['+process.env.MUL+']');
 if(process.env.DROP) src=src.replace('.4 + (S.pity||0)', process.env.DROP+' + (S.pity||0)');
 if(process.env.ARMIN) src=src.replace(/armin:  \{n:'Armin',  st:'tactico', hp:65,  atk:11, spd:11/, 'armin:  {n:\'Armin\',  st:\'tactico\', '+process.env.ARMIN);

@@ -5,7 +5,7 @@ const fs=require('fs');
 const q=[]; global.setTimeout=(f)=>q.push(f);
 const mem={}; global.localStorage={getItem(k){return mem[k]||null},setItem(k,v){mem[k]=v},removeItem(k){delete mem[k]}};
 const D=__dirname+'/../src/';
-let src0=['01-datos.js','02-combate.js','03-mapa.js','04-los-nueve.js','096-logros.js'].map(f=>fs.readFileSync(D+f,'utf8')).join('\n');
+let src0=['01-datos.js','02-combate.js','03-mapa.js','04-los-nueve.js','045-sendas.js','096-logros.js','0965-estadisticas.js'].map(f=>fs.readFileSync(D+f,'utf8')).join('\n');
 let src=src0;
 if(process.env.MUL) src=src.replace(/const SAGA_MUL = \[[^\]]*\]/, 'const SAGA_MUL = ['+process.env.MUL+']');
 if(process.env.GROW) src=src.replace('(1 + .15*(w-1))', '(1 + '+process.env.GROW+'*(w-1))');
@@ -61,10 +61,12 @@ function run(ids, saga){ newRun(ids, saga); let n=0;
     if(scr==='combat'&&C&&C.active&&!C.busy){ ai(); continue; }
     if(scr==='map'){ const o=openNodes(); const pref=o.find(x=>S.map.rows[x[0]][x[1]].t==='k' && S.squad.some(s=>s.hp<maxHp(s)*.5)) || o.find(x=>S.map.rows[x[0]][x[1]].t==='e' && !S.squad.some(s=>s.hp<maxHp(s)*.6)) || pick(o); enterNode(pref[0],pref[1]); continue; }
     if(scr==='scene'){ const sc=S.scene;
+      if(sc.k==='cross'){ sceneAct(process.env.ALT==='0'?'canon':'alt'); continue; }
       if(sc.k==='spare'){ sceneAct('take'); continue; }
       if(sc.k==='drop'){ const r=S.squad.find(x=>hasRoom(x)); sceneAct(r?'give:'+r.id:'keep'); continue; }
       sceneAct('go'); continue; }
     if(scr==='camp'){ const hp=S.squad.reduce((a,s)=>a+s.hp/maxHp(s),0)/S.squad.length; (hp<.6?CAMP[0]:S.gas<S.gasMax*.4?CAMP[2]:CAMP[1]).f(); advance(); continue; }
+    if(scr==='event' && EVENTS[S.pend.i].prio && process.env.ALT!=='0'){ const o=EVENTS[S.pend.i].o[0]; o.f(); if(S.q.length){ S.after='advance'; nextScene(); } else advance(); continue; }
     if(scr==='event'){ const E=EVENTS[S.pend.i]; const o=E.o[0].d.match(/gas/i)&&S.gas<S.gasMax*.5?E.o[0]:E.o[1].d.match(/gas/i)&&S.gas<S.gasMax*.5?E.o[1]:pick(E.o); o.f(); if(S.q.length){ S.after='advance'; nextScene(); } else advance(); continue; }
     if(scr==='reward'){ const want=['bombona','bengala','cuchillas','capa','lanzas','cristal','caballos','vendas','shadis','raciones'];
       let i=S.rewards.findIndex(r=>r.t==='rec'&&S.squad.length<4&&(ROSTER[r.id].rare||S.squad.length<3));
@@ -72,7 +74,9 @@ function run(ids, saga){ newRun(ids, saga); let n=0;
       if(i<0) i=S.rewards.findIndex(r=>r.t==='item'); if(i<0) i=0;
       const r=S.rewards[i]; r.t==='rec'?recruit(r.id):r.t==='item'?(S.items=S.items||[]).push(r.id):applyUpg(r.id); tookReward(i); continue; }
     break; }
+  if(scr==='victory'||scr==='over'){ const k=Object.values(S.route||{}).join('+')||'canon'; (ROUTES[k]=ROUTES[k]||[0,0]); ROUTES[k][0]++; if(scr==='victory') ROUTES[k][1]++; }
   return scr==='victory'?TOTAL+1:S.wave; }
+const ROUTES={};
 const N=+process.argv[2]||200;
 const comps=(process.argv[3]||'sasha+historia+eren,sasha+eren+mikasa,eren+mikasa+armin,historia+reiner+jean,annie+sasha+historia,levi+hange+erwin').split(',').map(c=>c.split('+'));
 function rep(label, saga, f){ for(const k in M) M[k]=0; const r=[]; for(let i=0;i<N;i++) r.push(f());
@@ -95,4 +99,4 @@ for(const c of comps){
   else { const s0 = Math.max(sg, 1); rep(c.join('+')+' (saga '+(s0+1)+')', s0, ()=>run(c,s0)); }
 }
 `;
-eval(src);
+eval(src+"\nconsole.log('rutas (partidas, campañas ganadas):', JSON.stringify(ROUTES));");
