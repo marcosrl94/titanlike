@@ -23,17 +23,19 @@ const PATCHES = [
   ]}
 ];
 const PATCH = PATCHES[0];
-function patchHTML(all){
-  const list = all ? PATCHES : [PATCH];
+// parches que un jugador aún no ha leído: todos los posteriores al último que vio (o todos, si nunca vio ninguno)
+function unreadPatches(){ const seen=store.get('patch'); const ix=PATCHES.findIndex(p=>p.v===seen); return ix<0 ? PATCHES : PATCHES.slice(0, ix); }
+function patchHTML(list){
   return list.map(p=>`<section class="patch"><span class="lbl">${esc(p.v)}</span><b>${esc(p.t)}</b><ul>${p.items.map(i=>`<li>${esc(i)}</li>`).join('')}</ul></section>`).join('');
 }
-function showPatch(all){
-  $('sheet').innerHTML = `<div class="sheet-in patch-in"><span class="lbl" style="color:var(--gold)">Novedades</span>${patchHTML(all)}<div class="row"><button class="btn sm" data-a="closesheet">Entendido</button></div></div>`;
+function showPatch(list){
+  list = list || PATCHES;
+  $('sheet').innerHTML = `<div class="sheet-in patch-in"><span class="lbl" style="color:var(--gold)">Novedades${list.length>1?` · ${list.length} parches`:''}</span>${patchHTML(list)}<div class="row"><button class="btn sm" data-a="closesheet">Entendido</button></div></div>`;
   $('sheet').hidden=false;
   try{ store.set('patch', PATCH.v); }catch(e){}
 }
-// jugadores que ya tenían progreso: ven las notas la primera vez que entran tras el parche
+// jugadores que ya tenían progreso: al entrar ven todos los parches que no hayan leído, del más nuevo al más antiguo
 if(typeof document!=='undefined'){
-  const seen = store.get('patch');
-  if(seen !== PATCH.v){ if(store.get('meta')) setTimeout(()=>showPatch(false), 400); else store.set('patch', PATCH.v); }
+  const u = unreadPatches();
+  if(u.length){ if(store.get('meta')) setTimeout(()=>showPatch(u), 400); else store.set('patch', PATCH.v); }
 }

@@ -33,7 +33,7 @@ function menuAct(m){
   if(m==='abandon-yes'){ confirmAbandon=false; if(C) C.busy=true; return lose(); }
   if(m==='title'){ scr='title'; return render(); }
   if(m==='tips') return tipAct('tipreset');
-  if(m==='patch') return showPatch(true);
+  if(m==='patch') return showPatch(PATCHES);
   if(m==='settings'){ confirmErase=false; dataMsg=''; scr='settings'; return render(); }
   act(m==='sagas' ? 'sagas' : m==='continue' ? 'continue' : m, m==='board' ? 'general' : undefined);
 }
