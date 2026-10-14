@@ -1,4 +1,12 @@
 // ---------- Mapa, nodos, recompensas y sagas ----------
+let skipRunStart = false;   // la diaria registra su propia expedición
+// partidas guardadas de versiones anteriores: se completan los campos nuevos en lugar de descartarlas
+function migrateRun(r){
+  if(!r || !r.v || r.v<3 || !r.map) return null;
+  if(r.v===3){ Object.assign(r, {pw:{}, q:[], loyal:{}, pity:0, after:null, scene:null, note:null}); r.v=4; }
+  r.items = r.items || []; r.napes = r.napes || 0; r.fallen = r.fallen || []; r.rel = r.rel || {};
+  return r;
+}
 const meta = () => Object.assign({unlocked:1, best:0, nine:[], endings:[], ach:[], codex:{t:{},s:{}}}, store.get('meta')||{});
 function saveMeta(p){ store.set('meta', Object.assign(meta(), p)); if(typeof cloudPush==='function') cloudPush(); }
 function rollType(r, z){
@@ -41,6 +49,7 @@ function newRun(ids, saga=0){
   // quien empieza en una saga avanzada trae los poderes que de media se consiguen antes (medido en simulación)
   for(let i=0;i<S.kitPw;i++){ const miss=MINOR.filter(k=>!(k in S.pw)), who=S.squad.filter(hasRoom); if(miss.length&&who.length){ const s=pick(who); grant(pick(miss), s.id); s.hp=maxHp(s); } }
   C=null; scr='map'; store.set('run', S);
+  if(typeof cloudStartRun==='function' && !skipRunStart) cloudStartRun(saga, false);
 }
 function enterNode(r, j){
   if(!openNodes().some(o=>o[0]===r && o[1]===j)) return;
@@ -85,8 +94,8 @@ function win(){
   else if(btr) S.q.push({k:'spare', id:btr.id, lvl:btr.lvl});
   else rollDrop(t, bossId);
   if(owned().length>=3) ach('tres_poderes');
-  if(S.daily && sagaEnd){ finishDaily(true); store.del('run'); scr='victory'; return render(); }
-  if(S.wave>=TOTAL){ S.ending=endingOf(); ach(S.ending==='retumbar' ? 'saga4' : S.ending); ach('saga4'); if(S.erenFell) ach('detener_eren'); const m=meta(); if(!m.endings.includes(S.ending)) saveMeta({endings:m.endings.concat(S.ending)}); store.del('run'); scr='victory'; return render(); }
+  if(S.daily && sagaEnd){ finishDaily(true); if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, PER+1, null); store.del('run'); scr='victory'; return render(); }
+  if(S.wave>=TOTAL){ S.ending=endingOf(); ach(S.ending==='retumbar' ? 'saga4' : S.ending); ach('saga4'); if(S.erenFell) ach('detener_eren'); if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, TOTAL+1, S.ending); const m=meta(); if(!m.endings.includes(S.ending)) saveMeta({endings:m.endings.concat(S.ending)}); store.del('run'); scr='victory'; return render(); }
   S.sagaDone = sagaEnd;
   S.picks = (t==='e' || sagaEnd ? 2 : 1) + (S.mod==='botin' ? 1 : 0);
   S.rewards = seeded('r'+S.wave+'-'+S.map.pos, ()=>genRewards(t)); S.pend=null; S.after='reward';
@@ -94,6 +103,7 @@ function win(){
 }
 function lose(){
   if(S.daily) finishDaily(false);
+  if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, S.wave, null);
   S.squad.forEach(s=>S.fallen.push(s.id)); saveBest(S.wave-1);
   store.del('run'); scr='over'; render();
 }

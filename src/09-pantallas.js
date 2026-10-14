@@ -54,7 +54,7 @@ function mapSVG(){
 const sagaLbl = w => `Saga ${sagaIx(w)+1} · ${sagaOf(w).n}`;
 const V = {
   title(){
-    const run=store.get('run'), M=meta(), ok=run&&run.v===4;
+    const run=migrateRun(store.get('run')), M=meta(), ok=!!run;
     const rows=Object.keys(EFF).map(st=>{ const e=EFF[st]; const up=Object.keys(e).find(k=>e[k]>1), dn=Object.keys(e).find(k=>e[k]<1);
       return `<tr><td>${chip(st)}</td><td>×1,5 contra ${CLS[up]}</td><td>×0,75 contra ${CLS[dn]}</td></tr>`; }).join('');
     return `<section class="hero"><div class="txt">
@@ -106,7 +106,8 @@ const V = {
   map(){
     const z=zoneOf(S.wave);
     const D = S.daily ? DAILY_MODS.find(x=>x.k===S.mod) : null;
-    return `${D?`<section class="panel daily"><span class="lbl">Expedición del día · ${S.daily}</span><p><b>${D.n}.</b> ${D.d} Mismo mapa, titanes y recompensas para todos; termina al acabar la saga 1.</p></section>`:''}<div><span class="lbl">${sagaLbl(S.wave)}</span><h2>${z.n}</h2><p class="dim">${S.map.pos?'Elige el siguiente paso de la ruta.':'Elige por dónde entra el escuadrón.'} Al fondo espera el ${TITANS[z.boss].n}.${BOSS_PW[z.boss] && !(BOSS_PW[z.boss] in S.pw) ? ` Puede soltar el poder del ${POWERS[BOSS_PW[z.boss]].n}: <b class="num" style="color:var(--gold)">${Math.round(dropP()*100)} %</b>.` : ''}</p></div>
+    const unranked = cloudOn() && !S.runId ? `<p class="dim" style="font-size:13px">${S.runNote || 'Esta expedición no puntúa en la clasificación: inicia sesión antes de empezar.'}</p>` : '';
+    return `${unranked}${D?`<section class="panel daily"><span class="lbl">Expedición del día · ${S.daily}</span><p><b>${D.n}.</b> ${D.d} Mismo mapa, titanes y recompensas para todos; termina al acabar la saga 1.</p></section>`:''}<div><span class="lbl">${sagaLbl(S.wave)}</span><h2>${z.n}</h2><p class="dim">${S.map.pos?'Elige el siguiente paso de la ruta.':'Elige por dónde entra el escuadrón.'} Al fondo espera el ${TITANS[z.boss].n}.${BOSS_PW[z.boss] && !(BOSS_PW[z.boss] in S.pw) ? ` Puede soltar el poder del ${POWERS[BOSS_PW[z.boss]].n}: <b class="num" style="color:var(--gold)">${Math.round(dropP()*100)} %</b>.` : ''}</p></div>
       <div class="mapwrap">${mapSVG()}</div>
       <ul class="legend">${Object.keys(NODE).map(k=>`<li><b>${NODE[k].n}.</b> ${NODE[k].d}</li>`).join('')}</ul>
       <span class="lbl">Tu escuadrón</span>${squadHTML()}${relicsHTML()}`;
@@ -193,7 +194,7 @@ const V = {
     const f=S.fallen.map(id=>`<li>${ROSTER[id].n}</li>`).join('');
     if(S.daily) return `<section class="hero"><div class="txt"><span class="lbl">Expedición del día · ${S.daily}</span>
       <h1>${S.dailyDone?'Trost <em>resiste</em>':'Nadie <em>regresa</em>'}</h1>
-      <p>${S.dailyDone?'Has completado la saga 1 de hoy.':`Caída en la jornada ${dayOf(S.wave)} de ${PER}.`} Puntuación: <b class="num">${S.dailyScore}</b> (100 por jornada, 10 por superviviente y 500 por terminar).</p>
+      <p>${S.dailyDone?'Has completado la saga 1 de hoy.':`Caída en la jornada ${dayOf(S.wave)} de ${PER}.`} Puntuación: <b class="num">${S.dailyScore}</b> (100 por jornada superada y 500 por terminar).${cloudOn() && !S.runId ? ' Esta expedición no puntúa en la clasificación: no había sesión al empezar.' : ''}</p>
       <div class="row">${cloudOn()&&CLOUD.user?'<button class="btn" data-a="board" data-i="hoy">Ver la clasificación de hoy</button>':''}<button class="btn ghost" data-a="home">Portada</button></div></div>
       <div class="peek">${titanFig(TITANS.col.a)}</div></section>${f?`<section class="panel"><span class="lbl">Entregaron su corazón</span><ul class="fallen">${f}</ul></section>`:''}`;
     return `<section class="hero"><div class="txt"><span class="lbl">Parte de expedición</span>

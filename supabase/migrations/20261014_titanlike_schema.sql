@@ -70,3 +70,10 @@ create policy "imagenes propias: borrar" on storage.objects for delete to authen
 -- Ver la migración «logros_codice_y_diaria» aplicada en el proyecto: añade progress.extra (jsonb),
 -- la función sync_progress_v2 (unión de logros, máximo por titán en el códice), la tabla daily_scores
 -- con un intento por jugador y día, submit_daily (valida día y techo de puntuación) y la vista daily_board.
+
+-- 2026-10-14 (3): expediciones validadas en el servidor
+-- Migraciones «expediciones_validadas», «cerrar_escrituras_directas» y «tiempo_minimo_por_jornada_8s»:
+-- tabla runs; start_run (saga desbloqueada, una diaria al día, máx. 30 por hora);
+-- finish_run (jornada válida, mínimo 8 s por jornada, final solo al completar, cierra una vez,
+-- escribe daily_scores y desbloquea sagas); leaderboard calculada desde runs;
+-- sync_progress_v2 ya no toca sagas, mejor jornada ni finales; sync_progress y submit_daily revocadas.

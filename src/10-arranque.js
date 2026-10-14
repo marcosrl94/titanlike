@@ -44,8 +44,8 @@ function act(a, i){
   if(a==='board'){ CLOUD.tab = i || CLOUD.tab || 'general'; scr='board'; cloudBoard(); return; }
   if(a==='rename'){ const f=document.getElementById('nm'); return cloudRename(f && f.value); }
   if(a==='continue'){
-    S=store.get('run'); C=null;
-    if(!S || S.v!==4){ S=null; scr='sagas'; return render(); }
+    S=migrateRun(store.get('run')); C=null;
+    if(!S){ scr='sagas'; return render(); }
     if(S.scene){ scr='scene'; return render(); }
     if(S.rewards){ scr='reward'; return render(); }
     if(S.pend && S.pend.k==='fight') return startWave();

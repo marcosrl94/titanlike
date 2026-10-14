@@ -32,7 +32,6 @@ async function cloudPull(){
         nine:[...new Set(m.nine.concat(r.nine))], endings:[...new Set(m.endings.concat(r.endings))], runs:Math.max(m.runs||0, r.runs),
         ach:[...new Set(m.ach.concat((r.extra&&r.extra.ach)||[]))], codex:mergeCodex(m.codex, r.extra&&r.extra.codex)})); }
     cloudPush(true);
-    const pend = store.get('dailyPending'); if(pend) cloudDaily(pend.day, pend.score, pend.wave);
     const img = await sb.storage.from('player-images').download(uid + '/pack.json');
     if(img.data) mergePack(await img.data.text());
   }catch(e){ CLOUD.msg = 'No se pudo sincronizar con la nube.'; }
@@ -44,6 +43,7 @@ function cloudPush(now){
   clearTimeout(pushT);
   pushT = setTimeout(async ()=>{ const m=meta();
     const {error} = await CLOUD.sb.rpc('sync_progress_v2', {p_unlocked:m.unlocked, p_best:m.best, p_nine:m.nine, p_endings:m.endings, p_runs:m.runs||0, p_extra:{ach:m.ach, codex:m.codex}});
+    // las sagas desbloqueadas en la cuenta las fija el servidor al cerrar expediciones
     if(error){ CLOUD.msg='No se pudo guardar el progreso en la nube.'; render(); } }, now ? 0 : 800);
 }
 async function cloudBoard(){
@@ -71,9 +71,17 @@ function mergeCodex(a, b){
   Object.keys((b&&b.s)||{}).forEach(k=>{ o.s[k]=1; });
   return o;
 }
-// la expedición del día se envía una sola vez; si no hay sesión, queda guardada para enviarla al entrar
-async function cloudDaily(day, score, wave){
-  if(!CLOUD.user){ store.set('dailyPending', {day, score, wave}); return; }
-  const {error} = await CLOUD.sb.rpc('submit_daily', {p_day:day, p_score:score, p_wave:wave});
-  if(!error) store.del('dailyPending');
+// cada expedición se registra en el servidor al empezar y se cierra al terminar; solo así puntúa
+async function cloudStartRun(saga, daily){
+  if(!CLOUD.user || !S) return;
+  const run = S; const {data, error} = await CLOUD.sb.rpc('start_run', {p_saga:saga, p_daily:!!daily});
+  if(run!==S) return;
+  if(error){ S.runNote = 'Esta expedición no puntúa en la clasificación: ' + error.message + '.'; }
+  else { S.runId = data; S.runNote = null; }
+  store.set('run', S); if(scr==='map') render();
+}
+async function cloudFinishRun(runId, wave, ending){
+  if(!CLOUD.user || !runId) return;
+  const {error} = await CLOUD.sb.rpc('finish_run', {p_run:runId, p_wave:wave, p_ending:ending});
+  if(error){ CLOUD.msg = 'La expedición no se ha registrado: ' + error.message + '.'; render(); }
 }

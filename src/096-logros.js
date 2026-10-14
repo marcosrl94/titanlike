@@ -61,17 +61,17 @@ function dailyInfo(d=today()){ const r=mulberry(hashStr('titanlike|'+d)); return
 const dailyDone = () => meta().dailyPlayed===today();
 function newDaily(){
   const D=dailyInfo();
-  newRun([D.starter], 0);
+  skipRunStart = true; newRun([D.starter], 0); skipRunStart = false;
   S.daily=D.day; S.mod=D.mod.k; S.map=seeded('map0', ()=>genMap(0));
   if(S.mod==='escaso'){ S.gasMax-=3; S.gas=S.gasMax; }
   if(S.mod==='veterano') seeded('vet', ()=>{ const p=recruitPool().filter(id=>!ROSTER[id].rare && ROSTER[id].sg===0); recruit(pick(p)); });
   saveMeta({dailyPlayed:D.day}); store.set('run', S);
+  if(typeof cloudStartRun==='function') cloudStartRun(0, true);
 }
-// puntuación: jornadas superadas, supervivientes y bonus por terminar
-function dailyScore(done){ const j = done ? PER : S.wave-1; return j*100 + S.squad.filter(s=>s.hp>0).length*10 + (done?500:0); }
+// puntuación (la misma que calcula el servidor): 100 por jornada superada y 500 por terminar
+function dailyScore(done){ const j = done ? PER : S.wave-1; return j*100 + (done?500:0); }
 function finishDaily(done){
   S.dailyScore = dailyScore(done); S.dailyDone = done;
   saveMeta({dailyBest:{day:S.daily, score:S.dailyScore}});
   if(done) ach('diaria');
-  if(typeof cloudDaily==='function') cloudDaily(S.daily, S.dailyScore, done ? PER : S.wave-1);
 }
