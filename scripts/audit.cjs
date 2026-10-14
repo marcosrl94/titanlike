@@ -5,7 +5,7 @@ const fs=require('fs');
 const q=[]; global.setTimeout=(f)=>q.push(f);
 const mem={}; global.localStorage={getItem(k){return mem[k]||null},setItem(k,v){mem[k]=v},removeItem(k){delete mem[k]}};
 const D=__dirname+'/../src/';
-let src=['01-datos.js','02-combate.js','03-mapa.js','04-los-nueve.js','045-sendas.js','096-logros.js','0965-estadisticas.js'].map(f=>fs.readFileSync(D+f,'utf8')).join('\n');
+let src=['01-datos.js','02-combate.js','03-mapa.js','04-los-nueve.js','045-sendas.js','046-tienda.js','096-logros.js','0965-estadisticas.js'].map(f=>fs.readFileSync(D+f,'utf8')).join('\n');
 const FXK=[...fs.readFileSync(D+'08-efectos.js','utf8').matchAll(/^  async (\w+)\(e\)/gm)].map(m=>m[1]);
 src+=`
 const FXK=${JSON.stringify(FXK)}; const GRADE_ORDER_T=['S+','S','A','B','C','D','E'];
@@ -146,6 +146,10 @@ T('duelo tras una baja y juramento', ()=>{ setup(['sasha','connie'],['t3'],{wave
   if(!S.scene.heirs.some(([id])=>id==='connie')) return 'Connie no jura'; const a0=atkOf(who('connie')); sceneAct('vow'); return S.vow.connie==='sasha' && atkOf(who('connie'))>a0 && epiloguesNow().some(e=>e.k==='patata') || 'sin efecto'; });
 T('una sola jeringa: Erwin o Armin', ()=>{ setup(['levi','erwin','armin'],['t3'],{wave:40}); const i=EVENTS.findIndex(e=>e.n==='Una sola jeringa'); if(!EVENTS[i].when()) return 'no sale';
   EVENTS[i].o[1].f(); return S.pw.colosal==='armin' && !has('erwin') && deadIn('erwin') && epiloguesNow().some(e=>e.k==='ultimaorden') || JSON.stringify(S.pw); });
+T('monedas por nota y mercader', ()=>{ setup(['mikasa','eren'],['t3'],{wave:12}); S.coins=0; C.titans[0].hp=0; win(); if(!(S.coins>0)) return 'sin monedas'; S.coins=100; S.items=[]; S.shop={offers:shopOffers()};
+  const i=S.shop.offers.findIndex(o=>o.k.startsWith('it:')); shopBuy(i); const j=S.shop.offers.findIndex(o=>o.k==='instruccion'); const l0=S.squad[0].lvl; shopBuy(j); return S.items.length===1 && S.squad[0].lvl===l0+1 && S.coins<100 || 'compra fallida'; });
+T('Intendencia: no se compra sin insignias y el bolsillo amplía a 4', ()=>{ const st=statsOf(); st.shop={spent:0,own:[],eq:{}}; saveMeta({stats:st, ach:[]}); if(buyShop('bolsillo')) return 'compró sin insignias';
+  saveMeta({ach:ACH.slice(0,15).map(a=>a.k)}); if(!buyShop('bolsillo')) return 'no compró'; return itemCap()===4 || itemCap(); });
 // ======== 3) fuzz: combates enteros con acciones al azar ========
 const RES={}; const N=+process.argv[2]||600; let fights=0, turns=0;
 const IDS=Object.keys(ROSTER);

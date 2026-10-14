@@ -1,12 +1,13 @@
 // ---------- Cabecera, render y entradas ----------
 let lastScr = null, lastBolt = null;
+applyCosmetics();
 function header(){
   $('bmus').classList.toggle('off', !AU.on.m); $('bsfx').classList.toggle('off', !AU.on.s);
   $('bmus').setAttribute('aria-pressed', AU.on.m); $('bsfx').setAttribute('aria-pressed', AU.on.s);
   const h=$('hacc'); if(h) h.innerHTML = !cloudOn() ? '' : CLOUD.user
     ? `<button class="ib av-b" data-a="acct" aria-label="Tu cuenta: ${esc(userName())}" title="${esc(userName())}">${avatar('sm')}</button>`
     : `<button class="btn sm ghost hin" data-a="acct" aria-label="Entrar o crear cuenta"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Entrar</span></button>`;
-  const on = S && !['title','starter','gallery','sagas','board','codex','settings'].includes(scr) && S.map;
+  const on = S && !['title','starter','gallery','sagas','board','codex','settings','intendencia','ficha','comps','arbol'].includes(scr) && S.map;
   $('prog').hidden = !on;
   if(!on) return;
   let g=''; for(let i=0;i<S.gasMax;i++) g+=`<i class="${i<S.gas?'on':''}"></i>`;
@@ -16,7 +17,7 @@ function header(){
   let w=''; for(let i=1;i<=PER;i++) w+=`<span class="${i<d||over?'done':i===d?'now':''} ${i%5===0?'boss':''}"></span>`;
   $('wall').innerHTML=w;
   $('zname').textContent=`${sagaLbl(S.wave)} · ${zoneOf(S.wave).n}`;
-  $('zwave').textContent=`Jornada ${d} de ${PER}`;
+  $('zwave').textContent=`Jornada ${d} de ${PER} · ${S.coins||0} monedas`;
 }
 function render(){
   header();
@@ -59,6 +60,13 @@ function act(a, i){
   if(a==='logout') return cloudLogout();
   if(a==='board'){ CLOUD.tab = i || CLOUD.tab || 'general'; scr='board'; if(CLOUD.tab==='jefes') return cloudBossBoard(CLOUD.bossSel || BOSSES[0]); cloudBoard(); return; }
   if(a==='bossb') return cloudBossBoard(i);
+  if(a==='buy'){ shopBuy(+i); return render(); }
+  if(a==='shopleave'){ S.shop=null; return advance(); }
+  if(a==='reroll'){ rerollRewards(); return render(); }
+  if(a==='petate'){ if(S.petate){ (S.items=S.items||[]).push(i); S.petate=false; store.set('run',S); } return render(); }
+  if(a==='intendencia'){ scr='intendencia'; window.scrollTo(0,0); return render(); }
+  if(a==='shopbuy'){ buyShop(i); return render(); }
+  if(a==='shopeq'){ equipShop(i); return render(); }
   if(a==='arbol'){ scr='arbol'; window.scrollTo(0,0); return render(); }
   if(a==='moment') return showMoment(+i, 'Momento', true);
   if(a==='ficha'){ fichaId=i; scr='ficha'; window.scrollTo(0,0); return render(); }

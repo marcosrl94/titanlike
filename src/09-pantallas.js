@@ -71,6 +71,7 @@ const V = {
         <div class="cta2">
           <button class="btn ghost" data-a="daily" ${dailyDone()?'disabled title="Ya has jugado la de hoy"':''}>${dailyDone()?'Del día: vuelve mañana':'Expedición del día'}</button>
           <button class="btn ghost" data-a="codex">Logros · ${M.ach.length}/${ACH.length}</button>
+          <button class="btn ghost" data-a="intendencia">Intendencia · ${insignias()} insignias</button>
           <button class="btn ghost" data-a="gallery">Imágenes y música</button>
         </div>
         <span class="lbl num">Sagas desbloqueadas: ${M.unlocked} de ${SAGAS.length} · Mejor marca: ${M.best} de ${TOTAL} jornadas${M.ngLevel?` · Campañas completadas: ${M.ngLevel}`:''}</span>
@@ -132,7 +133,8 @@ const V = {
     const unranked = S.diff==='recluta' ? `<p class="note-s">${S.runNote||'Modo Recluta: esta expedición no puntúa en la clasificación.'}</p>` : !cloudOn() || S.runId ? '' : CLOUD.user
       ? `<p class="note-s">${S.runNote || 'Esta expedición empezó sin sesión y no puntúa en la clasificación. La próxima, sí.'}</p>`
       : `<div class="acc out slim"><div class="acc-t"><b>Esta expedición no puntúa</b><span>Entra con Google o con tu correo: tu progreso se guarda en la nube y las próximas expediciones entran en la clasificación.</span></div>${loginBtns()}${CLOUD.msg?`<p class="acc-msg" role="status">${esc(CLOUD.msg)}</p>`:''}</div>`;
-    return `<div class="cg mg"><div class="cg-l">${unranked}${D?`<section class="panel daily"><span class="lbl">Expedición del día · ${S.daily}</span><p><b>${D.n}.</b> ${D.d} Mismo mapa, titanes y recompensas para todos; termina al acabar la saga 1.</p></section>`:''}<div><span class="lbl">${sagaLbl(S.wave)}${S.diff&&S.diff!=='explorador'?` · ${diffOf().n}`:''}${S.ng?` · Vuelta ${S.ng+1}`:''}</span><h2>${z.n}</h2><p class="dim">${S.map.pos?'Elige el siguiente paso de la ruta.':'Elige por dónde entra el escuadrón.'} ${codexSeen('t',z.boss)?`Al fondo espera el ${TITANS[z.boss].n}.`:'Al fondo espera un cambiante.'}${BOSS_PW[z.boss] && !(BOSS_PW[z.boss] in S.pw) ? ` Puede soltar ${codexSeen('t',z.boss)?'el poder del '+POWERS[BOSS_PW[z.boss]].n:'uno de los Nueve'}: <b class="num" style="color:var(--gold)">${Math.round(dropP()*100)} %</b>.` : ''}</p></div>
+    const petate = S.petate ? `<section class="panel note"><span class="lbl">Petate de salida · elige un objeto</span><div class="row">${Object.keys(ITEMS).map(k=>`<button class="btn ghost sm" data-a="petate" data-i="${k}" title="${ITEMS[k].d}">${ITEMS[k].n}</button>`).join('')}</div></section>` : '';
+    return `<div class="cg mg"><div class="cg-l">${unranked}${petate}${D?`<section class="panel daily"><span class="lbl">Expedición del día · ${S.daily}</span><p><b>${D.n}.</b> ${D.d} Mismo mapa, titanes y recompensas para todos; termina al acabar la saga 1.</p></section>`:''}<div><span class="lbl">${sagaLbl(S.wave)}${S.diff&&S.diff!=='explorador'?` · ${diffOf().n}`:''}${S.ng?` · Vuelta ${S.ng+1}`:''}</span><h2>${z.n}</h2><p class="dim">${S.map.pos?'Elige el siguiente paso de la ruta.':'Elige por dónde entra el escuadrón.'} ${codexSeen('t',z.boss)?`Al fondo espera el ${TITANS[z.boss].n}.`:'Al fondo espera un cambiante.'}${BOSS_PW[z.boss] && !(BOSS_PW[z.boss] in S.pw) ? ` Puede soltar ${codexSeen('t',z.boss)?'el poder del '+POWERS[BOSS_PW[z.boss]].n:'uno de los Nueve'}: <b class="num" style="color:var(--gold)">${Math.round(dropP()*100)} %</b>.` : ''}</p></div>
       <div class="mapwrap">${mapSVG()}</div>
       <ul class="legend">${Object.keys(NODE).map(k=>`<li><b>${NODE[k].n}.</b> ${NODE[k].d}</li>`).join('')}</ul></div>
       <div class="cg-r"><span class="lbl">Tu escuadrón</span>${squadHTML()}${relicsHTML()}</div></div>`;
@@ -183,7 +185,7 @@ const V = {
     const t=curNode().t, nx=SAGAS[sagaIx(S.wave)+1];
     return `<div>${S.sagaDone?`<span class="lbl">${sagaLbl(S.wave)}</span>`:''}<h2>${S.sagaDone?'Saga completada':t==='b'?'Cambiante derrotado':t==='e'?'Élite abatida':'Zona despejada'}</h2>
       <p class="dim">${S.sagaDone&&nx?`Se abre la saga ${sagaIx(S.wave)+2}, «${nx.n}». El escuadrón sigue adelante con el depósito lleno. `:'Los supervivientes suben de nivel. '}${S.picks>1?`Elige ${S.picks} recompensas.`:'Elige una recompensa.'}</p></div>
-      ${gradeHTML(S.lastGrade)}
+      ${gradeHTML(S.lastGrade)}${canReroll()?`<div class="row"><button class="btn ghost sm" data-a="reroll">Relanzar recompensas · una vez por saga</button></div>`:''}
       ${S.note?`<section class="panel note"><p>${S.note}</p></section>`:''}
       <div class="cards">${S.rewards.map((r,i)=> r.t==='rec'
         ? `<button class="card" data-a="reward" data-i="${i}"><span class="lbl kind">Recluta${ROSTER[r.id].rare?' veterano':''} · se une al nivel ${joinLvl()}</span>${solCard(r.id, joinLvl())}</button>`
@@ -195,6 +197,14 @@ const V = {
     return `<div><h2>El escuadrón está completo</h2>
       <p class="dim">${ROSTER[pendingRec.id].n} ocupa el puesto de quien elijas. El relevado vuelve a las murallas.</p></div>
       ${squadHTML('swap')}<div><button class="btn ghost" data-a="back">Volver a las recompensas</button></div>`;
+  },
+  shop(){
+    const O=S.shop.offers, c=S.coins||0, full=(S.items||[]).length>=itemCap();
+    return `<div><span class="lbl">Mercader</span><h2>Un carro en el cruce</h2><p class="dim">Un comerciante del interior vende lo que le sobra a la Guarnición. Tienes <b class="num" style="color:var(--gold)">${c} monedas</b>; se ganan con la nota de cada combate.${owns('amigo')?' Te hace un 20 % de descuento.':''}</p></div>
+      <div class="cards">${O.map((o,i)=>{ const isIt=o.k.startsWith('it:'), off=o.sold || c<o.p || (isIt&&full);
+        return `<button class="card shopc ${o.sold?'sold':''}" data-a="buy" data-i="${i}" ${off?'disabled':''}><span class="lbl kind">${o.sold?'Comprado':isIt?'Objeto':'Servicio'}</span><h3>${o.n}</h3><p>${o.d}${o.got?` <b>${o.got}</b>.`:''}${isIt&&full&&!o.sold?' <b>Llevas el máximo de objetos.</b>':''}</p><span class="price num">${o.p} monedas</span></button>`; }).join('')}</div>
+      <div><button class="btn" data-a="shopleave">Seguir la ruta</button></div>
+      <span class="lbl">Tu escuadrón</span>${squadHTML()}${relicsHTML()}`;
   },
   camp(){
     return `<div><h2>Campamento</h2><p class="dim">Hay tiempo para una sola cosa antes de que amanezca.</p></div>
@@ -246,6 +256,7 @@ const V = {
       <div class="peek">${titanFig(won?(S.ending==='paradis'?TITANS.mar.a:TITANS.fun.a):TITANS.col.a)}</div></section>
       ${won && (S.epilogues||[]).length ? `<section class="panel epis"><span class="lbl">Epílogos</span>${S.epilogues.map(k=>EPILOGUES.find(e=>e.k===k)).filter(Boolean).map(e=>`<div class="epi">${e.who?portrait(e.who,true):''}<div><b>${e.n}</b><p>${e.d}</p></div></div>`).join('')}</section>` : ''}
       ${won?gradeHTML(S.lastGrade):''}
+      ${insigniasEarned()-(S.ins0||0)>0?`<section class="panel note"><p><b>+${insigniasEarned()-(S.ins0||0)} insignias</b> en esta expedición. Tienes ${insignias()} para gastar en la Intendencia.</p><div class="row"><button class="btn ghost sm" data-a="intendencia">Ir a la Intendencia</button></div></section>`:''}
       ${cloudOn()&&!CLOUD.user?accountHTML('end'):''}
       ${f?`<section class="panel"><span class="lbl">Entregaron su corazón</span><ul class="fallen">${f}</ul></section>`:''}`;
   },

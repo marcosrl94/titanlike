@@ -4,13 +4,13 @@ let skipRunStart = false;   // la diaria registra su propia expedición
 function migrateRun(r){
   if(!r || !r.v || r.v<3 || !r.map) return null;
   if(r.v===3){ Object.assign(r, {pw:{}, q:[], loyal:{}, pity:0, after:null, scene:null, note:null}); r.v=4; }
-  r.items = r.items || []; r.napes = r.napes || 0; r.fallen = r.fallen || []; r.rel = r.rel || {}; r.diff = r.diff || 'explorador'; r.ng = r.ng || 0; r.route = r.route || {}; r.flags = r.flags || {}; r.deaths = r.deaths || []; r.vow = r.vow || {};
+  r.items = r.items || []; r.napes = r.napes || 0; r.fallen = r.fallen || []; r.rel = r.rel || {}; r.diff = r.diff || 'explorador'; r.ng = r.ng || 0; r.route = r.route || {}; r.flags = r.flags || {}; r.deaths = r.deaths || []; r.vow = r.vow || {}; r.coins = r.coins || 0;
   return r;
 }
 const meta = () => Object.assign({unlocked:1, best:0, nine:[], endings:[], ach:[], codex:{t:{},s:{}}}, store.get('meta')||{});
 function saveMeta(p){ store.set('meta', Object.assign(meta(), p)); if(typeof cloudPush==='function') cloudPush(); }
 function rollType(r, z){
-  const w = (z>0 ? r>=1 : r>=3) ? [['c',40],['e',18],['v',22],['k',20]] : [['c',50],['v',28],['k',22]];
+  const w = (z>0 ? r>=1 : r>=3) ? [['c',37],['e',17],['v',20],['k',17],['t',9]] : r>=1 ? [['c',46],['v',26],['k',19],['t',9]] : [['c',50],['v',28],['k',22]];
   let x = Math.random()*w.reduce((a,b)=>a+b[1],0);
   for(const [t,p] of w){ x-=p; if(x<0) return t; }
   return 'c';
@@ -47,7 +47,7 @@ const relicsMax = n => Math.min(3, n);   // reliquias que se pueden llevar en la
 function newRun(ids, saga=0, diff, ng){
   const w = saga*PER + 1;
   saveMeta({runs:(meta().runs||0)+1});
-  S = {v:4, diff: diff || (typeof CFG!=='undefined' && DIFF[CFG.diff] ? CFG.diff : 'explorador'), ng:(ng&&ng.level)||0, wave:w, squad:ids.map(id=>({id, lvl:saga?startLvl(saga):w, hp:0})), fallen:[], rel:{}, pw:{}, q:[], loyal:{}, pity:0, after:null, scene:null, note:null, gas:10+2*saga, gasMax:10+2*saga, route:{}, flags:{}, map:genMap(saga*3), rewards:null, picks:0, pend:null, kit:[], items:[]};
+  S = {v:4, diff: diff || (typeof CFG!=='undefined' && DIFF[CFG.diff] ? CFG.diff : 'explorador'), ng:(ng&&ng.level)||0, wave:w, squad:ids.map(id=>({id, lvl:saga?startLvl(saga):w, hp:0})), fallen:[], rel:{}, pw:{}, q:[], loyal:{}, pity:0, after:null, scene:null, note:null, gas:10+2*saga, gasMax:10+2*saga, route:{}, flags:{}, coins:(typeof owns==='function'&&owns('bolsa'))?15:0, petate:typeof owns==='function'&&owns('petate'), ins0:typeof insigniasEarned==='function'?insigniasEarned():0, map:genMap(saga*3), rewards:null, picks:0, pend:null, kit:[], items:[]};
   for(let i=0;i<KITS[saga];i++) S.kit.push(randomUpg());
   S.kitPw = KIT_PW[saga];
   S.squad.forEach(s=>{ s.hp=maxHp(s); bringPower(s.id); codex('s', s.id); });
@@ -69,6 +69,7 @@ function enterNode(r, j){
   if(t==='b'){ const boss=zoneOf(S.wave).boss, b=betrayer(boss); if(b) return startBetrayal(b, boss); }
   if(t==='v'){ const ok=EVENTS.map((e,i)=>i).filter(i=>!EVENTS[i].when || EVENTS[i].when()); const pr=ok.filter(i=>EVENTS[i].prio); S.pend={k:'event', i:pr.length ? pr[0] : seeded('ev'+S.wave+'-'+r+'-'+j, ()=>pick(ok.filter(i=>!EVENTS[i].prio))), res:null}; scr='event'; }
   else if(t==='k'){ S.pend={k:'camp'}; scr='camp'; }
+  else if(t==='t'){ S.pend={k:'shop'}; S.shop={offers:seeded('shop'+S.wave+'-'+r+'-'+j, shopOffers)}; scr='shop'; }
   else S.pend={k:'fight'};
   store.set('run', S);
   if(S.pend.k==='fight') startWave(); else render();
@@ -92,6 +93,7 @@ function win(){
   S.q = []; S.note = null;
   const G = S.lastGrade = rateFight(t);   // nota del combate: se muestra en la recompensa
   if(typeof recordFight==='function') recordFight(G);
+  if(typeof coinsFor==='function'){ G.coins=coinsFor(G,t); S.coins=(S.coins||0)+G.coins; }
   const lost = S.squad.filter(s=>s.hp<=0).length;
   if(typeof cloudTelemetry==='function') cloudTelemetry('fight', {node:t, win:true, titans:C.titans.map(x=>x.id), rounds:C.rounds, taken:C.taken, gas:[C.gas0, S.gas], lost, squad:S.squad.map(x=>x.id+':'+x.lvl+':'+Math.round(x.hp/maxHp(x)*100)), pw:Object.keys(C.usedPw), acts:C.acts, comp:C.comp, grade:G.g, score:G.score, boss:G.boss});
   C.titans.forEach(x=>{ if(x.hp<=0) codex('t', x.id); });
@@ -146,7 +148,7 @@ function genRewards(t){
   // de un solo uso: cierran el hueco cuando las apilables llegan a su tope
   const once = ['shadis'].concat(hurt?['raciones']:[], S.gas<S.gasMax-3?['recarga']:[]).sort(()=>Math.random()-.5);
   while(out.length<total){ const k = ups.pop() || once.pop() || pick(['shadis','raciones','recarga']); out.push({t:'upg', id:k}); }
-  if((S.items||[]).length<3 && Math.random()<.45) out[out.length-1] = {t:'item', id:pick(Object.keys(ITEMS))};
+  if((S.items||[]).length<(typeof itemCap==='function'?itemCap():3) && Math.random()<.45) out[out.length-1] = {t:'item', id:pick(Object.keys(ITEMS))};
   return out;
 }
 function applyUpg(k){

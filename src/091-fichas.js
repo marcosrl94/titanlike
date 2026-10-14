@@ -130,3 +130,17 @@ V.arbol = function(){
     <span class="lbl">Personajes de la historia</span>
     <div class="cards people">${people.map(([pid,n,d,rid])=>`<div class="card">${portrait(pid)}<div><b>${n}</b><p class="dim">${d}${rid?(codexSeen('s',rid)?' <span class="lbl" style="color:var(--gold)">Conocido · se puede elegir al empezar</span>':''):''}</p></div></div>`).join('')}</div>`;
 };
+
+// ---- Intendencia: insignias, de dónde salen y en qué se gastan ----
+V.intendencia = function(){
+  const src=insigniaSources(), sh=shopOf(), have=insignias();
+  const card = k => { const it=SHOP[k], own=sh.own.includes(k), eq=sh.eq[it.kind]===k;
+    return `<div class="card shopc ${own?'own':''}"><span class="lbl kind">${it.kind==='exp'?'Para la expedición':it.kind==='dado'?'Dado':'Marco'}</span><h3>${it.n}</h3><p>${it.d}</p>
+      ${own ? (it.kind==='exp' ? '<span class="lbl" style="color:var(--cloak-hi)">Tuyo</span>' : `<button class="btn ${eq?'':'ghost'} sm" data-a="shopeq" data-i="${k}">${eq?'Equipado':'Equipar'}</button>`)
+            : `<button class="btn sm" data-a="shopbuy" data-i="${k}" ${have<it.p?'disabled':''}>${it.p} insignias</button>`}</div>`; };
+  return `<div><h2>Intendencia</h2><p class="dim">Las insignias salen de lo que has conseguido y no se pierden. Aquí se cambian por ventajas para empezar mejor y por estética; nada sube las estadísticas en bruto. Dentro de cada expedición hay monedas aparte, que se ganan con la nota de cada combate y se gastan en el mercader del mapa.</p></div>
+    <div class="row"><button class="btn ghost" data-a="home">Volver</button><span class="ins num">${have} insignias</span><span class="lbl">${insigniasEarned()} ganadas · ${sh.spent} gastadas</span></div>
+    <section class="panel"><span class="lbl">Cómo se ganan</span><div class="tablewrap"><table class="chart num"><tbody>${src.map(x=>`<tr><td><b>${x.n}</b></td><td class="dim">${x.d}</td><td style="text-align:right"><b>${x.v}</b></td></tr>`).join('')}</tbody></table></div></section>
+    <span class="lbl">Para la expedición</span><div class="cards">${Object.keys(SHOP).filter(k=>SHOP[k].kind==='exp').map(card).join('')}</div>
+    <span class="lbl">Estética</span><div class="cards">${Object.keys(SHOP).filter(k=>SHOP[k].kind!=='exp').map(card).join('')}</div>`;
+};

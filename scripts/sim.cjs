@@ -2,7 +2,7 @@ const fs=require('fs');
 const q=[]; global.setTimeout=(f)=>q.push(f);
 const mem={}; global.localStorage={getItem(k){return mem[k]||null},setItem(k,v){mem[k]=v},removeItem(k){delete mem[k]}};
 const D=__dirname+'/../src/';
-let src=['01-datos.js','02-combate.js','03-mapa.js','04-los-nueve.js','045-sendas.js','096-logros.js','0965-estadisticas.js'].map(f=>fs.readFileSync(D+f,'utf8')).join('\n');
+let src=['01-datos.js','02-combate.js','03-mapa.js','04-los-nueve.js','045-sendas.js','046-tienda.js','096-logros.js','0965-estadisticas.js'].map(f=>fs.readFileSync(D+f,'utf8')).join('\n');
 if(process.env.MUL) src=src.replace(/const SAGA_MUL = \[[^\]]*\]/, 'const SAGA_MUL = ['+process.env.MUL+']');
 if(process.env.DROP) src=src.replace('.4 + (S.pity||0)', process.env.DROP+' + (S.pity||0)');
 if(process.env.ARMIN) src=src.replace(/armin:  \{n:'Armin',  st:'tactico', hp:65,  atk:11, spd:11/, 'armin:  {n:\'Armin\',  st:\'tactico\', '+process.env.ARMIN);
@@ -37,6 +37,7 @@ function run(ids, saga){ newRun(ids, saga); let n=0;
       if(sc.k==='spare'){ sceneAct(Math.random()<.5?'rescue':'take'); continue; }
       if(sc.k==='drop'){ const r=S.squad.find(x=>hasRoom(x)); sceneAct(r?'give:'+r.id:'keep'); continue; }
       sceneAct('go'); continue; }
+    if(scr==='shop'){ const pr=['vendas','instruccion','mejora','gas']; S.shop.offers.map((o,i)=>[o,i]).sort((x,y)=>(pr.indexOf(x[0].k)+9)%9-(pr.indexOf(y[0].k)+9)%9).forEach(([o,i])=>{ if(!o.sold && S.coins>=o.p && (o.k!=='vendas' || S.squad.some(s=>s.hp<maxHp(s)*.6))) shopBuy(i); }); S.shop=null; advance(); continue; }
     if(scr==='camp'){ const hp=S.squad.reduce((a,s)=>a+s.hp/maxHp(s),0)/S.squad.length; CAMP[hp<.6?0:1].f(); advance(); continue; }
     if(scr==='event'){ pick(EVENTS[S.pend.i].o).f(); if(S.q.length){ S.after='advance'; nextScene(); } else advance(); continue; }
     if(scr==='reward'){ let i=S.rewards.findIndex(r=>r.t==='rec'&&S.squad.length<4); if(i<0) i=S.rewards.findIndex(r=>r.t==='upg'); const r=S.rewards[i]; r.t==='rec'?recruit(r.id):r.t==='item'?(S.items=S.items||[]).push(r.id):applyUpg(r.id); tookReward(i); continue; }

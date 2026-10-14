@@ -1,5 +1,12 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-15.8', t:'Monedas, mercader e Intendencia', items:[
+    'Monedas: cada combate ganado da monedas según su nota (de 4 con una E a 22 con una S+; el doble contra jefes, ×1,5 contra élites). Se ven arriba, junto a la jornada.',
+    'Mercader: un nodo nuevo en el mapa. Vende objetos, vendas (40 % de vida), bombonas (+5 de gas), instrucción (+1 nivel a todos) y cajas con una mejora al azar. Las monedas no pasan de una expedición a otra.',
+    'Intendencia (portada y menú): insignias permanentes que salen de lo conseguido (logros, finales, epílogos, sendas, notas S, récords de jefe, mejor jornada y campañas). Al acabar cada expedición ves cuántas has ganado.',
+    'Se gastan en ventajas de elección, nunca en estadísticas: bolsa con 15 monedas al salir, un objeto a elegir al empezar, descuento en el mercader, relanzar recompensas una vez por saga y un cuarto bolsillo para objetos. Y en estética: dados de bronce, cristal, sangre y oro, y marcos para los retratos.',
+    'En simulación, el mercader sube la tasa de victoria entre uno y cinco puntos: ayuda, pero no decide la partida.'
+  ]},
   {v:'2026-10-15.7', t:'Las bajas también escriben la historia', items:[
     'Tras un combate con bajas hay duelo: el escuadrón entierra a los caídos y decide entre seguir adelante (+3 de gas y un 10 % de vida) o jurar por ellos.',
     'Juramentos: quien tenía un vínculo con el caído (Mikasa y Armin con Eren, Connie con Sasha, Levi con Erwin, Historia con Ymir, los guerreros entre sí…) sube 2 niveles y hace un 10 % más de daño el resto de la expedición. Se ve en su tarjeta.',

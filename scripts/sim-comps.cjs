@@ -5,7 +5,7 @@ const fs=require('fs');
 const q=[]; global.setTimeout=(f)=>q.push(f);
 const mem={}; global.localStorage={getItem(k){return mem[k]||null},setItem(k,v){mem[k]=v},removeItem(k){delete mem[k]}};
 const D=__dirname+'/../src/';
-let src0=['01-datos.js','02-combate.js','03-mapa.js','04-los-nueve.js','045-sendas.js','096-logros.js','0965-estadisticas.js'].map(f=>fs.readFileSync(D+f,'utf8')).join('\n');
+let src0=['01-datos.js','02-combate.js','03-mapa.js','04-los-nueve.js','045-sendas.js','046-tienda.js','096-logros.js','0965-estadisticas.js'].map(f=>fs.readFileSync(D+f,'utf8')).join('\n');
 let src=src0;
 if(process.env.MUL) src=src.replace(/const SAGA_MUL = \[[^\]]*\]/, 'const SAGA_MUL = ['+process.env.MUL+']');
 if(process.env.GROW) src=src.replace('(1 + .15*(w-1))', '(1 + '+process.env.GROW+'*(w-1))');
@@ -65,6 +65,7 @@ function run(ids, saga){ newRun(ids, saga); if(process.env.ROUTE){ const [g,k]=p
       if(sc.k==='spare'){ sceneAct('take'); continue; }
       if(sc.k==='drop'){ const r=S.squad.find(x=>hasRoom(x)); sceneAct(r?'give:'+r.id:'keep'); continue; }
       sceneAct('go'); continue; }
+    if(scr==='shop'){ const pr=['vendas','instruccion','mejora','gas']; S.shop.offers.map((o,i)=>[o,i]).sort((x,y)=>(pr.indexOf(x[0].k)+9)%9-(pr.indexOf(y[0].k)+9)%9).forEach(([o,i])=>{ if(!o.sold && S.coins>=o.p && (o.k!=='vendas' || S.squad.some(s=>s.hp<maxHp(s)*.6))) shopBuy(i); }); S.shop=null; advance(); continue; }
     if(scr==='camp'){ const hp=S.squad.reduce((a,s)=>a+s.hp/maxHp(s),0)/S.squad.length; (hp<.6?CAMP[0]:S.gas<S.gasMax*.4?CAMP[2]:CAMP[1]).f(); advance(); continue; }
     if(scr==='event' && EVENTS[S.pend.i].prio && process.env.ALT!=='0'){ const o=EVENTS[S.pend.i].o[0]; o.f(); if(S.q.length){ S.after='advance'; nextScene(); } else advance(); continue; }
     if(scr==='event'){ const E=EVENTS[S.pend.i]; const o=E.o[0].d.match(/gas/i)&&S.gas<S.gasMax*.5?E.o[0]:E.o[1].d.match(/gas/i)&&S.gas<S.gasMax*.5?E.o[1]:pick(E.o); o.f(); if(S.q.length){ S.after='advance'; nextScene(); } else advance(); continue; }
