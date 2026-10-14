@@ -11,6 +11,8 @@ const TIPS = {
   items:  {t:'Objetos', d:'Los objetos son una acción libre: puedes usar uno por turno sin perder la orden del soldado. Sobre cada titán ves el daño previsto de la orden elegida y si lo abatiría.'},
   phase:  {t:'Segunda fase', d:'Al bajar del 50 % de PV, los jefes se enfurecen: pegan algo más fuerte, son más rápidos y repiten antes sus ataques especiales.'},
   dados:  {t:'Los dados', d:'Cada corte tira un d20: con 19 o 20 es crítico (17 a 20 para los Precisos) y con un 1 el corte resbala y hace la mitad. Cada golpe recibido da una tirada de esquiva que mejora con la velocidad. En los eventos, el mejor del escuadrón en cada habilidad (Sigilo, Percepción, Aguante, Ingenio) tira por todos.'},
+  coraza: {t:'Coraza', d:'El Acorazado recibe la mitad de daño mientras le quede coraza (la barra azul). Las lanzas trueno de Hange, la Mandíbula y las cargas explosivas la ignoran. Al romperla queda expuesto dos turnos y recibe daño ×1,5; luego regenera parte.'},
+  aturdido:{t:'Aturdido', d:'El Bestia lanza a un soldado contra las casas y la Hembra lo patea: el soldado pierde su próximo turno. El Señuelo de Connie esquiva el lanzamiento. Contra el Sonriente y la Mandíbula, si nadie cubre al más herido (Escudo humano o Señuelo), el mordisco es devastador.'},
   alert:  {t:'Alerta', d:'Un titán cegado o derribado se pone en guardia: durante sus 2 turnos siguientes no se deja cegar ni derribar otra vez. Los cambiantes ni siquiera se dejan cegar: regeneran el ojo al instante. El control da un respiro, no anula al enemigo.'},
   power:  {t:'Poderes de los Nueve', d:'Quien hereda un poder gana un 25 % de PV y puede transformarse una vez por combate. Cada soldado lleva uno; Eren, hasta tres.'}
 };
@@ -18,7 +20,7 @@ let tipsSeen = store.get('tips') || {};
 function currentTip(){
   if(tipsSeen.off) return null;
   const k = scr==='map' ? 'map'
-    : scr==='combat' && C && C.active && !C.busy ? (C.titans.some(t=>t.alert>0) && !tipsSeen.alert ? 'alert' : C.titans.some(t=>t.phase) && !tipsSeen.phase ? 'phase' : C.titans.some(t=>t.boss) && !tipsSeen.boss ? 'boss' : (S.items||[]).length && !tipsSeen.items ? 'items' : ['combat','intent','eff','dados'].find(x=>!tipsSeen[x]))
+    : scr==='combat' && C && C.active && !C.busy ? (C.titans.some(t=>t.plate>0||t.exposed>0) && !tipsSeen.coraza ? 'coraza' : S.squad.some(x=>C.fx[x.id]&&C.fx[x.id].stun>0) && !tipsSeen.aturdido ? 'aturdido' : C.titans.some(t=>t.alert>0) && !tipsSeen.alert ? 'alert' : C.titans.some(t=>t.phase) && !tipsSeen.phase ? 'phase' : C.titans.some(t=>t.boss) && !tipsSeen.boss ? 'boss' : (S.items||[]).length && !tipsSeen.items ? 'items' : ['combat','intent','eff','dados'].find(x=>!tipsSeen[x]))
     : scr==='reward' ? 'reward' : scr==='event' ? 'event' : scr==='camp' ? 'camp'
     : scr==='scene' && S && S.scene && S.scene.k==='drop' ? 'power' : null;
   return k && !tipsSeen[k] ? k : null;

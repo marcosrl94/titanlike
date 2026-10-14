@@ -6,16 +6,16 @@ const chip = st => `<span class="chip s-${st}">${STYLE[st]}</span>`;
 const traitsOf = id => Object.keys(SKILLS).map(k=>[k, ((ROSTER[id].tr||{})[k]||0) + (STYLE_SKILL[ROSTER[id].st]===k?1:0)]).filter(x=>x[1]>0).sort((x,y)=>y[1]-x[1]);
 const traitsHTML = id => `<span class="lbl num traits">${traitsOf(id).map(([k,v])=>`${SKILLS[k]} +${v}`).join(' · ')}</span>`;
 function solCard(id, lvl){   // lvl: nivel al que se uniría ahora (stats escaladas); sin lvl, stats base
-  const R=ROSTER[id], k = lvl ? lvlMul({lvl}) : 1, hp = lvl ? Math.round(R.hp*k*(1+.15*rel('capa'))) : R.hp;
+  const R=ROSTER[id], k = lvl ? lvlMul({lvl}) : 1, rl = x => (S && S.rel) ? rel(x) : 0, hp = lvl ? Math.round(R.hp*k*(1+.15*rl('capa'))) : R.hp;
   return `<div class="who">${portrait(id,true)}<div><h3>${R.n}</h3><div class="row" style="gap:6px">${chip(R.st)}${lvl?`<small class="lbl num">Nv ${lvl}</small>`:''}</div></div></div>
-    <div class="stats num"><span><b>PV</b>${hp}</span><span><b>ATQ</b>${Math.round(R.atk*k)}</span><span><b>VEL</b>${lvl?R.spd+3*rel('caballos'):R.spd}</span></div>
+    <div class="stats num"><span><b>PV</b>${hp}</span><span><b>ATQ</b>${Math.round(R.atk*k)}</span><span><b>VEL</b>${lvl?R.spd+3*rl('caballos'):R.spd}</span></div>
     <p><b>${R.sk.n}</b>${R.sk.gas?` · ${R.sk.gas} gas`:''}${R.sk.cd?` · recarga ${R.sk.cd}`:''}. ${R.sk.d}</p>${traitsHTML(id)}`;
 }
 function squadHTML(mode){   // mode: 'ally' (elegir compañero), 'swap' (relevar) o nada
   return `<div class="squad">`+S.squad.map(s=>{
     const R=ROSTER[s.id], m=maxHp(s), f=C&&C.fx[s.id]||{};
     const aim = C && CFG.intent && scr==='combat' && s.hp>0 ? C.titans.filter(t=>t.hp>0 && (t.intent===s.id || t.intent==='all')).length : 0;
-    const st=[aim&&`En el punto de mira${aim>1?' ×'+aim:''}`,f.titan>0&&'Titán',f.up>0&&'Flanqueo',f.crit>0&&'Olfato',f.guard>0&&'Escudo',f.taunt>0&&'Señuelo'].filter(Boolean).join(' · ');
+    const st=[f.stun>0&&'Aturdido',aim&&`En el punto de mira${aim>1?' ×'+aim:''}`,f.titan>0&&'Titán',f.up>0&&'Flanqueo',f.crit>0&&'Olfato',f.guard>0&&'Escudo',f.taunt>0&&'Señuelo'].filter(Boolean).join(' · ');
     const can = mode && s.hp>0;
     const cl=['sol', s.hp<=0&&'dead', C&&C.active===s&&'active', can&&'pick'].filter(Boolean).join(' ');
     const pic = f.formT>0 ? `<span class="pt tf">${titanArt(POWERS[f.form].art)}</span>` : portrait(s.id);
@@ -114,12 +114,14 @@ const V = {
     if(g===0) return `<div><span class="lbl">Saga 1 · ${SAGAS[0].n}</span><h2>Elige a tu primer recluta</h2></div>
       <div class="cards">${starters().map(id=>`<button class="card" data-a="start" data-i="${id}">${solCard(id)}</button>`).join('')}
         ${ACH.filter(a=>a.unlock && !starters().includes(a.unlock)).map(a=>`<div class="card locked"><div class="who">${portrait(a.unlock,true)}<div><h3>${ROSTER[a.unlock].n}</h3><span class="lbl">Bloqueado</span></div></div><p>Se desbloquea con el logro «${a.n}»: ${a.d}</p></div>`).join('')}</div>`;
-    const pool=Object.keys(ROSTER).filter(id=>ROSTER[id].sg<=g && !ROSTER[id].rare);
-    const n=startSize(g);
+    const pool=Object.keys(ROSTER).filter(id=>ROSTER[id].sg<=g).sort((a,b)=>(ROSTER[b].rare?1:0)-(ROSTER[a].rare?1:0));
+    const n=startSize(g), npw=KIT_PW[g];
     return `<div><span class="lbl">Saga ${g+1} · ${SAGAS[g].n}</span><h2>Forma un escuadrón de ${n===4?'cuatro':'tres'}</h2>
-      <p class="dim">Empiezan en nivel ${startLvl(g)}, con ${KITS[g]} mejoras al azar y ${KIT_PW[g]} poder${KIT_PW[g]>1?'es':''} de los Nueve, como si vinieran de las sagas anteriores.</p></div>
+      <p class="dim">Veteranos de nivel ${startLvl(g)} con ${KITS[g]} mejoras al azar, como si vinieran de las sagas anteriores. Los soldados raros también están disponibles.</p></div>
       <div class="row"><button class="btn" data-a="go" ${picked.length===n?'':'disabled'}>Partir · ${picked.length} de ${n}</button><button class="btn ghost" data-a="sagas">Cambiar de saga</button></div>
-      <div class="cards">${pool.map(id=>`<button class="card ${picked.includes(id)?'sel':''}" data-a="pickst" data-i="${id}" aria-pressed="${picked.includes(id)}">${solCard(id)}</button>`).join('')}</div>`;
+      ${npw?`<section class="panel"><span class="lbl">Poderes de los Nueve · ${relicPick.length} de ${npw}</span><p class="dim">Elige con qué poderes salen (los que no elijas se sortean). Los lleva quien tenga hueco; Eren, hasta tres.</p>
+        <div class="row">${MINOR.map(k=>`<button class="btn sm ${relicPick.includes(k)?'':'ghost'}" data-a="kitpw" data-i="${k}" aria-pressed="${relicPick.includes(k)}" title="${POWERS[k].d}">${POWERS[k].n.replace(/^Titán (de )?/,'')}</button>`).join('')}</div></section>`:''}
+      <div class="cards">${pool.map(id=>`<button class="card ${picked.includes(id)?'sel':''}" data-a="pickst" data-i="${id}" aria-pressed="${picked.includes(id)}">${solCard(id, startLvl(g))}${ROSTER[id].rare?'<span class="lbl kind">Veterano raro</span>':''}</button>`).join('')}</div>`;
   },
   map(){
     const z=zoneOf(S.wave);
@@ -134,31 +136,39 @@ const V = {
   },
   combat(){
     const a=C.active, P=C.pending, canAct = a && !C.busy, ph=-((performance.now()/1000)%4.2).toFixed(2);
-    const tit = C.titans.map((t,i)=>{
+    const plates=[]; const tit = C.titans.map((t,i)=>{
       const pk = canAct && P && P.tgt==='enemy' && t.hp>0;
       const e = a && t.hp>0 ? eff(a,t) : 1;
-      const st=[t.mark>0&&'Marcado',t.stun>0&&'Derribado',t.blind>0&&'Cegado',t.hard>0&&'Endurecido',!(t.stun>0||t.blind>0)&&t.alert>0&&`Alerta ${t.alert}`].filter(Boolean).join(' · ');
+      const st=[t.plate>0&&'Coraza',t.exposed>0&&'Expuesto',t.mark>0&&'Marcado',t.stun>0&&'Derribado',t.blind>0&&'Cegado',t.hard>0&&'Endurecido',!(t.stun>0||t.blind>0)&&t.alert>0&&`Alerta ${t.alert}`].filter(Boolean).join(' · ');
       const cl=['titan','z-'+t.cls, t.boss&&'boss', t.phase&&'enraged', t.hp<=0&&'dead', pk&&'pick'].filter(Boolean).join(' ');
-      const inner=`${e!==1?`<span class="eff num ${e>1?'up':'down'}">×${String(e).replace('.',',')}</span>`:''}
-        <span class="art" style="animation-delay:${ph-i*.7}s">${titanArt(t.id)}</span>
-        <span class="plate"><h3>${t.n}</h3><span class="chip c-cls">${CLS[t.cls]}</span>
-        <span class="bar"><i style="width:${t.hp/t.max*100}%"></i></span><span class="lbl num hpn">${t.hp} / ${t.max} PV</span><span class="st">${st}</span>
-        ${(()=>{ const e = canAct && CFG.preview && estimate(a, t, P ? P.kind : 'cut'); return e ? `<span class="prev ${e.kill?'kill':''}">${P?'':'Corte '}≈ ${e.lo===e.hi?e.lo:e.lo+'–'+e.hi}${e.kill?' · abate':''}</span>` : ''; })()}
-        ${CFG.intent && t.hp>0 && t.intent ? `<span class="int ${t.intent==='all'?'all':''}" title="${AI_TXT[aiOf(t)]}">Ataca a: ${t.intent==='all' ? 'todo el escuadrón' : esc(ROSTER[t.intent].n)}</span>` : ''}</span>`;
-      return pk ? `<button class="${cl}" data-u="t${i}" data-a="titan" data-i="${i}">${inner}</button>` : `<div class="${cl}" data-u="t${i}">${inner}</div>`;
+      const prev=(()=>{ const e = canAct && CFG.preview && estimate(a, t, P ? P.kind : 'cut'); return e ? `<span class="prev ${e.kill?'kill':''}">${P?'':'Corte '}≈ ${e.lo===e.hi?e.lo:e.lo+'–'+e.hi}${e.kill?' · abate':''}</span>` : ''; })();
+      const intent = CFG.intent && t.hp>0 && t.intent ? `<span class="int ${t.intent==='all'?'all':''}" title="${AI_TXT[aiOf(t)]}">Ataca a: ${t.intent==='all' ? 'todo el escuadrón' : esc(ROSTER[t.intent].n)}</span>` : '';
+      // ficha del enemigo (caja a lo Pokémon, arriba a la izquierda); también sirve para elegirlo como objetivo
+      plates.push(`<${pk?'button':'div'} class="plate ${t.boss?'boss':''} ${t.hp<=0?'dead':''} ${pk?'pick':''}" data-u="t${i}" ${pk?`data-a="titan" data-i="${i}"`:''}>
+        <span class="row" style="gap:6px;justify-content:space-between"><h3>${t.n}</h3>${e!==1?`<span class="eff num ${e>1?'up':'down'}">×${String(e).replace('.',',')}</span>`:''}</span>
+        <span class="row" style="gap:6px"><span class="chip c-cls">${CLS[t.cls]}</span><span class="lbl num hpn">${t.hp} / ${t.max} PV</span></span>
+        <span class="bar"><i style="width:${t.hp/t.max*100}%"></i></span>${t.plate>0?`<span class="bar plate" title="Coraza"><i style="width:${t.plate/Math.round(t.max*t.m.coraza)*100}%"></i></span>`:''}
+        ${st?`<span class="st">${st}</span>`:''}${prev}${intent}</${pk?'button':'div'}>`);
+      const inner=`<span class="art" style="animation-delay:${ph-i*.7}s">${titanArt(t.id)}</span>`;
+      return pk ? `<button class="${cl}" data-u="t${i}" data-a="titan" data-i="${i}" aria-label="${t.n}">${inner}</button>` : `<div class="${cl}" data-u="t${i}">${inner}</div>`;
     }).join('');
     let orders='', hint='Los titanes se mueven…';
     if(canAct){
       const R=ROSTER[a.id], sk=R.sk, cd=C.cd[a.id]||0, skOff = S.gas<sk.gas || (sk.once&&C.used[a.id]) || cd>0;
       const sel=k=>P&&P.kind===k?'sel':'';
       orders=`<button class="order ${sel('cut')}" data-a="order" data-i="cut"><b>Corte</b><span>Ataque básico. No gasta gas.</span></button>
-        <button class="order ${sel('nape')}" data-a="order" data-i="nape" ${S.gas<1?'disabled':''}><b>A la nuca · 1 gas</b><span>Daño ×1,6. Remata a titanes normales por debajo del 25 %.</span></button>
+        <button class="order ${sel('nape')}" data-a="order" data-i="nape" ${S.gas<1?'disabled':''}><b>${liveT().every(isHuman)?'Disparo certero':'A la nuca'} · 1 gas</b><span>Daño ×1,6. Remata ${liveT().every(isHuman)?'a soldados y máquinas':'a titanes normales'} por debajo del 25 %.</span></button>
         <button class="order ${sel('skill')}" data-a="order" data-i="skill" ${skOff?'disabled':''}><b>${sk.n}${sk.gas?` · ${sk.gas} gas`:''}${cd>0?` · recarga ${cd}`:''}</b><span>${cd>0?`Disponible dentro de ${cd} turno${cd>1?'s':''}. `:''}${sk.d}${sk.cd&&!cd?` Recarga: ${sk.cd} turno${sk.cd>1?'s':''}.`:''}</span></button>`
         + pwOf(a.id).map(k=>`<button class="order pw ${sel('pw:'+k)}" data-a="order" data-i="pw:${k}" ${C.usedPw[k]?'disabled':''}><b>Transformarse · ${POWERS[k].n.replace(/^Titán (de )?/,'')}</b><span>${C.usedPw[k]?'Ya usado en este combate.':POWERS[k].d}</span></button>`).join('');
       if((S.items||[]).length) orders += `<div class="items"><span class="lbl">Objetos${C.itemUsed?' · ya usaste uno este turno':' · acción libre'}</span>${S.items.map((k,j)=>`<button class="btn ghost sm ${sel('it:'+k)}" data-a="order" data-i="it:${k}" title="${ITEMS[k].d}" ${C.itemUsed?'disabled':''}>${ITEMS[k].n}</button>`).join('')}</div>`;
       hint = P ? (P.tgt==='enemy'?'Elige un titán.':'Elige a un compañero.') : `Turno de ${R.n}.`;
     }
-    return `<div class="cg"><div class="cg-l"><div class="stage"><div class="titans">${tit}</div></div>
+    const heroes = S.squad.map(s=>{ const R=ROSTER[s.id], f=C.fx[s.id]||{}, pk = canAct && P && P.tgt==='ally' && s.hp>0;
+      const pic = f.formT>0 ? `<span class="pt tf">${titanArt(POWERS[f.form].art)}</span>` : portrait(s.id);
+      const cl=['spr', s.hp<=0&&'dead', C.active===s&&'active', pk&&'pick', f.stun>0&&'stunned', f.guard>0&&'guard'].filter(Boolean).join(' ');
+      const inner=`${pic}<i class="sh"></i><span class="nm">${R.n}</span>`;
+      return pk ? `<button class="${cl}" data-u="s${s.id}" data-a="sol" data-i="${s.id}" aria-label="${R.n}">${inner}</button>` : `<div class="${cl}" data-u="s${s.id}">${inner}</div>`; }).join('');
+    return `<div class="cg"><div class="cg-l"><div class="stage poke ${C.titans.length>1?'multi':''}"><div class="titans">${tit}</div><div class="plates ${C.titans.length>1?'multi':''}">${plates.join('')}</div><div class="heroes">${heroes}</div></div>
       <div class="log" id="log" aria-live="polite">${C.log.map(l=>`<div>${l}</div>`).join('')}</div></div>
       <div class="cg-r">${squadHTML(canAct && P && P.tgt==='ally' ? 'ally' : '')}
       <div class="dock"><div class="hint lbl"><span id="hint">${hint}</span><button class="btn ghost sm" data-a="speed" title="Velocidad de las animaciones">Animación: ${ANIM[CFG.anim].n}</button></div>
@@ -259,9 +269,10 @@ const V = {
       ${hoy ? `<section class="panel"><div class="tablewrap"><table class="chart num"><thead><tr><td class="lbl">#</td><td class="lbl">Jugador</td><td class="lbl">Puntos</td><td class="lbl">Jornadas</td></tr></thead><tbody>
       ${!B ? '<tr><td colspan="4">Cargando…</td></tr>' : !B.length ? '<tr><td colspan="4">Nadie ha terminado la expedición de hoy todavía.</td></tr>'
         : B.map((r,i)=>`<tr style="${r.user_id===me?'color:var(--gold)':''}"><td>${i+1}</td><td>${esc(r.display_name)}</td><td>${r.score}</td><td>${r.wave} / ${PER}</td></tr>`).join('')}</tbody></table></div></section>` : `
-      <section class="panel"><div class="tablewrap"><table class="chart num"><thead><tr><td class="lbl">#</td><td class="lbl">Jugador</td><td class="lbl">Jornadas</td><td class="lbl">Finales</td><td class="lbl">Los Nueve</td></tr></thead><tbody>
-      ${!B ? '<tr><td colspan="5">Cargando…</td></tr>' : !B.length ? '<tr><td colspan="5">Aún no hay nadie. La primera expedición marca el listón.</td></tr>'
-        : B.map((r,i)=>`<tr style="${r.user_id===me?'color:var(--gold)':''}"><td>${i+1}</td><td>${esc(r.display_name)}</td><td>${r.best} / ${TOTAL}</td><td>${r.endings} / 3</td><td>${r.nine} / 9</td></tr>`).join('')}
+      <p class="dim" style="font-size:13px">Puntos = jornadas × 1,25 en Veterano × (1 + 0,1 por vuelta de New Game+). Recluta no puntúa.</p>
+      <section class="panel"><div class="tablewrap"><table class="chart num"><thead><tr><td class="lbl">#</td><td class="lbl">Jugador</td><td class="lbl">Puntos</td><td class="lbl">Mejor expedición</td><td class="lbl">Finales</td><td class="lbl">Los Nueve</td></tr></thead><tbody>
+      ${!B ? '<tr><td colspan="6">Cargando…</td></tr>' : !B.length ? '<tr><td colspan="6">Aún no hay nadie. La primera expedición marca el listón.</td></tr>'
+        : B.map((r,i)=>`<tr style="${r.user_id===me?'color:var(--gold)':''}"><td>${i+1}</td><td>${esc(r.display_name)}${r.ng_level?` <span class="chip pwc" title="Campañas completadas">NG+${r.ng_level}</span>`:''}</td><td><b>${r.score}</b></td><td>${r.best} / ${TOTAL}${r.diff==='veterano'?' <span class="chip" style="color:var(--blood-hi)">Veterano</span>':''}${r.ng?` <span class="chip pwc">Vuelta ${r.ng+1}</span>`:''}</td><td>${r.endings} / 3</td><td>${r.nine} / 9</td></tr>`).join('')}
       </tbody></table></div></section>`}`;
   },
   codex(){

@@ -3,7 +3,7 @@
 const { chromium } = require('playwright'); const fs=require('fs'), path=require('path');
 const out=process.argv[2]||'shots', logged=process.argv[3]==='user'; fs.mkdirSync(out,{recursive:true});
 const MOCK=`window.supabase={createClient:()=>{const L=[];const sb={auth:{onAuthStateChange:f=>{L.push(f);${logged?"setTimeout(()=>f('SIGNED_IN',{user:{id:'u1',email:'yo@ejemplo.com'}}),0);":''}},signInWithOAuth:async()=>({}),signOut:async()=>{L.forEach(f=>f('SIGNED_OUT',null))}},
- from:()=>{const q={select:()=>q,eq:()=>q,limit:()=>Promise.resolve({data:[{display_name:'Marcos',best:23,endings:['coordenada'],nine:['ataque'],user_id:'u1',score:1200,wave:9},{display_name:'Lucía',best:15,endings:[],nine:[],user_id:'u2',score:900,wave:7}]}),maybeSingle:()=>Promise.resolve({data:null}),update:()=>q};return q;},
+ from:()=>{const q={select:()=>q,eq:()=>q,limit:()=>Promise.resolve({data:[{display_name:'Marcos',best:23,score:29,diff:'veterano',ng:1,ng_level:1,endings:1,nine:1,user_id:'u1',wave:9},{display_name:'Lucía',best:15,score:15,diff:'explorador',ng:0,ng_level:0,endings:0,nine:0,user_id:'u2',wave:7}]}),maybeSingle:()=>Promise.resolve({data:null}),update:()=>q};return q;},
  rpc:async()=>({data:1}),storage:{from:()=>({download:async()=>({data:null}),list:async()=>({data:[]}),upload:async()=>({}),remove:async()=>({})})}};return sb;}};`;
 (async()=>{
   const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});

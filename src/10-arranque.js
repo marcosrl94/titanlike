@@ -41,7 +41,7 @@ function act(a, i){
   if(a==='ngstart'){ pendingSaga=0; pendingNg=true; picked=[]; relicPick=[]; scr='starter'; return render(); }
   if(a==='relic'){ relicPick = relicPick.includes(i) ? relicPick.filter(x=>x!==i) : relicPick.length<relicsMax(ngLevel()) ? relicPick.concat(i) : relicPick; return render(); }
   if(a==='diff'){ if(DIFF[i]) setCfg('diff', i); return render(); }
-  if(a==='saga'){ pendingSaga=+i; picked=[]; scr='starter'; return render(); }
+  if(a==='saga'){ pendingSaga=+i; picked=[]; relicPick=[]; scr='starter'; return render(); }
   if(a==='gallery' || a==='home'){ scr = a==='home' ? 'title' : 'gallery'; return render(); }
   if(a==='rm'){ delete CUSTOM[i]; store.set('img', CUSTOM); return render(); }
   if(a==='rmau') return delMyAudio(i);
@@ -68,7 +68,8 @@ function act(a, i){
   if(a==='start'){ newRun([i], 0); return render(); }
   if(a==='pickst'){ const n = pendingNg ? 2 : startSize(pendingSaga); picked = picked.includes(i) ? picked.filter(x=>x!==i) : picked.length<n ? picked.concat(i) : picked; return render(); }
   if(a==='go' && pendingNg && picked.length===2){ newRun(picked, 0, undefined, {level:ngLevel(), relics:relicPick}); pendingNg=false; return render(); }
-  if(a==='go' && !pendingNg && picked.length===startSize(pendingSaga)){ newRun(picked, pendingSaga); return render(); }
+  if(a==='kitpw'){ relicPick = relicPick.includes(i) ? relicPick.filter(x=>x!==i) : relicPick.length<KIT_PW[pendingSaga] ? relicPick.concat(i) : relicPick; return render(); }
+  if(a==='go' && !pendingNg && picked.length===startSize(pendingSaga)){ newRun(picked, pendingSaga, undefined, {powers:relicPick}); relicPick=[]; return render(); }
   if(a==='node'){ const [r,j]=i.split(',').map(Number); return enterNode(r,j); }
   if(a==='reward'){ const r=S.rewards[i];
     if(r.t==='upg'){ applyUpg(r.id); return tookReward(+i); }

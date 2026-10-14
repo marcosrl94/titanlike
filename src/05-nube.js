@@ -109,7 +109,8 @@ async function cloudPull(){
     if(p.data){ const m=meta(), r=p.data;
       store.set('meta', Object.assign(m, {unlocked:Math.max(m.unlocked, r.unlocked), best:Math.max(m.best, r.best),
         nine:[...new Set(m.nine.concat(r.nine))], endings:[...new Set(m.endings.concat(r.endings))], runs:Math.max(m.runs||0, r.runs),
-        ach:[...new Set(m.ach.concat((r.extra&&r.extra.ach)||[]))], codex:mergeCodex(m.codex, r.extra&&r.extra.codex)})); }
+        ach:[...new Set(m.ach.concat((r.extra&&r.extra.ach)||[]))], codex:mergeCodex(m.codex, r.extra&&r.extra.codex),
+        ngLevel:Math.max(m.ngLevel||0, r.ng_level||0), relics:[...new Set((m.relics||[]).concat((r.extra&&r.extra.relics)||[]))]})); }
     cloudPush(true);
     const ls = await sb.storage.from('player-images').list(uid, {search:'pack.json'});   // evita un 400 si aún no hay paquete
     if(ls.data && ls.data.some(o=>o.name==='pack.json')){ const img = await sb.storage.from('player-images').download(uid + '/pack.json'); if(img.data) mergePack(await img.data.text()); }
@@ -122,7 +123,7 @@ function cloudPush(now){
   if(!CLOUD.user) return;
   clearTimeout(pushT);
   pushT = setTimeout(async ()=>{ const m=meta();
-    const {error} = await CLOUD.sb.rpc('sync_progress_v2', {p_unlocked:m.unlocked, p_best:m.best, p_nine:m.nine, p_endings:m.endings, p_runs:m.runs||0, p_extra:{ach:m.ach, codex:m.codex}});
+    const {error} = await CLOUD.sb.rpc('sync_progress_v2', {p_unlocked:m.unlocked, p_best:m.best, p_nine:m.nine, p_endings:m.endings, p_runs:m.runs||0, p_extra:{ach:m.ach, codex:m.codex, relics:m.relics||[]}});
     // las sagas desbloqueadas en la cuenta las fija el servidor al cerrar expediciones
     if(error){ CLOUD.msg='No se pudo guardar el progreso en la nube.'; render(); } }, now ? 0 : 800);
 }
@@ -130,7 +131,7 @@ async function cloudBoard(){
   CLOUD.board = null; render();
   const {data, error} = CLOUD.tab==='hoy'
     ? await CLOUD.sb.from('daily_board').select('display_name,score,wave,user_id').eq('day', today()).limit(50)
-    : await CLOUD.sb.from('leaderboard').select('display_name,best,endings,nine,user_id').limit(50);
+    : await CLOUD.sb.from('leaderboard_v2').select('display_name,best,score,diff,ng,endings,nine,ng_level,user_id').limit(50);
   CLOUD.board = error ? [] : data; if(error) CLOUD.msg='No se pudo cargar la clasificación.'; render();
 }
 async function cloudRename(n){
@@ -154,11 +155,16 @@ function mergeCodex(a, b){
 // cada expedición se registra en el servidor al empezar y se cierra al terminar; solo así puntúa
 async function cloudStartRun(saga, daily){
   if(!CLOUD.user || !S) return;
-  const run = S; const {data, error} = await CLOUD.sb.rpc('start_run', {p_saga:saga, p_daily:!!daily});
+  const run = S; const {data, error} = await CLOUD.sb.rpc('start_run_v2', {p_saga:saga, p_daily:!!daily, p_diff:S.diff||'explorador', p_ng:S.ng||0});
   if(run!==S) return;
   if(error){ S.runNote = 'Esta expedición no puntúa en la clasificación: ' + error.message + '.'; }
   else { S.runId = data; S.runNote = null; }
   store.set('run', S); if(scr==='map') render();
+}
+// telemetría: un registro por combate (kind 'fight') y por fin de expedición ('end'); solo con sesión; nunca bloquea el juego
+function cloudTelemetry(kind, payload){
+  if(!CLOUD.user || !S) return;
+  try{ CLOUD.sb.from('telemetry').insert({run_id:S.runId||null, kind, wave:S.wave, saga:sagaIx(S.wave), diff:S.diff||'explorador', ng:S.ng||0, payload}).then(()=>{}, ()=>{}); }catch(e){}
 }
 async function cloudFinishRun(runId, wave, ending){
   if(!CLOUD.user || !runId) return;

@@ -1,5 +1,14 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-14.5', t:'Combate a lo Pokémon, jefes con mecánica y clasificación justa', items:[
+    'Combate: nuestros soldados aparecen en el escenario, delante de los titanes, y las fichas de los enemigos pasan a cajas en la esquina. Los ataques salen del soldado y llegan al titán; pulsar la ficha o la figura del enemigo lo elige como objetivo.',
+    'Acorazado: lleva coraza (barra azul) y recibe la mitad de daño hasta romperla; después queda expuesto dos turnos (×1,5) y la regenera en parte. Las lanzas trueno, la Mandíbula y las cargas la ignoran.',
+    'Bestia: además de la lluvia de rocas, agarra a un soldado y lo lanza: pierde su próximo turno (el Señuelo lo esquiva). Hembra: patada endurecida que aturde. Sonriente y Mandíbula: si nadie cubre al más herido con Escudo humano o Señuelo, el mordisco es devastador (×2,2 en vez de ×1,2).',
+    'Contra el ejército de Marley la orden «A la nuca» se llama «Disparo certero» y remata soldados y máquinas.',
+    'Clasificación: ahora cuenta la dificultad y la vuelta. Puntos = jornadas × 1,25 en Veterano × (1 + 0,1 por vuelta de New Game+), con insignia en la tabla. Recluta sigue sin puntuar.',
+    'Empezar en las sagas 2, 3 o 4: los soldados raros (Levi, Erwin, Mike, Pieck) están disponibles y eliges con qué poderes de los Nueve sales.',
+    'El juego registra de forma anónima cómo van los combates (jornada, escuadrón, dificultad, resultado) para seguir equilibrando con partidas reales. Solo con sesión iniciada.'
+  ]},
   {v:'2026-10-14.4', t:'Reclutas al nivel del escuadrón y paquete «sin licencia»', items:[
     'Los reclutas se unen al nivel del escuadrón (la media, si va por delante de la jornada) y su carta muestra PV, ataque y velocidad a ese nivel, con las mejoras que ya llevéis.',
     'Paquete «sin licencia»: en «Imágenes y música» hay un botón que carga nombres de parodia e iconos propios para los 18 soldados (Tukasa, Patasha, Lavi…). Los paquetes .json ahora pueden traer nombres además de imágenes, y hay un botón para volver a los originales.'

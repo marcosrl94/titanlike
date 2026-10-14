@@ -55,12 +55,13 @@ function genWave(w, type){
 }
 function startWave(){
   const type = curNode().t;
-  C = {titans:seeded('w'+S.wave+'-'+S.map.pos, ()=>genWave(S.wave, type)), start:S.squad.filter(s=>s.hp>0).length, queue:[], active:null, pending:null, log:[], ev:[], fx:{}, busy:false, used:{}, usedPw:{}, cd:{}};
+  C = {titans:seeded('w'+S.wave+'-'+S.map.pos, ()=>genWave(S.wave, type)), start:S.squad.filter(s=>s.hp>0).length, queue:[], active:null, pending:null, log:[], ev:[], fx:{}, busy:false, used:{}, usedPw:{}, cd:{}, rounds:0, taken:0, gas0:S.gas, acts:{}};
+  C.titans.forEach(t=>{ if(t.m.coraza) t.plate = Math.round(t.max*t.m.coraza); });   // coraza del Acorazado: puntos de armadura
   const btr = S.pend && S.pend.btr;
   if(btr){ const b=C.titans[0]; b.n=`${ROSTER[btr.id].n} · ${b.n}`; b.max=b.hp=Math.round(b.max*(btr.id==='eren' ? 1+.15*btr.pws.length : 1.2)); b.atk*=1.1; }
   if(S.mod==='veloces') C.titans.forEach(t=>t.spd+=3);
   C.titans.forEach(t=>codex('t', t.id, 0));
-  S.squad.forEach(s=>{ C.fx[s.id]={up:0,guard:0,taunt:0,evade:0,titan:0,crit:0,armor:0,ward:0,form:null,formT:0}; });
+  S.squad.forEach(s=>{ C.fx[s.id]={up:0,guard:0,taunt:0,evade:0,titan:0,crit:0,armor:0,ward:0,form:null,formT:0,stun:0}; });
   S.gas = Math.min(S.gasMax, S.gas + rel('bengala'));
   C.log.push(type==='b' ? `¡${C.titans[0].n} a la vista!` : `${type==='e'?'Grupo de élite: ':''}${C.titans.length===1?'un titán':C.titans.length+' titanes'} en ${zoneOf(S.wave).n}.`);
   scr='combat'; nextTurn();
@@ -76,11 +77,13 @@ function nextTurn(){
   planAll();
   if(!C.queue.length){
     const u = alive().map(s=>({s, v:spdOf(s)+rnd(0,2)})).concat(liveT().map(t=>({t, v:t.spd+rnd(0,2)})));
-    C.queue = u.sort((a,b)=>b.v-a.v);
+    C.queue = u.sort((a,b)=>b.v-a.v); C.rounds++;
   }
   const u = C.queue.shift();
   if(u.s){
     if(u.s.hp<=0) return nextTurn();
+    // aturdido (lanzado por el Bestia, pateado por la Hembra): pierde este turno
+    if(C.fx[u.s.id].stun>0){ C.fx[u.s.id].stun=0; C.busy=true; render(); say(`${nm(u.s)} se levanta del suelo.`, 500); return play(()=>{ render(); setTimeout(nextTurn, 140); }); }
     C.active=u.s; C.busy=false; C.itemUsed=false; render();
   } else {
     if(u.t.hp<=0) return nextTurn();
@@ -100,7 +103,9 @@ function strike(s, t, mult, o={}){
   if(f.up>0) d *= 1.35;
   if(f.titan>0) d *= 2;
   if(t.mark>0) d *= 1.5;
+  if(t.exposed>0) d *= 1.5;
   if(t.hard>0 && !o.pierce) d *= .4;
+  if(t.plate>0 && !o.pierce) d *= .5;   // coraza: la mitad hasta romperla (lanzas trueno, Mandíbula y cargas la ignoran)
   // d20: 19-20 crítico (17-20 los Precisos); 1, el corte resbala y hace la mitad
   const r = d20(), crit = f.crit>0 || r >= (ROSTER[s.id].st==='preciso' ? 17 : 19), fumble = !crit && r===1;
   if(crit) d *= 1.5; if(fumble) d *= .5;
@@ -108,14 +113,16 @@ function strike(s, t, mult, o={}){
   const exec = !!o.nape && !t.boss && (t.hp-d)/t.max < .25 && d < t.hp;
   if(exec){ d = t.hp; S.napes=(S.napes||0)+1; if(S.napes>=5) ach('nuca5'); }
   t.hp = Math.max(0, t.hp-d);
+  if(t.plate>0){ t.plate = Math.max(0, t.plate-d); if(t.plate===0){ t.exposed=3; ev({k:'mark', t:C.titans.indexOf(t), txt:'¡CORAZA ROTA!', m:`La coraza de ${t.n} salta en pedazos: durante 2 turnos recibe daño ×1,5.`}); } }
   t.lastHit = s.id; t.threat = t.threat || {}; t.threat[s.id] = (t.threat[s.id]||0) + d;
   checkPhase(t);
   ev({k:'slash', s:s.id, t:C.titans.indexOf(t), d, crit, fumble, roll:r, exec, kill:t.hp<=0, hp:t.hp, max:t.max, boom:!!o.pierce,
-      m:`${nm(s)} ${o.verb||'corta a'} ${t.n}: ${d}${crit?` (crítico, d20: ${f.crit>0?'olfato':r})`:fumble?' (resbala, d20: 1)':''}${t.hp<=0?'. ¡Abatido!':''}`});
+      m:`${nm(s)} ${o.verb||'corta a'} ${t.n}: ${d} <small class="die">d20 ${f.crit>0?'olfato':r}${crit?' · crítico':fumble?' · resbala':''}</small>${t.hp<=0?'. ¡Abatido!':''}`});
   return t.hp<=0;
 }
 // control (ceguera, derribo): un titán controlado se pone alerta y no admite otro control durante 2 de sus turnos (3 los jefes)
 const canCC = t => t.hp>0 && !(t.alert>0);
+const isHuman = t => !!(TITANS[t.id].a && TITANS[t.id].a.k);
 function applyCC(t, kind, o={}){   // o.quiet: sin aviso; o.boss: también vale contra cambiantes
   const ti=C.titans.indexOf(t);
   if(t.hp<=0) return false;
@@ -129,11 +136,11 @@ function applyCC(t, kind, o={}){   // o.quiet: sin aviso; o.boss: también vale 
 function doAction(kind, target){
   const s=C.active, R=ROSTER[s.id], f=C.fx[s.id], ti = target && C.titans.indexOf(target);
   const all = () => alive().map(a=>a.id);
-  C.busy=true; C.pending=null;
+  C.busy=true; C.pending=null; C.acts[kind.split(':')[0]] = (C.acts[kind.split(':')[0]]||0)+1;
   // los objetos son una acción libre: una vez por turno, sin gastarlo
   if(kind.startsWith('it:')){ useItem(s, kind.slice(3), target); C.itemUsed=true; planAll(); header(); busyUI(); return play(()=>{ C.busy=false; render(); }); }
   if(kind==='cut') strike(s, target, 1);
-  else if(kind==='nape'){ S.gas-=1; strike(s, target, 1.6, {nape:true, verb:'va a la nuca de'}); }
+  else if(kind==='nape'){ S.gas-=1; strike(s, target, 1.6, {nape:true, verb:isHuman(target)?'apunta y remata a':'va a la nuca de'}); }
   else if(kind.startsWith('pw:')) usePower(s, kind.slice(3), target);
   else {
     S.gas -= R.sk.gas; if(R.sk.once) C.used[s.id]=true;
@@ -176,16 +183,16 @@ function wound(t, s, mult){
   if(t.blind>0) return ev({k:'miss', t:ti, s:tgt.id, txt:'FALLA', m:`${t.n} ${TITANS[t.id].a.k?'dispara a ciegas':'manotea a ciegas'} y falla.`});
   if(f.evade>0){ f.evade=0; return ev({k:'miss', t:ti, s:tgt.id, txt:'ESQUIVA', m:`${nm(tgt)} esquiva a ${t.n}.`}); }
   // tirada de esquiva: d20 + bono de velocidad; 20 siempre esquiva
-  { const r=d20(), mod=Math.max(0, Math.floor((spdOf(tgt)-10)/3));
-    if(r+mod>=20) return ev({k:'miss', t:ti, s:tgt.id, txt:'ESQUIVA', m:`${nm(tgt)} esquiva a ${t.n} (d20: ${r}${mod?'+'+mod:''}).`}); }
+  const r=d20(), mod=Math.max(0, Math.floor((spdOf(tgt)-10)/3)), die=`d20 ${r}${mod?'+'+mod:''}`;
+  if(r+mod>=20) return ev({k:'miss', t:ti, s:tgt.id, txt:'ESQUIVA', die, m:`${nm(tgt)} esquiva a ${t.n} <small class="die">${die} · esquiva</small>`});
   if(guard || f.guard>0) d*=.5;
   if(f.titan>0) d*=.5;
   if(f.armor>0) d*=.5;
   if(f.ward>0) d*=.6;
   d *= Math.max(.6, 1-.10*rel('cristal'));
   d = Math.max(1, Math.round(d));
-  tgt.hp = Math.max(0, tgt.hp-d);
-  ev({k:'bite', t:ti, s:tgt.id, d, hp:tgt.hp, max:maxHp(tgt), dead:tgt.hp<=0, m:`${t.n} ${t.v||'golpea a'} ${nm(tgt)}: ${d}${tgt.hp<=0?'. Ha caído.':''}`});
+  tgt.hp = Math.max(0, tgt.hp-d); C.taken += d;
+  ev({k:'bite', t:ti, s:tgt.id, d, die, hp:tgt.hp, max:maxHp(tgt), dead:tgt.hp<=0, m:`${t.n} ${t.v||'golpea a'} ${nm(tgt)}: ${d} <small class="die">${die}</small>${tgt.hp<=0?'. Ha caído.':''}`});
 }
 function titanAct(t){
   const ti=C.titans.indexOf(t), m=t.m, every = n => n && t.turns%n===0;
@@ -198,11 +205,18 @@ function titanAct(t){
   // primer golpe: a quien anunció su intención (salvo señuelo); los siguientes, al azar
   const choose = first=>{ const a=alive(); if(!a.length) return null; const tz=a.find(x=>C.fx[x.id].taunt>0); if(tz) return tz;
     if(first){ const s=a.find(x=>x.id===t.intent); if(s) return s; } return pick(a); };
+  if(t.exposed>0){ t.exposed--; if(t.exposed===0 && t.m.coraza){ t.plate=Math.round(t.max*t.m.coraza*.6); ev({k:'roar', t:ti, txt:'CORAZA', m:`${t.n} regenera parte de la coraza.`}); } }
   if(every(m.harden)){ t.hard=1; ev({k:'roar', t:ti, txt:'ENDURECIMIENTO', m:`${t.n} endurece la piel.`}); }
   if(every(m.aoe)){ ev({k:'roar', t:ti, txt:m.txt||'EMBESTIDA', m:`${t.n} golpea a todo el escuadrón.`}); alive().forEach(s=>wound(t,s,.6)); }
   else if(every(m.devour)){
-    const s = alive().sort((a,b)=>a.hp/maxHp(a)-b.hp/maxHp(b))[0];
-    ev({k:'roar', t:ti, txt:'DEVORA', m:`${t.n} se lanza a por ${nm(s)}.`}); wound(t,s,1.8);
+    // devorar: a por el más herido; si alguien lo cubre (Escudo humano o Señuelo) el golpe es normal, si no, devastador
+    const s = alive().sort((a,b)=>a.hp/maxHp(a)-b.hp/maxHp(b))[0], covered = alive().some(x=>C.fx[x.id].guard>0 || C.fx[x.id].taunt>0);
+    ev({k:'roar', t:ti, txt:'DEVORA', m:`${t.n} se lanza a por ${nm(s)}${covered?', pero el escuadrón lo cubre.':'. ¡Nadie lo cubre!'}`}); wound(t,s,covered?1.2:2.2);
+  } else if(every(m.throw)){
+    // lanzamiento: agarra a un soldado, lo lanza lejos y este pierde su próximo turno
+    const s = choose(true); if(s){ ev({k:'roar', t:ti, txt:'LANZAMIENTO', m:`${t.n} agarra a ${nm(s)} y lo lanza contra las casas.`}); wound(t,s,.9); if(s.hp>0 && !C.fx[s.id].evade){ C.fx[s.id].stun=1; ev({k:'buff', ids:[s.id], txt:'ATURDIDO', m:`${nm(s)} queda aturdido: pierde su próximo turno.`}); } }
+  } else if(every(m.kick)){
+    const s = choose(true); if(s){ ev({k:'roar', t:ti, txt:'PATADA', m:`${t.n} lanza una patada endurecida a ${nm(s)}.`}); wound(t,s,1.5); if(s.hp>0){ C.fx[s.id].stun=1; ev({k:'buff', ids:[s.id], txt:'ATURDIDO', m:`${nm(s)} sale despedido y pierde su próximo turno.`}); } }
   } else {
     const n = t.twice ? 2 : 1;
     for(let i=0;i<n;i++){ const s=choose(i===0); if(s){ wound(t,s,t.twice?.7:1); if(t.threat && t.threat[s.id]) t.threat[s.id]*=.4; } }
@@ -250,7 +264,7 @@ function estimate(s, t, kind){
   let d = atkOf(s)*mult;
   if(!pierce) d *= eff(s,t);
   d *= 1 + .15*rel('cuchillas'); if(t.boss) d *= 1 + .3*rel('lanzas');
-  if(f.up>0) d*=1.35; if(f.titan>0) d*=2; if(t.mark>0) d*=1.5; if(t.hard>0 && !pierce) d*=.4; if(f.crit>0) d*=1.5;
+  if(f.up>0) d*=1.35; if(f.titan>0) d*=2; if(t.mark>0) d*=1.5; if(t.exposed>0) d*=1.5; if(t.hard>0 && !pierce) d*=.4; if(t.plate>0 && !pierce) d*=.5; if(f.crit>0) d*=1.5;
   const lo=Math.max(1,Math.round(d*.9)), hi=Math.max(1,Math.round(d*1.1));
   const exec = kind==='nape' && !t.boss && (t.hp-hi)/t.max < .25;
   return {lo, hi, kill: lo>=t.hp || exec, exec};
@@ -270,7 +284,7 @@ function useItem(s, k, target){
   const heal = (a,p) => { const h=Math.min(maxHp(a)-a.hp, Math.round(maxHp(a)*p)); a.hp+=h; ev({k:'heal', s:a.id, d:h, hp:a.hp, max:maxHp(a), m:h?`${nm(a)} recupera ${h} PV.`:''}); };
   switch(k){
     case 'humo': liveT().forEach(t=>applyCC(t,'blind',{quiet:true, boss:true})); ev({k:'roarAll', txt:'HUMO', m:`${nm(s)} lanza una bengala de humo. Los titanes no ven nada.`}); break;
-    case 'carga': { const d=Math.min(target.hp, itemDmg()); target.hp-=d; checkPhase(target);
+    case 'carga': { const d=Math.min(target.hp, itemDmg()); target.hp-=d; if(target.plate>0){ target.plate=Math.max(0,target.plate-d); if(!target.plate){ target.exposed=3; ev({k:'mark', t:C.titans.indexOf(target), txt:'¡CORAZA ROTA!'}); } } checkPhase(target);
       ev({k:'slash', s:s.id, t:C.titans.indexOf(target), d, crit:false, exec:false, kill:target.hp<=0, hp:target.hp, max:target.max, boom:true, m:`${nm(s)} detona una carga en ${target.n}: ${d}${target.hp<=0?'. ¡Abatido!':''}`}); break; }
     case 'botiquin': alive().forEach(a=>heal(a,.3)); break;
     case 'cable': heal(target,.5); break;
@@ -286,6 +300,8 @@ function checkPhase(t){
   if(m.aoe) m.aoe=Math.max(2, m.aoe-1);
   if(m.harden) m.harden=Math.max(2, m.harden-1);
   if(m.devour) m.devour=Math.max(2, m.devour-1);
-  if(!m.aoe && !m.devour && !m.summon && !m.harden) m.harden=3;
+  if(m.throw) m.throw=Math.max(2, m.throw-1);
+  if(m.kick) m.kick=Math.max(2, m.kick-1);
+  if(!m.aoe && !m.devour && !m.summon && !m.harden && !m.throw && !m.kick && !m.coraza) m.harden=3;
   ev({k:'roar', t:C.titans.indexOf(t), txt:'SEGUNDA FASE', m:`${t.n} se enfurece: golpea más fuerte y más deprisa.`});
 }

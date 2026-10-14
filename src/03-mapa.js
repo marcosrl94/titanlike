@@ -52,7 +52,10 @@ function newRun(ids, saga=0, diff, ng){
   S.kitPw = KIT_PW[saga];
   S.squad.forEach(s=>{ s.hp=maxHp(s); bringPower(s.id); codex('s', s.id); });
   // quien empieza en una saga avanzada trae los poderes que de media se consiguen antes (medido en simulación)
-  for(let i=0;i<S.kitPw;i++){ const miss=MINOR.filter(k=>!(k in S.pw)), who=S.squad.filter(hasRoom); if(miss.length&&who.length){ const s=pick(who); grant(pick(miss), s.id); s.hp=maxHp(s); } }
+  // poderes de partida: los elegidos por el jugador y, si faltan, al azar entre los menores
+  const chosen = ((ng&&ng.powers)||[]).filter(k=>MINOR.includes(k)).slice(0, S.kitPw);
+  for(let i=0;i<S.kitPw;i++){ const miss=MINOR.filter(k=>!(k in S.pw)), who=S.squad.filter(hasRoom); if(!miss.length||!who.length) break;
+    const k = chosen[i] && miss.includes(chosen[i]) ? chosen[i] : pick(miss); const s=pick(who); grant(k, s.id, true); s.hp=maxHp(s); }
   // reliquias del New Game+: las lleva quien tenga hueco; si no, quedan en la reserva
   ((ng&&ng.relics)||[]).slice(0, relicsMax(S.ng)).forEach(k=>{ if(k in S.pw) return; const who=S.squad.find(hasRoom); grant(k, who ? who.id : 'reserva', true); if(who) who.hp=maxHp(who); });
   C=null; scr='map'; store.set('run', S);
@@ -88,6 +91,7 @@ function win(){
   const t = curNode().t, sagaEnd = t==='b' && dayOf(S.wave)===PER, btr = S.pend && S.pend.btr, bossId = t==='b' ? C.titans[0].id : null;
   S.q = []; S.note = null;
   const lost = S.squad.filter(s=>s.hp<=0).length;
+  if(typeof cloudTelemetry==='function') cloudTelemetry('fight', {node:t, win:true, titans:C.titans.map(x=>x.id), rounds:C.rounds, taken:C.taken, gas:[C.gas0, S.gas], lost, squad:S.squad.map(x=>x.id+':'+x.lvl+':'+Math.round(x.hp/maxHp(x)*100)), pw:Object.keys(C.usedPw), acts:C.acts});
   C.titans.forEach(x=>{ if(x.hp<=0) codex('t', x.id); });
   if(t==='b'){ ach('primer_jefe'); if(!lost) ach('impecable'); }
   if(C.start===4 && alive().length===1) ach('solo');
@@ -105,7 +109,7 @@ function win(){
   else rollDrop(t, bossId);
   if(owned().length>=3) ach('tres_poderes');
   if(S.daily && sagaEnd){ finishDaily(true); if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, PER+1, null); store.del('run'); scr='victory'; return render(); }
-  if(S.wave>=TOTAL){ S.ending=endingOf(); ach(S.ending==='retumbar' ? 'saga4' : S.ending); ach('saga4'); if(S.erenFell) ach('detener_eren');
+  if(S.wave>=TOTAL){ if(typeof cloudTelemetry==='function') cloudTelemetry('end', {win:true, squad:S.squad.map(x=>x.id+':'+x.lvl), fallen:S.fallen, rel:S.rel, pw:S.pw, gasMax:S.gasMax}); S.ending=endingOf(); ach(S.ending==='retumbar' ? 'saga4' : S.ending); ach('saga4'); if(S.erenFell) ach('detener_eren');
     { const m=meta(); saveMeta({ngLevel:Math.max(m.ngLevel||0, (S.ng||0)+1), relics:[...new Set((m.relics||[]).concat(owned()))]}); if(S.ng>0) ach('vuelta'); if(S.ng>=2) ach('vuelta3'); } if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, TOTAL+1, S.ending); const m=meta(); if(!m.endings.includes(S.ending)) saveMeta({endings:m.endings.concat(S.ending)}); store.del('run'); scr='victory'; return render(); }
   S.sagaDone = sagaEnd;
   S.picks = (t==='e' || sagaEnd ? 2 : 1) + (S.mod==='botin' ? 1 : 0);
@@ -113,6 +117,7 @@ function win(){
   nextScene();
 }
 function lose(){
+  if(typeof cloudTelemetry==='function') cloudTelemetry('end', {win:false, node:C&&curNode()?curNode().t:null, titans:C?C.titans.map(x=>x.id):[], rounds:C?C.rounds:0, squad:S.squad.map(x=>x.id+':'+x.lvl), fallen:S.fallen, rel:S.rel, pw:S.pw, gasMax:S.gasMax, items:S.items});
   if(S.daily) finishDaily(false);
   if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, S.wave, null);
   S.squad.forEach(s=>S.fallen.push(s.id)); saveBest(S.wave-1);

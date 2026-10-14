@@ -281,6 +281,9 @@ button.card:hover{border-color:var(--gold);background:var(--stone-3)}
 .float.crit{font-size:48px;color:var(--gold)}
 .float.bad{color:var(--blood-hi)} .float.good{color:var(--cloak-hi)}
 .float.tag{font-family:var(--label);font-size:19px;letter-spacing:.14em;color:var(--gold)}
+.float.die{font-family:var(--label);font-size:14px;letter-spacing:.08em;color:var(--steel);background:rgba(27,31,28,.85);border:1px solid var(--stone-4);border-radius:999px;padding:1px 8px;text-shadow:none;animation:rise 1.25s ease-out forwards}
+.float.die.crit{color:var(--gold);border-color:var(--gold)} .float.die.bad{color:var(--blood-hi);border-color:var(--blood)}
+.log small.die{font-family:var(--label);font-size:11.5px;letter-spacing:.06em;color:var(--steel);border:1px solid var(--stone-4);border-radius:999px;padding:0 6px;margin-left:4px;vertical-align:middle}
 @keyframes rise{0%{opacity:0;transform:translate(-50%,-30%) scale(.5)}14%{opacity:1;transform:translate(-50%,-70%) scale(1.2)}100%{opacity:0;transform:translate(-50%,-220%) scale(1)}}
 .flash{position:absolute;inset:0;animation:flash .4s ease-out forwards}
 @keyframes flash{from{opacity:var(--o,.6)}to{opacity:0}}
@@ -428,6 +431,63 @@ button.mi::after{content:"";position:absolute;right:16px;top:50%;width:8px;heigh
 .tip b{font-size:20px}
 .card h3{font-size:22px}
 #nm{border-radius:var(--r-sm)}
+/* escenario a lo Pokémon: fichas enemigas arriba a la izquierda, titanes al fondo a la derecha, nuestros soldados delante */
+.stage.poke{height:clamp(300px,54vh,600px);padding:0}
+.stage.poke .titans{position:absolute;inset:0 2% 0 36%;min-height:0;justify-content:flex-end;align-items:flex-end;padding:8px 0 64px;gap:6px}
+/* las figuras se dimensionan por altura para caber siempre en el escenario */
+.stage.poke .titan{padding:0;max-width:none;flex:0 1 auto;height:100%;justify-content:flex-end}
+.stage.poke .titan .art{width:auto;height:88%;display:flex;align-items:flex-end;justify-content:center}
+.stage.poke .titan .art svg,.stage.poke .titan .art img{height:100%;width:auto;max-width:100%;object-fit:contain}
+.stage.poke .z-pequeno .art{height:58%} .stage.poke .z-anormal .art{height:76%} .stage.poke .z-grande .art{height:86%} .stage.poke .titan.boss .art{height:96%}
+.plates{position:absolute;top:10px;left:10px;z-index:4;display:flex;flex-direction:column;gap:6px;max-width:min(300px,52%)}
+.plates .plate{width:100%;align-items:flex-start;text-align:left;padding:6px 10px;background:rgba(27,31,28,.92);border:1px solid var(--stone-4);border-radius:var(--r-sm);color:var(--bone);cursor:default;gap:3px}
+.plates .plate h3{font-size:17px;line-height:1.05}
+.plates .plate .eff{position:static;font-size:13px}
+.plates .plate .bar{width:100%}
+.plates .plate.boss{border-color:var(--blood)}
+.plates .plate.dead{opacity:.4}
+.plates .plate.dying{opacity:.4}
+.plates button.plate.pick{cursor:pointer;border-color:var(--gold);box-shadow:0 0 0 2px rgba(216,180,95,.35)}
+.plates button.plate.pick:hover{background:rgba(53,60,54,.95)}
+.plates .plate.struck{animation:struck .32s}
+/* varios enemigos: fichas compactas en fila arriba y figuras algo más bajas */
+.plates.multi{flex-direction:row;flex-wrap:wrap;left:10px;right:10px;max-width:none;gap:6px;align-items:flex-start}
+.plates.multi .plate{flex:1 1 0;min-width:0;max-width:230px;padding:5px 8px;gap:2px}
+.plates.multi .plate h3{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plates.multi .plate .chip{display:none}
+.plates.multi .plate .st,.plates.multi .plate .prev,.plates.multi .plate .int{font-size:11px}
+.stage.poke.multi .z-pequeno .art{height:50%} .stage.poke.multi .z-anormal .art{height:64%} .stage.poke.multi .z-grande .art{height:72%} .stage.poke.multi .z-blindado .art{height:72%} .stage.poke.multi .titan.boss .art{height:80%}
+.titan.pick .art{filter:drop-shadow(0 0 10px rgba(216,180,95,.7))}
+.titan.enraged .art{filter:drop-shadow(0 0 10px rgba(226,104,92,.55))}
+.titan.pick .plate{box-shadow:none}
+.heroes{position:absolute;left:12px;bottom:6px;z-index:3;display:flex;align-items:flex-end;gap:8px}
+.spr{display:flex;flex-direction:column;align-items:center;gap:0;background:none;border:0;padding:0;width:66px;color:var(--bone);position:relative;transition:transform .15s}
+.spr .pt{width:54px;height:54px;border-radius:999px;border:2px solid var(--stone-4);box-shadow:0 8px 16px -8px #000;background:var(--stone-3);transition:transform .2s,border-color .2s}
+.spr .sh{display:block;width:40px;height:9px;border-radius:50%;background:rgba(0,0,0,.5);margin-top:-5px;filter:blur(1px)}
+.spr .nm{font-family:var(--label);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--bone);text-shadow:0 1px 2px #000,0 0 6px #000;white-space:nowrap;max-width:70px;overflow:hidden;text-overflow:ellipsis}
+.spr.active{transform:translateY(-4px)} .spr.active .pt{border-color:var(--cloak-hi);box-shadow:0 0 0 3px rgba(124,192,143,.35),0 8px 16px -8px #000}
+.spr.pick{cursor:pointer} .spr.pick .pt{border-color:var(--gold);box-shadow:0 0 0 3px rgba(216,180,95,.4)}
+.spr.pick:hover .pt{transform:scale(1.08)}
+.spr.guard .pt{border-color:var(--steel)}
+.spr.stunned .pt{transform:rotate(-24deg) translateY(6px)}
+.spr.dead{opacity:.35;filter:grayscale(1)} .spr.dead .pt{transform:rotate(82deg) translateY(10px)}
+.spr .pt.tf{border-color:var(--gold)}
+.spr.lunge{animation:sprlunge .34s ease-out}
+@keyframes sprlunge{40%{transform:translate(28px,-14px) scale(1.08)}}
+.spr.struck{animation:struck .32s}
+.bar.plate{height:5px;margin-top:-2px} .bar.plate i{background:var(--steel)}
+@media (max-width:620px){
+  .stage.poke{height:340px}
+  .stage.poke .titans{inset:0 0 0 30%;padding-bottom:54px}
+  .plates{max-width:62%;gap:4px}
+  .plates .plate{padding:5px 8px} .plates .plate h3{font-size:14px} .plates .plate .st,.plates .plate .prev,.plates .plate .int{font-size:11px}
+  .plates.multi{left:6px;right:6px;gap:4px;max-width:none}
+  .plates.multi .plate{padding:4px 6px} .plates.multi .plate h3{font-size:12px} .plates.multi .plate .hpn{font-size:10px} .plates.multi .plate .eff{font-size:11px;padding:0 4px}
+  .plates.multi .plate .st,.plates.multi .plate .prev,.plates.multi .plate .int{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .stage.poke.multi .titans{inset:0 0 0 4%}
+  .heroes{left:6px;bottom:4px;gap:3px}
+  .spr{width:46px} .spr .pt{width:38px;height:38px} .spr .sh{width:28px;height:6px} .spr .nm{font-size:9px;max-width:48px}
+}
 /* combate a lo ancho: escenario a la izquierda, escuadrón y órdenes a la derecha; cabe sin scroll desde 1280×720 */
 .cg{display:flex;flex-direction:column;gap:12px}
 .cg-l,.cg-r{display:flex;flex-direction:column;gap:10px;min-width:0}
@@ -436,7 +496,6 @@ button.mi::after{content:"";position:absolute;right:16px;top:50%;width:8px;heigh
   body.wide #screen>div{gap:10px}
   .cg{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(340px,.95fr);gap:16px;align-items:start}
   .cg-l .stage{padding:12px 12px 0}
-  .cg-l .titans{min-height:clamp(220px,46vh,480px)}
   .cg.mg{grid-template-columns:minmax(0,1.3fr) minmax(300px,.8fr)}
   .cg.mg .legend{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));font-size:12.5px;gap:4px 10px}
   .cg.mg .squad{grid-template-columns:1fr}
@@ -460,7 +519,7 @@ button.mi::after{content:"";position:absolute;right:16px;top:50%;width:8px;heigh
   body.wide .wall span{height:10px;border-bottom-width:2px}
   body.wide .wall span.boss{height:16px;margin-top:-6px}
   body.wide .sagabar{margin-bottom:4px}
-  .cg-l .titans{min-height:clamp(200px,40vh,300px)}
+  .stage.poke{height:clamp(280px,50vh,420px)}
   .cg-r .sol h3{font-size:16px}
   .cg-r .sol .st{min-height:0}
 }
@@ -502,7 +561,6 @@ button.mi::after{content:"";position:absolute;right:16px;top:50%;width:8px;heigh
   .dock .items{grid-column:1/-1}
   .dock .hint{min-height:0}
   .dock .hint .btn{min-height:32px;padding:4px 10px;font-size:12px}
-  #app .titans{min-height:160px}
   #app .plate{padding:4px 6px}
   .stage{padding-top:10px}
   .menu-in{width:100%}

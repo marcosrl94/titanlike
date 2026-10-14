@@ -81,3 +81,8 @@ create policy "imagenes propias: borrar" on storage.objects for delete to authen
 -- Migración player_audio_bucket: bucket privado para la música propia de cada jugador (<uid>/<pista>--<nombre>)
 -- insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types) values ('player-audio','player-audio',false,26214400, array['audio/mpeg',...]);
 -- políticas "audio propio: leer/subir/cambiar/borrar" iguales a las de player-images, sobre bucket_id = 'player-audio'
+
+-- Migración difficulty_ngplus_telemetry: runs.diff/ng, progress.ng_level, start_run_v2(saga, daily, diff, ng), finish_run sube ng_level
+-- al completar la campaña, vista leaderboard_v2 (puntos = jornadas × 1,25 Veterano × (1 + 0,1·vuelta)), tabla telemetry
+-- (inserción propia con RLS, sin lectura desde el cliente, 400 filas/hora por jugador). Migración backfill_ng_level: ng_level=1
+-- para quien ya había completado la campaña.
