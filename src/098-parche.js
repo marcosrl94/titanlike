@@ -1,5 +1,12 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-15.11', t:'Interfaz renovada', items:[
+    'Nueva portada: menú de juego sobre la escena de la última zona a la que has llegado, con «Continuar» bien visible, accesos con iconos (expedición del día, duelos, clasificación, Intendencia, códice, árbol, fichas) y tus marcas a mano.',
+    'Marcador de la expedición más limpio: zona y saga a la izquierda; gas, monedas y jornada como fichas con icono a la derecha. El gas se pone en rojo cuando queda poco.',
+    'El mercader tiene por fin su icono en el mapa, y la leyenda de casillas se pliega.',
+    'En el móvil, las órdenes de combate muestran solo nombre y coste; la descripción aparece al elegirla.',
+    'Transición suave al cambiar de pantalla y respuesta táctil en botones y tarjetas. Las reglas, la tabla de estilos y el registro de los Nueve pasan a «Cómo se juega».'
+  ]},
   {v:'2026-10-15.10', t:'Amigos y duelos 1 contra 1', items:[
     'Escuadrones de leyenda: el escuadrón que termina una campaña queda guardado con sus niveles, poderes y mejoras. Desde ahora, cada campaña completada te da una leyenda nueva.',
     'Amigos: cada cuenta tiene un código de amigo. Pásalo, añade el de los demás y acepta sus solicitudes desde «Amigos y duelos» (portada y menú).',

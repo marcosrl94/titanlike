@@ -1,4 +1,5 @@
 // ---------- Pantallas ----------
+let TITLE_BG = 0;
 let pendingRec = null, pendingSaga = 0, picked = [], pendingNg = false, relicPick = [], pendingAlt = null;
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const chip = st => `<span class="chip s-${st}">${STYLE[st]}</span>`;
@@ -34,12 +35,28 @@ function relicsHTML(){
   const k=Object.keys(S.rel); if(!k.length) return powersHTML();
   return powersHTML()+`<div class="relics">`+k.map(x=>`<span class="chip">${UPG[x].n}${S.rel[x]>1?' ×'+S.rel[x]:''}</span>`).join('')+`</div>`;
 }
+const UIC = {   // iconos de interfaz (trazo, 24×24)
+  play:'<svg class="ui" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></svg>',
+  sun:'<svg class="ui" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>',
+  duel:'<svg class="ui" viewBox="0 0 24 24"><path d="M4 4l10 10M14 14l-2 4 6-6-4 2M20 4L10 14M10 14l2 4-6-6 4 2"/></svg>',
+  trophy:'<svg class="ui" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0z M7 6H4a3 3 0 0 0 3 4 M17 6h3a3 3 0 0 1-3 4 M12 14v4 M8 21h8"/></svg>',
+  bag:'<svg class="ui" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6z M9 8V6a3 3 0 0 1 6 0v2"/></svg>',
+  book:'<svg class="ui" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z M4 19V5 M8 7h7"/></svg>',
+  tree:'<svg class="ui" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="12" r="2"/><path d="M6 8v8 M8 6c6 0 4 6 8 6"/></svg>',
+  card:'<svg class="ui" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2.5"/><path d="M5.5 17c1-2 5-2 6 0 M14 10h4 M14 14h4"/></svg>',
+  image:'<svg class="ui" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></svg>',
+  help:'<svg class="ui" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7 M12 17h.01"/></svg>',
+  gas:'<svg class="ui" viewBox="0 0 24 24"><rect x="7" y="6" width="10" height="15" rx="3"/><path d="M10 6V3h4v3 M7 11h10"/></svg>',
+  coin:'<svg class="ui" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v8 M9.5 10h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4"/></svg>',
+  flag:'<svg class="ui" viewBox="0 0 24 24"><path d="M5 21V4 M5 4h11l-2 4 2 4H5"/></svg>'
+};
 const ICON = {
   c:'<path class="ic" d="M-9 9L9 -9M-9 -9L9 9"/>',
   e:'<path class="ic" d="M-11 11L11 -11M-11 -11L11 11"/><path class="dia" d="M0 -6l6 6-6 6-6-6Z"/>',
   v:'<text class="q" y="9">?</text>',
   k:'<path class="ic" d="M-12 9L0 -11L12 9Z M0 -11V9"/>',
-  b:'<path class="ic" d="M-10 -2a10 10 0 1 1 20 0v6h-4v5h-12v-5h-4Z M-4 -3h.1 M4 -3h.1"/>'
+  b:'<path class="ic" d="M-10 -2a10 10 0 1 1 20 0v6h-4v5h-12v-5h-4Z M-4 -3h.1 M4 -3h.1"/>',
+  t:'<path class="ic" d="M-9 -3h18l-2 12h-14Z M-4 -3v-3a4 4 0 0 1 8 0v3"/>'
 };
 function mapSVG(){
   const m=S.map, X=r=>50+r*105, Y=c=>50+c*75, open=openNodes();
@@ -57,38 +74,49 @@ function mapSVG(){
 const sagaLbl = w => `Saga ${sagaIx(w)+1} · ${sagaOf(w).n}`;
 const V = {
   title(){
-    const run=migrateRun(store.get('run')), M=meta(), ok=!!run;
-    const rows=Object.keys(EFF).map(st=>{ const e=EFF[st]; const up=Object.keys(e).find(k=>e[k]>1), dn=Object.keys(e).find(k=>e[k]<1);
-      return `<tr><td>${chip(st)}</td><td>×1,5 contra ${CLS[up]}</td><td>×0,75 contra ${CLS[dn]}</td></tr>`; }).join('');
-    return `<section class="hero"><div class="txt">
-        <span class="lbl">Cuerpo de Exploración · ${SAGAS.length} sagas</span>
-        <h1>Más allá del <em>muro</em></h1>
-        <p>Sales con un solo recluta. Cuatro sagas, doce titanes cambiantes y una ruta que eliges tú te separan del final. Quien cae, no vuelve.</p>
-        <div class="cta">
-          ${ok?`<button class="btn lg" data-a="continue">Continuar<small>${sagaOf(run.wave).n} · jornada ${dayOf(run.wave)}</small></button>`:''}
-          <button class="btn lg ${ok?'ghost':''}" data-a="sagas">${ok?'Nueva expedición':'Salir de las murallas'}</button>
+    const run=migrateRun(store.get('run')), M=meta(), ok=!!run, st=statsOf();
+    // arte de fondo: la última zona a la que has llegado (o Trost)
+    const bg = ok ? (zoneOf(run.wave).mo!==undefined ? zoneOf(run.wave).mo : Math.floor((run.wave-1)/5)) : Math.min(11, Math.floor(Math.max(0,(M.best||1)-1)/5));
+    const nd = CLOUD.user && typeof newDuels==='function' ? newDuels() : 0, dd=dailyDone();
+    const it = (a, ic, n, d, attrs='') => `<button class="mm-it" data-a="${a}" ${attrs}>${UIC[ic]||''}<span><b>${n}</b>${d?`<small>${d}</small>`:''}</span></button>`;
+    TITLE_BG = bg;
+    return `<section class="mm"><div class="mm-main">
+        <div class="mm-logo"><h1>Titanlike</h1><p>Cuatro sagas, doce cambiantes y un escuadrón que no vuelve entero.</p></div>
+        <div class="mm-cta">
+          ${ok?`<button class="btn lg mm-play" data-a="continue">${UIC.play}<span>Continuar<small>${sagaOf(run.wave).n} · jornada ${dayOf(run.wave)} de ${PER}</small></span></button>`:''}
+          <button class="btn lg ${ok?'ghost':'mm-play'}" data-a="sagas">${ok?'Nueva expedición':`${UIC.play}<span>Salir de las murallas<small>Elige saga y primer recluta</small></span>`}</button>
         </div>
-        <div class="cta2">
-          <button class="btn ghost" data-a="daily" ${dailyDone()?'disabled title="Ya has jugado la de hoy"':''}>${dailyDone()?'Del día: vuelve mañana':'Expedición del día'}</button>
-          <button class="btn ghost" data-a="codex">Logros · ${M.ach.length}/${ACH.length}</button>
-          <button class="btn ghost" data-a="amigos">Amigos y duelos</button>
-          <button class="btn ghost" data-a="intendencia">Intendencia · ${insignias()} insignias</button>
-          <button class="btn ghost" data-a="gallery">Imágenes y música</button>
-        </div>
-        <span class="lbl num">Sagas desbloqueadas: ${M.unlocked} de ${SAGAS.length} · Mejor marca: ${M.best} de ${TOTAL} jornadas${M.ngLevel?` · Campañas completadas: ${M.ngLevel}`:''}</span>
+        <nav class="mm-list" aria-label="Menú principal">
+          ${it('daily','sun','Expedición del día', dd?'Ya la has jugado hoy':`${dailyInfo().mod.n} · misma semilla para todos`, dd?'disabled':'')}
+          ${it('amigos','duel','Amigos y duelos', nd?`<em>${nd} duelo${nd>1?'s':''} nuevo${nd>1?'s':''}</em>`:'Reta con tus leyendas')}
+          ${it('board','trophy','Clasificación', CLOUD.user?'Temporada en curso':'Con sesión iniciada', cloudOn()&&CLOUD.user?'':'disabled')}
+          ${it('intendencia','bag','Intendencia', `${insignias()} insignias`)}
+          ${it('codex','book','Códice y logros', `${M.ach.length} de ${ACH.length} logros`)}
+          ${it('arbol','tree','Árbol de la historia', `${(st.alts||[]).length} sendas · ${M.endings.length} finales`)}
+          ${it('ficha','card','Fichas de personaje', '')}
+          ${it('gallery','image','Imágenes y música', '')}
+          ${it('howto','help','Cómo se juega', '')}
+        </nav>
+      </div>
+      <aside class="mm-side">
+        <div class="mm-stats num"><div><b>${M.best}</b><span>mejor jornada</span></div><div><b>${M.unlocked}/${SAGAS.length}</b><span>sagas</span></div><div><b>${M.ngLevel||0}</b><span>campañas</span></div><div><b>${(st.g&&((st.g.S||0)+(st.g['S+']||0)))||0}</b><span>notas S</span></div></div>
         ${accountHTML('title')}
-      </div><div class="peek">${titanFig(TITANS.col.a)}</div></section>
+      </aside></section>`;
+  },
+  howto(){
+    const M=meta(), rows=Object.keys(EFF).map(st=>{ const e=EFF[st]; const up=Object.keys(e).find(k=>e[k]>1), dn=Object.keys(e).find(k=>e[k]<1);
+      return `<tr><td>${chip(st)}</td><td>×1,5 contra ${CLS[up]}</td><td>×0,75 contra ${CLS[dn]}</td></tr>`; }).join('');
+    return `<div><h2>Cómo se juega</h2></div><div><button class="btn ghost" data-a="home">Volver</button></div>
       <ul class="rules">
         <li><b>Sagas encadenadas</b>Quince jornadas cada una. Al vencer al último jefe sigues con tu escuadrón.</li>
-        <li><b>Elige la ruta</b>Combates, élites, eventos y campamentos. Cada zona acaba en un jefe.</li>
-        <li><b>El gas manda</b>Nuca y habilidades gastan gas del escuadrón. Recuperas 3 tras cada combate.</li>
+        <li><b>Elige la ruta</b>Combates, élites, eventos, mercaderes y campamentos. Cada zona acaba en un jefe.</li>
+        <li><b>El gas manda</b>Nuca y habilidades gastan gas del escuadrón. Recuperas algo tras cada combate.</li>
         <li><b>Muerte permanente</b>Hasta 4 soldados. Si cae el último, la expedición termina.</li>
       </ul>
-      <section class="panel"><div class="row" style="justify-content:space-between"><span class="lbl">Registro de los Nueve · ${M.nine.length} de 9</span><span class="lbl">Finales: ${M.endings.length} de 3</span></div>
+      <section class="panel"><span class="lbl">Qué estilo corta mejor a cada titán</span><div class="tablewrap"><table class="chart"><tbody>${rows}</tbody></table></div></section>
+      <section class="panel"><div class="row" style="justify-content:space-between"><span class="lbl">Registro de los Nueve · ${M.nine.length} de 9</span></div>
         <div class="nine">${NINE.map(k=>`<div class="nc ${M.nine.includes(k)?'got':''}"><span class="art">${titanArt(POWERS[k].art)}</span><span>${M.nine.includes(k)?POWERS[k].n.replace(/^Titán (de )?/,''):'Sin descubrir'}</span></div>`).join('')}</div>
-        <p class="dim" style="font-size:13px">Los cambiantes pueden soltar su poder al caer. Reúne los de Eren (Ataque, Fundador y Martillo de Guerra) o los nueve para desbloquear otros finales.</p></section>
-      <section class="panel"><span class="lbl">Qué estilo corta mejor a cada titán</span>
-        <div class="tablewrap"><table class="chart"><tbody>${rows}</tbody></table></div></section>`;
+        <p class="dim" style="font-size:13px">Los cambiantes pueden soltar su poder al caer.</p></section>`;
   },
   sagas(){
     const u=meta().unlocked, saved=!!store.get('run');
@@ -135,9 +163,9 @@ const V = {
       ? `<p class="note-s">${S.runNote || 'Esta expedición empezó sin sesión y no puntúa en la clasificación. La próxima, sí.'}</p>`
       : `<div class="acc out slim"><div class="acc-t"><b>Esta expedición no puntúa</b><span>Entra con Google o con tu correo: tu progreso se guarda en la nube y las próximas expediciones entran en la clasificación.</span></div>${loginBtns()}${CLOUD.msg?`<p class="acc-msg" role="status">${esc(CLOUD.msg)}</p>`:''}</div>`;
     const petate = S.petate ? `<section class="panel note"><span class="lbl">Petate de salida · elige un objeto</span><div class="row">${Object.keys(ITEMS).map(k=>`<button class="btn ghost sm" data-a="petate" data-i="${k}" title="${ITEMS[k].d}">${ITEMS[k].n}</button>`).join('')}</div></section>` : '';
-    return `<div class="cg mg"><div class="cg-l">${unranked}${petate}${D?`<section class="panel daily"><span class="lbl">Expedición del día · ${S.daily}</span><p><b>${D.n}.</b> ${D.d} Mismo mapa, titanes y recompensas para todos; termina al acabar la saga 1.</p></section>`:''}<div><span class="lbl">${sagaLbl(S.wave)}${S.diff&&S.diff!=='explorador'?` · ${diffOf().n}`:''}${S.ng?` · Vuelta ${S.ng+1}`:''}</span><h2>${z.n}</h2><p class="dim">${S.map.pos?'Elige el siguiente paso de la ruta.':'Elige por dónde entra el escuadrón.'} ${codexSeen('t',z.boss)?`Al fondo espera el ${TITANS[z.boss].n}.`:'Al fondo espera un cambiante.'}${BOSS_PW[z.boss] && !(BOSS_PW[z.boss] in S.pw) ? ` Puede soltar ${codexSeen('t',z.boss)?'el poder del '+POWERS[BOSS_PW[z.boss]].n:'uno de los Nueve'}: <b class="num" style="color:var(--gold)">${Math.round(dropP()*100)} %</b>.` : ''}</p></div>
+    return `<div class="cg mg"><div class="cg-l">${unranked}${petate}${D?`<section class="panel daily"><span class="lbl">Expedición del día · ${S.daily}</span><p><b>${D.n}.</b> ${D.d} Mismo mapa, titanes y recompensas para todos; termina al acabar la saga 1.</p></section>`:''}<div>${S.diff&&S.diff!=='explorador'||S.ng?`<span class="lbl">${S.diff&&S.diff!=='explorador'?diffOf().n:''}${S.ng?` Vuelta ${S.ng+1}`:''}</span>`:''}<h2>${z.n}</h2><p class="dim">${S.map.pos?'Elige el siguiente paso de la ruta.':'Elige por dónde entra el escuadrón.'} ${codexSeen('t',z.boss)?`Al fondo espera el ${TITANS[z.boss].n}.`:'Al fondo espera un cambiante.'}${BOSS_PW[z.boss] && !(BOSS_PW[z.boss] in S.pw) ? ` Puede soltar ${codexSeen('t',z.boss)?'el poder del '+POWERS[BOSS_PW[z.boss]].n:'uno de los Nueve'}: <b class="num" style="color:var(--gold)">${Math.round(dropP()*100)} %</b>.` : ''}</p></div>
       <div class="mapwrap">${mapSVG()}</div>
-      <ul class="legend">${Object.keys(NODE).map(k=>`<li><b>${NODE[k].n}.</b> ${NODE[k].d}</li>`).join('')}</ul></div>
+      <details class="legend-d"><summary>Qué es cada casilla</summary><ul class="legend">${Object.keys(NODE).map(k=>`<li><b>${NODE[k].n}.</b> ${NODE[k].d}</li>`).join('')}</ul></details></div>
       <div class="cg-r"><span class="lbl">Tu escuadrón</span>${squadHTML()}${relicsHTML()}</div></div>`;
   },
   combat(){
@@ -163,7 +191,7 @@ const V = {
     if(canAct){
       const R=ROSTER[a.id], sk=R.sk, cd=C.cd[a.id]||0, skOff = S.gas<sk.gas || (sk.once&&C.used[a.id]) || cd>0;
       const sel=k=>P&&P.kind===k?'sel':'';
-      orders=`<button class="order ${sel('cut')}" data-a="order" data-i="cut"><b>Corte</b><span>Ataque básico. No gasta gas.</span></button>
+      orders=`<button class="order ${sel('cut')}" data-a="order" data-i="cut" title="Ataque básico. No gasta gas."><b>Corte</b><span>Ataque básico. No gasta gas.</span></button>
         <button class="order ${sel('nape')}" data-a="order" data-i="nape" ${S.gas<1?'disabled':''}><b>${liveT().every(isHuman)?'Disparo certero':'A la nuca'} · 1 gas</b><span>Daño ×1,6. Remata ${liveT().every(isHuman)?'a soldados y máquinas':'a titanes normales'} por debajo del 25 %.</span></button>
         <button class="order ${sel('skill')}" data-a="order" data-i="skill" ${skOff?'disabled':''}><b>${sk.n}${sk.gas?` · ${sk.gas} gas`:''}${cd>0?` · recarga ${cd}`:''}</b><span>${cd>0?`Disponible dentro de ${cd} turno${cd>1?'s':''}. `:''}${sk.d}${sk.cd&&!cd?` Recarga: ${sk.cd} turno${sk.cd>1?'s':''}.`:''}</span></button>`
         + pwOf(a.id).map(k=>`<button class="order pw ${sel('pw:'+k)}" data-a="order" data-i="pw:${k}" ${C.usedPw[k]?'disabled':''}><b>Transformarse · ${POWERS[k].n.replace(/^Titán (de )?/,'')}</b><span>${C.usedPw[k]?'Ya usado en este combate.':POWERS[k].d}</span></button>`).join('');

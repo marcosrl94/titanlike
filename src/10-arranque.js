@@ -7,22 +7,25 @@ function header(){
   const h=$('hacc'); if(h) h.innerHTML = !cloudOn() ? '' : CLOUD.user
     ? `<button class="ib av-b" data-a="acct" aria-label="Tu cuenta: ${esc(userName())}" title="${esc(userName())}">${avatar('sm')}</button>`
     : `<button class="btn sm ghost hin" data-a="acct" aria-label="Entrar o crear cuenta"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Entrar</span></button>`;
-  const on = S && !S.pvp && !['title','starter','gallery','sagas','board','codex','settings','intendencia','ficha','comps','arbol','amigos','duelpick','duelres'].includes(scr) && S.map;
+  const on = S && !S.pvp && !['title','starter','gallery','sagas','board','codex','settings','intendencia','ficha','comps','arbol','amigos','duelpick','duelres','howto'].includes(scr) && S.map;
   $('prog').hidden = !on;
   if(!on) return;
-  let g=''; for(let i=0;i<S.gasMax;i++) g+=`<i class="${i<S.gas?'on':''}"></i>`;
-  $('gasbar').innerHTML = S.gasMax>16 ? '' : g; $('gasn').textContent=`${S.gas}/${S.gasMax}`;
+  $('gasbar').innerHTML = `<i style="width:${Math.round(S.gas/S.gasMax*100)}%"></i>`; $('gasn').textContent=`${S.gas}/${S.gasMax}`;
+  $('gas').classList.toggle('low', S.gas<=2); $('hcoins').textContent = S.coins||0;
   const gi=sagaIx(S.wave), d=dayOf(S.wave), over=S.wave>TOTAL;
   $('sagabar').innerHTML = SAGAS.map((_,i)=>`<span class="${i<gi||over?'done':i===gi?'now':''}"></span>`).join('');
   let w=''; for(let i=1;i<=PER;i++) w+=`<span class="${i<d||over?'done':i===d?'now':''} ${i%5===0?'boss':''}"></span>`;
   $('wall').innerHTML=w;
-  $('zname').textContent=`${sagaLbl(S.wave)} · ${zoneOf(S.wave).n}`;
-  $('zwave').textContent=`Jornada ${d} de ${PER} · ${S.coins||0} monedas`;
+  $('zname').innerHTML=`<b>${zoneOf(S.wave).n}</b><span>Saga ${sagaIx(S.wave)+1} · ${sagaOf(S.wave).n}</span>`;
+  $('zwave').textContent=`${d}/${PER}`;
 }
 function render(){
   header();
   document.body.classList.toggle('wide', scr==='combat' || scr==='map');
   $('screen').innerHTML = `<div>${tipHTML()}${V[scr]()}</div>`;
+  document.body.classList.toggle('on-title', scr==='title');
+  { const bg=$('bgart'), want = scr==='title' ? 'mo'+TITLE_BG : ''; if(bg && bg.dataset.k!==want){ bg.dataset.k=want; bg.innerHTML = want ? `<div class="mm-bg">${momentSVG(TITLE_BG)}</div>` : ''; } }
+  if(scr!==lastScr && !REDUCED){ const el=$('screen').firstElementChild; if(el) el.classList.add('enter'); }   // transición al cambiar de pantalla
   if(scr==='event') rollDice($('screen'));
   if(scr==='map') maybeMoment();
   if(!$('menu').hidden && typeof menuHTML==='function') $('menu').innerHTML = menuHTML();   // el menú refleja la sesión y los avisos
@@ -75,6 +78,7 @@ function act(a, i){
   if(a==='practica'){ const L=legendsLocal().find(l=>l.lid===i); if(!L) return; DPICK={foe:L, foeName:'tu propia leyenda', foeCloud:null}; scr='duelpick'; return render(); }
   if(a==='duelgo'){ const M=legendsLocal().find(l=>l.lid===i); if(!M||!DPICK) return; return startDuel(M, DPICK.foe, DPICK.foeName, DPICK.foeCloud && M.cloud ? {foe:DPICK.foeCloud, mine:M.cloud} : null); }
   if(a==='duelagain'){ if(DUEL) return startDuel(DUEL.mine, DUEL.foe, DUEL.foeName, DUEL.cloud); return; }
+  if(a==='howto'){ scr='howto'; window.scrollTo(0,0); return render(); }
   if(a==='arbol'){ scr='arbol'; window.scrollTo(0,0); return render(); }
   if(a==='moment') return showMoment(+i, 'Momento', true);
   if(a==='ficha'){ fichaId=i; scr='ficha'; window.scrollTo(0,0); return render(); }
