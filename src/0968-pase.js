@@ -85,20 +85,24 @@ function grantReward(r){
   if(['titulo','estandarte','corte','efecto','fondo'].includes(r.t) && !cos.eq[r.t]) cos.eq[r.t]=r.id;
   saveMeta({cos}); applyPassCosmetics();
 }
-function equipCos(kind, id){ const cos=Object.assign({eq:{}}, meta().cos||{}); cos.eq[kind] = cos.eq[kind]===id ? null : id; saveMeta({cos}); applyPassCosmetics(); }
+function equipCos(kind, id){ const cos=Object.assign({eq:{}}, meta().cos||{}); cos.eq[kind] = cos.eq[kind]===id ? null : id; saveMeta({cos});
+  if((kind==='dado'||kind==='marco') && cos.eq[kind]){ const sh=shopOf(); sh.eq[kind]=null; const st=statsOf(); st.shop=sh; saveMeta({stats:st}); applyCosmetics(); }
+  applyPassCosmetics(); }
 const cosEq = k => ((meta().cos||{}).eq||{})[k] || null;
 function applyPassCosmetics(){
   if(typeof document==='undefined') return;
   document.body.className = document.body.className.replace(/\b(corte|n20)-\S+/g,'').trim();
   const c=cosEq('corte'); if(c && hasReward('corte', c)) document.body.classList.add('corte-'+c);
+  if(typeof applyLoteCosmetics==='function') applyLoteCosmetics();
 }
 // efecto del 20 natural equipado (lo llama el efecto de corte)
 function n20fx(p){
-  const e=cosEq('efecto'); if(!e || !hasReward('efecto', e) || typeof FXON!=='function' || !FXON()) return;
-  if(e==='rayo' && typeof boltAt==='function'){ boltAt(p); flash('#ffe7a3', .35); }
-  if(e==='vapor'){ steam(p, 16, 'rgba(255,207,154,.85)'); ring(p, '#ffcf9a', 320); }
+  let e=cosEq('efecto'), col=null; if(!e || typeof FXON!=='function' || !FXON()) return;
+  if(e.startsWith('L:')){ const it=loteItem(e); if(!it) return; e=it.kind||'rayo'; col=it.color; } else if(!hasReward('efecto', e)) return;
+  if(e==='rayo' && typeof boltAt==='function'){ boltAt(p); flash(col||'#ffe7a3', .35); }
+  if(e==='vapor'){ steam(p, 16, col||'rgba(255,207,154,.85)'); ring(p, col||'#ffcf9a', 320); }
 }
-const titleNow = () => { const t=cosEq('titulo'); if(t && hasReward('titulo', t)) return PASS_TITLES[t]; const lt=typeof titlesFor==='function' ? titlesFor(levelOf(xpTotal()).lv) : []; return lt.length ? lt[lt.length-1] : ''; };
+const titleNow = () => { const t=cosEq('titulo'); if(t && t.startsWith('L:')){ const it=loteItem(t); if(it) return it.text; } if(t && hasReward('titulo', t)) return PASS_TITLES[t]; const lt=typeof titlesFor==='function' ? titlesFor(levelOf(xpTotal()).lv) : []; return lt.length ? lt[lt.length-1] : ''; };
 function bannerSVG(id){
   const B=BANNERS[id]; if(!B) return '';
   const motif = B.m==='muralla' ? `<path d="M14 70h52v-24h-8v6h-6v-6h-8v6h-8v-6h-8v6h-6v-6h-8z" fill="${B.c[1]}" opacity=".9"/>`
@@ -127,10 +131,13 @@ V.pase = function(){
     return `<div class="tier ${got?'got':can?'can':'lock'} k-${T.t}"><span class="tn num">${k}</span><div class="tart">${rewardArt(T)}</div>
       <span class="lbl">${R_KIND[T.t]||''}</span><b>${rs.map(r=>r.n).join(' + ')}</b>${got && T.d ? `<small>${T.d}${T.t==='documento'?' Algo ha cambiado al otro lado de los muros.':''}</small>` : T.d && T.t!=='documento' ? `<small>${T.d}</small>` : ''}
       ${got ? '<span class="lbl tok">Reclamado</span>' : can ? `<button class="btn sm" data-a="claim" data-i="${k}">Reclamar</button>` : `<span class="lbl num">${(k*PASS1.tier_xp).toLocaleString('es-ES')} XP</span>`}</div>`; };
-  const own = ownedRewards(), eqRow = (kind, list, name) => { const mine=own.filter(r=>r.t===kind); if(!mine.length) return '';
-    return `<div class="eqrow"><span class="lbl">${name}</span>${mine.map(r=>`<button class="btn sm ${cosEq(kind)===r.id?'':'ghost'}" data-a="cos" data-i="${kind}:${r.id}">${(list[r.id]&&list[r.id].n) || r.n.replace(/^[^«]*«|»$/g,'')}</button>`).join('')}</div>`; };
-  const eq = [eqRow('titulo', Object.fromEntries(Object.entries(PASS_TITLES).map(([k,v])=>[k,{n:v}])), 'Título'), eqRow('estandarte', BANNERS, 'Estandarte'), eqRow('corte', CORTES, 'Corte'), eqRow('efecto', EFECTOS, 'Efecto del 20'), eqRow('fondo', FONDOS, 'Fondo de portada')].join('');
-  return `<div class="row"><button class="btn ghost" data-a="home">Volver</button>${cl.length>1?`<button class="btn" data-a="claimall">Reclamar ${cl.length} escalones</button>`:''}</div>
+  const own = ownedRewards(), lotes = typeof loteOwned==='function' ? loteOwned() : [], eqRow = (kind, list, name) => {
+    const mine=own.filter(r=>r.t===kind).map(r=>({id:r.id, n:(list[r.id]&&list[r.id].n) || r.n.replace(/^[^«]*«|»$/g,'')})).concat(lotes.filter(x=>x.type===kind).map(x=>({id:x.key, n:x.name||x.text})));
+    if(!mine.length) return '';
+    return `<div class="eqrow"><span class="lbl">${name}</span>${mine.map(r=>`<button class="btn sm ${cosEq(kind)===r.id?'':'ghost'}" data-a="cos" data-i="${kind}|${r.id}">${esc(r.n)}</button>`).join('')}</div>`; };
+  const eq = [eqRow('titulo', Object.fromEntries(Object.entries(PASS_TITLES).map(([k,v])=>[k,{n:v}])), 'Título'), eqRow('estandarte', BANNERS, 'Estandarte'), eqRow('corte', CORTES, 'Corte'), eqRow('efecto', EFECTOS, 'Efecto del 20'), eqRow('fondo', FONDOS, 'Fondo de portada'), eqRow('dado', {}, 'Dado de temporada'), eqRow('marco', {}, 'Marco de temporada')].join('');
+  const sp = typeof seasonPass==='function' ? seasonPass() : null, nx = typeof nextSeason==='function' ? nextSeason() : null;
+  return `<div class="row"><button class="btn ghost" data-a="home">Volver</button>${sp||nx?`<button class="btn ghost" data-a="temporada">${sp?'Pase de temporada: '+esc(sp.name):'Próxima temporada: '+esc(nx.name)}</button>`:''}${cl.length>1?`<button class="btn" data-a="claimall">Reclamar ${cl.length} escalones</button>`:''}</div>
     ${hero('Pase 1 · no caduca', PASS1.n, `${n} de ${PASS1.tier_count} escalones. ${n<PASS1.tier_count?`${into.toLocaleString('es-ES')} / ${PASS1.tier_xp} XP para el siguiente.`:'Completado.'} Toda la experiencia que ganas jugando lo hace avanzar.`,
       {cls:'pass', art:momentSVG(cosEq('fondo') && FONDOS[cosEq('fondo')] ? FONDOS[cosEq('fondo')].mo : 4), side:`<div class="sh-side medal"><i class="sl"></i><b class="num">${n}</b><span class="lbl">de ${PASS1.tier_count}</span></div>`})}
     <div class="ptrack"><span class="xpbar"><i style="width:${Math.round(s.xp/(PASS1.tier_xp*PASS1.tier_count)*100)}%"></i></span></div>

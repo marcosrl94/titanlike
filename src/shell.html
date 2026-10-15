@@ -1069,6 +1069,10 @@ body.dice-hueso .d20 .f,body.dice-hueso .d20 .in,.d20.sk-hueso .f,.d20.sk-hueso 
 body.dice-retumbar .d20 .f,body.dice-retumbar .d20 .in,.d20.sk-retumbar .f,.d20.sk-retumbar .in{fill:#2a1f1a;stroke:#ffcf9a} body.dice-retumbar .d20 b,.d20.sk-retumbar b{color:#ffcf9a} body.dice-retumbar .d20,.d20.sk-retumbar{filter:drop-shadow(0 0 12px rgba(255,160,90,.65))}
 body.frame-hierro .sol .pt,body.frame-hierro .spr .pt,.fprev.fr-hierro .pt{border:2px solid #8a949a;box-shadow:0 0 0 2px #2f3438,inset 0 0 0 1px #c9d3d8}
 @media (max-width:620px){.tiers{grid-template-columns:repeat(2,minmax(0,1fr))} .eqrow .lbl{min-width:100%}}
+/* ---- 15.19: estética de los lotes de temporada ---- */
+body.corte-lote .slash{stroke:var(--slash-c);filter:drop-shadow(0 0 6px var(--slash-c))}
+body.dice-lote .d20 .f,body.dice-lote .d20 .in,.d20[data-lote] .f,.d20[data-lote] .in{fill:var(--d-fill);stroke:var(--d-stroke)} body.dice-lote .d20 b,.d20[data-lote] b{color:var(--d-stroke)} body.dice-lote .d20,.d20[data-lote]{filter:drop-shadow(0 0 10px var(--d-glow))}
+body.frame-lote .sol .pt,body.frame-lote .spr .pt,.fprev[data-lote] .pt{border:2px solid var(--fr-c);box-shadow:0 0 0 2px color-mix(in srgb,var(--fr-c) 35%,transparent)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
 </style>
 <div id="bgart" aria-hidden="true"></div>

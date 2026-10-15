@@ -1,0 +1,22 @@
+{
+  "id": "t2",
+  "name": "Temporada 2 · Al otro lado del mar",
+  "starts": "2026-12-01",
+  "ends": "2027-02-28",
+  "tier_xp": 800,
+  "palette": ["#2b3a4a", "#d8b45f"],
+  "tiers": [
+    {"n": 1,  "id": "recien",   "type": "titulo",     "name": "Título «Recién desembarcado»", "text": "Recién desembarcado"},
+    {"n": 2,  "id": "salitre",  "type": "dado",       "name": "Dado de salitre", "fill": "#1d3140", "stroke": "#9fd8e8", "glow": "rgba(159,216,232,.5)"},
+    {"n": 3,  "id": "ancla",    "type": "estandarte", "name": "Estandarte «Ancla»", "motif": "ancla", "colors": ["#2b3a4a", "#ebe6d6"]},
+    {"n": 5,  "id": "espuma",   "type": "corte",      "name": "Corte «Espuma»", "color": "#bfeaf5"},
+    {"n": 8,  "id": "liberio",  "type": "fondo",      "name": "Fondo de portada «Liberio»", "mo": 9},
+    {"n": 10, "id": "brea",     "type": "marco",      "name": "Marco «Brea y cuerda»", "color": "#8a6a3a"},
+    {"n": 13, "id": "faro",     "type": "estandarte", "name": "Estandarte «Faro»", "motif": "llama", "colors": ["#1d2a36", "#ffd36a"]},
+    {"n": 16, "id": "tormenta", "type": "efecto",     "name": "Efecto del 20 natural «Tormenta»", "kind": "rayo", "color": "#9fd8ff"},
+    {"n": 20, "id": "marinero", "type": "titulo",     "name": "Título «Lobo de mar»", "text": "Lobo de mar"},
+    {"n": 24, "id": "salta",    "type": "fondo",      "name": "Fondo de portada «Fuerte Salta»", "mo": 10},
+    {"n": 27, "id": "coral",    "type": "dado",       "name": "Dado de coral", "fill": "#3a1418", "stroke": "#ff9f8a", "glow": "rgba(255,159,138,.5)"},
+    {"n": 30, "id": "almirante","type": "estandarte", "name": "Estandarte «Almirante»", "motif": "luna", "colors": ["#101820", "#ffe7a3"], "anim": true}
+  ]
+}

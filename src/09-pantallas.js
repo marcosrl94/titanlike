@@ -96,7 +96,7 @@ const V = {
     const bg = ok ? (zoneOf(run.wave).mo!==undefined ? zoneOf(run.wave).mo : Math.floor((run.wave-1)/5)) : Math.min(11, Math.floor(Math.max(0,(M.best||1)-1)/5));
     const nd = CLOUD.user && typeof newDuels==='function' ? newDuels() : 0, dd=dailyDone();
     const it = (a, ic, n, d, attrs='') => `<button class="mm-it" data-a="${a}" ${attrs}>${UIC[ic]||''}<span><b>${n}</b>${d?`<small>${d}</small>`:''}</span></button>`;
-    TITLE_BG = typeof cosEq==='function' && cosEq('fondo') && FONDOS[cosEq('fondo')] && hasReward('fondo', cosEq('fondo')) ? FONDOS[cosEq('fondo')].mo : bg;
+    { const f = typeof cosEq==='function' ? cosEq('fondo') : null, li = f && f.startsWith('L:') ? loteItem(f) : null; TITLE_BG = li ? Math.max(0, Math.min(MOMENTS.length-1, li.mo||0)) : f && FONDOS[f] && hasReward('fondo', f) ? FONDOS[f].mo : bg; }
     return `<section class="mm"><div class="mm-main">
         <div class="mm-logo"><h1>Titanlike</h1><p>Cuatro sagas, doce cambiantes y un escuadrón que no vuelve entero.</p></div>
         <div class="mm-cta">

@@ -124,7 +124,7 @@ function lvBadge(xp, size, own){
 function lvCard(){
   ensureXp(); const xp=xpTotal(), L=levelOf(xp), r=rankOf(L.lv), N=ordersNow(), od=N.daily.filter(x=>x.done).length;
   const p1=(meta().pass||{}).p1||{xp:0}, tier=Math.floor((p1.xp||0)/800);
-  const tt = typeof titleNow==='function' ? titleNow() : '', bn = typeof cosEq==='function' && cosEq('estandarte') && hasReward('estandarte', cosEq('estandarte')) ? bannerSVG(cosEq('estandarte')) : '';
+  const tt = typeof titleNow==='function' ? titleNow() : '', bn = (()=>{ const e = typeof cosEq==='function' ? cosEq('estandarte') : null; if(!e) return ''; if(e.startsWith('L:')){ const it=loteItem(e); return it ? loteBanner(it) : ''; } return hasReward('estandarte', e) ? bannerSVG(e) : ''; })();
   return `<button class="lvcard rk-${r.k}" data-a="nivel">${bn?`<span class="lvbn">${bn}</span>`:''}${lvBadge(xp,'lg',true)}<span class="lvc-t"><b>Nivel ${L.lv} · ${r.n}</b>${tt?`<small class="lvtt">«${tt}»</small>`:''}
     <span class="xpbar"><i style="width:${Math.round(L.into/L.need*100)}%"></i></span><small class="num">${L.into.toLocaleString('es-ES')} / ${L.need.toLocaleString('es-ES')} XP · órdenes de hoy ${od}/3${typeof PASS1!=='undefined'?` · Pase 1: escalón ${Math.min(30,tier)}/30`:''}</small></span></button>`;
 }

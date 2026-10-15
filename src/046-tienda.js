@@ -44,7 +44,7 @@ function buyShop(k){
   sh.own.push(k); sh.spent+=it.p; if(it.kind!=='exp') sh.eq[it.kind]=k;
   const st=statsOf(); st.shop=sh; saveMeta({stats:st}); applyCosmetics(); return true;
 }
-function equipShop(k){ const it=SHOP[k], sh=shopOf(); if(!it || !owns(k)) return; sh.eq[it.kind] = sh.eq[it.kind]===k ? null : k; const st=statsOf(); st.shop=sh; saveMeta({stats:st}); applyCosmetics(); }
+function equipShop(k){ const it=SHOP[k], sh=shopOf(); if(!it || !owns(k)) return; { const cos=meta().cos; if(cos && cos.eq && cos.eq[it.kind]){ cos.eq[it.kind]=null; saveMeta({cos}); if(typeof applyPassCosmetics==='function') applyPassCosmetics(); } } sh.eq[it.kind] = sh.eq[it.kind]===k ? null : k; const st=statsOf(); st.shop=sh; saveMeta({stats:st}); applyCosmetics(); }
 function applyCosmetics(){
   if(typeof document==='undefined') return; const eq=shopOf().eq||{};
   document.body.className = document.body.className.replace(/\b(dice|frame)-\S+/g,'').trim();

@@ -5,6 +5,7 @@ function cloudInit(){
   const cfg = window.TL_CFG;
   if(!cfg || !window.supabase) return;
   CLOUD.sb = window.supabase.createClient(cfg.url, cfg.key);
+  cloudPasses();
   CLOUD.sb.auth.onAuthStateChange((evt, sess)=>{
     const u = sess && sess.user, was = CLOUD.user;
     CLOUD.user = u || null; CLOUD.busy = false;
@@ -14,7 +15,7 @@ function cloudInit(){
     if(u && !was && typeof closeMenu==='function' && !$('menu').hidden) closeMenu();
     if(evt==='PASSWORD_RECOVERY') setTimeout(askNewPassword, 300);
     if(u && (!was || was.id!==u.id)) setTimeout(cloudPull, 0);
-    if(!u){ CLOUD.name=''; CLOUD.board=null; }
+    if(!u){ CLOUD.name=''; CLOUD.board=null; CLOUD.xpReady=false; }
     render();
   });
 }
@@ -303,4 +304,11 @@ async function cloudClaimPending(){
   const pp = await CLOUD.sb.from('pass_progress').select('claimed').eq('user_id', CLOUD.user.id).eq('pass_id','p1').maybeSingle();
   const srv = (pp.data && pp.data.claimed) || [];
   for(const n of (st.claimed||[]).filter(n=>!srv.includes(n))) await CLOUD.sb.rpc('claim_tier', {p_pass:'p1', p_tier:n}).then(()=>{}, ()=>{});
+}
+
+// pases de temporada (lotes): se guardan en local para verlos también sin conexión
+async function cloudPasses(){
+  try{ const {data, error} = await CLOUD.sb.from('passes').select('id,name,tier_xp,tier_count,starts_at,ends_at,data').neq('id','p1'); if(error || !data) return;
+    const defs={}; data.forEach(r=>{ if(r.data && Array.isArray(r.data.tiers)) defs[r.id]={id:r.id, name:r.name, tier_xp:r.tier_xp, tier_count:r.tier_count, starts:r.starts_at, ends:r.ends_at, palette:r.data.palette||null, tiers:r.data.tiers}; });
+    saveMeta({passDefs:defs}); if(typeof applyPassCosmetics==='function') applyPassCosmetics(); render(); }catch(e){}
 }

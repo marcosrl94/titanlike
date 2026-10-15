@@ -1,5 +1,9 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-16.19', t:'Pases de temporada', items:[
+    'Además del Pase 1, cada temporada puede traer su propio pase con estética temática. Corre a la vez: la misma experiencia llena los dos.',
+    'La primera, «Al otro lado del mar», empieza el 1 de diciembre. Ya puedes verla desde el Pase 1.'
+  ]},
   {v:'2026-10-16.18', t:'Casillas rápidas en el mapa', items:[
     'Persecución a caballo: tres decisiones seguidas, con tirada de habilidad o con un pequeño coste. Si sale bien, monedas y una mejora.',
     'Rescate: un combate de solo 3 rondas con más titanes. No hace falta acabar con todos: aguantad hasta que los civiles crucen.',

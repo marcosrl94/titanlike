@@ -115,3 +115,6 @@ create policy "imagenes propias: borrar" on storage.objects for delete to authen
 --   su lote en data), pass_progress (xp y escalones reclamados por jugador), add_xp(src, amount) con topes por fuente,
 --   20.000 al día, 120 combates por hora, expedición abierta e importación única; claim_tier(pass, tier).
 --   leaderboard_v2, boss_board y my_friends añaden la columna xp al final.
+
+-- 2026-10-16 (datos): lote de ejemplo «Temporada 2 · Al otro lado del mar» (id t2, del 1-12-2026 al 28-2-2027),
+--   generado con scripts/cargar-lote.cjs desde lotes/t2-al-otro-lado-del-mar.json.

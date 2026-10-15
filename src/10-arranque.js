@@ -8,7 +8,7 @@ function header(){
   const h=$('hacc'); if(h) h.innerHTML = (typeof lvBadge==='function' ? `<button class="ib lvh" data-a="nivel" aria-label="Tu nivel">${lvBadge(xpTotal(),'sm',true)}</button>` : '') + (!cloudOn() ? '' : CLOUD.user
     ? `<button class="ib av-b" data-a="acct" aria-label="Tu cuenta: ${esc(userName())}" title="${esc(userName())}">${avatar('sm')}</button>`
     : `<button class="btn sm ghost hin" data-a="acct" aria-label="Entrar o crear cuenta"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Entrar</span></button>`);
-  const on = S && !S.pvp && !['title','starter','gallery','sagas','board','codex','settings','intendencia','ficha','comps','arbol','amigos','duelpick','duelres','howto','nivel','pase'].includes(scr) && S.map;
+  const on = S && !S.pvp && !['title','starter','gallery','sagas','board','codex','settings','intendencia','ficha','comps','arbol','amigos','duelpick','duelres','howto','nivel','pase','temporada'].includes(scr) && S.map;
   $('prog').hidden = !on;
   if(!on) return;
   $('gasbar').innerHTML = `<i style="width:${Math.round(S.gas/S.gasMax*100)}%"></i>`; $('gasn').textContent=`${S.gas}/${S.gasMax}`;
@@ -87,7 +87,9 @@ function act(a, i){
   if(a==='pase'){ scr='pase'; window.scrollTo(0,0); return render(); }
   if(a==='claim'){ if(claimTier(+i)){ sfx('win'); const T=PASS1.tiers[+i-1]; toast(`Escalón ${i}`, rewardsOf(T).map(r=>r.n).join(' + ')); } return render(); }
   if(a==='claimall'){ const c=claimable(); c.forEach(claimTier); if(c.length){ sfx('win'); toast(`${c.length} escalones reclamados`, 'Mira tu estética al final del pase.'); } return render(); }
-  if(a==='cos'){ const [k,id]=String(i).split(':'); equipCos(k, id); return render(); }
+  if(a==='cos'){ const s=String(i), p=s.indexOf('|'); equipCos(s.slice(0,p), s.slice(p+1)); return render(); }
+  if(a==='temporada'){ scr='temporada'; window.scrollTo(0,0); return render(); }
+  if(a==='claimlote'){ const [id,n]=String(i).split(':'); if(claimLote(id, +n)){ sfx('win'); toast(`Escalón ${n}`, 'Recompensa de temporada reclamada.'); } return render(); }
   if(a==='arbol'){ scr='arbol'; window.scrollTo(0,0); return render(); }
   if(a==='moment') return showMoment(+i, 'Momento', true);
   if(a==='ficha'){ const was=scr==='ficha'; fichaOpen = i && ROSTER[i] ? i : null; if(fichaOpen) fichaId=fichaOpen; scr='ficha'; if(!was) window.scrollTo(0,0); render(); const m=document.querySelector('.fm-in'); if(m){ m.scrollTop=0; const x=m.querySelector('.fm-x'); if(x) x.focus({preventScroll:true}); } return; }
