@@ -19,6 +19,7 @@ const TIPS = {
 let tipsSeen = store.get('tips') || {};
 function currentTip(){
   if(tipsSeen.off) return null;
+  { const m=meta(); if((m.ngLevel||0)>0 || (m.runs||0)>=4) return null; }   // los consejos son para las primeras expediciones
   const k = scr==='map' ? 'map'
     : scr==='combat' && C && C.active && !C.busy ? (C.titans.some(t=>t.plate>0||t.exposed>0) && !tipsSeen.coraza ? 'coraza' : S.squad.some(x=>C.fx[x.id]&&C.fx[x.id].stun>0) && !tipsSeen.aturdido ? 'aturdido' : C.titans.some(t=>t.alert>0) && !tipsSeen.alert ? 'alert' : C.titans.some(t=>t.phase) && !tipsSeen.phase ? 'phase' : C.titans.some(t=>t.boss) && !tipsSeen.boss ? 'boss' : (S.items||[]).length && !tipsSeen.items ? 'items' : ['combat','intent','eff','dados'].find(x=>!tipsSeen[x]))
     : scr==='reward' ? 'reward' : scr==='event' ? 'event' : scr==='camp' ? 'camp'

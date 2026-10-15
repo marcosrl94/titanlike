@@ -33,7 +33,7 @@ function genMap(z){   // z: zona global (3 por saga)
   }
   rows[3].forEach(n=>n.next=[0]);
   rows.push([{c:1, t:'b', next:[]}]);
-  return {z, rows, pos:null, path:[]};
+  return {z, rows, pos:null, path:[], wx:rollWx(z)};
 }
 function openNodes(){ const m=S.map; return m.pos ? m.rows[m.pos[0]][m.pos[1]].next.map(j=>[m.pos[0]+1, j]) : m.rows[0].map((_,j)=>[0,j]); }
 // saga 0: un recluta de nivel 1. Sagas posteriores: tres veteranos con el equipo que traería una campaña en curso.
@@ -93,6 +93,7 @@ function win(){
   const t = curNode().t, sagaEnd = t==='b' && dayOf(S.wave)===PER, btr = S.pend && S.pend.btr, bossId = t==='b' ? C.titans[0].id : null;
   S.q = []; S.note = null;
   const G = S.lastGrade = rateFight(t);   // nota del combate: se muestra en la recompensa
+  G.reto = checkReto(); if(G.reto && G.reto.ok){ S.coins=(S.coins||0)+RETO_COINS; S.retos=(S.retos||0)+1; }
   if(typeof recordFight==='function') recordFight(G);
   if(typeof coinsFor==='function'){ G.coins=coinsFor(G,t); S.coins=(S.coins||0)+G.coins; }
   const lost = S.squad.filter(s=>s.hp<=0).length;
@@ -107,7 +108,7 @@ function win(){
   S.squad = alive();
   S.squad.forEach(levelUp);
   healAll(.10 + .10*rel('vendas') + (t==='b'?.25:0) + (sagaEnd?.3:0));
-  S.gas = sagaEnd ? S.gasMax : Math.min(S.gasMax, S.gas+diffOf().gas);
+  S.gas = sagaEnd ? S.gasMax : Math.min(S.gasMax, S.gas+Math.max(0, diffOf().gas-(wxNow()==='viento'?1:0)));
   saveBest(S.wave);
   if(sagaEnd) saveMeta({unlocked:Math.max(meta().unlocked, Math.min(SAGAS.length, sagaIx(S.wave)+2))});
   if(btr && btr.id==='eren'){ S.fallen.push('eren'); btr.pws.forEach(k=>grant(k,'reserva')); S.erenFell=true; }

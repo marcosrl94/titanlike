@@ -68,6 +68,8 @@ function startWave(){
   const btr = S.pend && S.pend.btr;
   if(btr){ const b=C.titans[0]; b.n=`${ROSTER[btr.id].n} · ${b.n}`; b.max=b.hp=Math.round(b.max*(btr.id==='eren' ? 1+.15*btr.pws.length : 1.2)); b.atk*=1.1; }
   if(S.mod==='veloces') C.titans.forEach(t=>t.spd+=3);
+  if(wxNow()==='noche') C.titans.forEach(t=>{ if(!t.boss && t.cls!=='anormal') t.spd=Math.max(1, t.spd-3); });
+  if(!S.pvp && (type==='c' || type==='e')) C.reto = seeded('reto'+S.wave+'-'+S.map.pos, ()=>pickReto(C.titans.length));
   C.titans.forEach(t=>{ if(!TITANS[t.id].pvp) codex('t', t.id, 0); });
   S.squad.forEach(s=>{ C.fx[s.id]={up:0,guard:0,taunt:0,evade:0,titan:0,crit:0,armor:0,ward:0,form:null,formT:0,stun:0}; });
   S.gas = Math.min(S.gasMax, S.gas + rel('bengala'));
@@ -124,7 +126,7 @@ function strike(s, t, mult, o={}){
   if(t.hard>0 && !o.pierce) d *= .4;
   if(t.plate>0 && !o.pierce) d *= .5;   // coraza: la mitad hasta romperla (lanzas trueno, Mandíbula y cargas la ignoran)
   // d20: 19-20 crítico (17-20 los Precisos); 1, el corte resbala y hace la mitad
-  const r = d20(), crit = f.crit>0 || r >= (ROSTER[s.id].st==='preciso' ? 17 : 19), fumble = !crit && r===1;
+  const r = d20(), crit = f.crit>0 || r >= (ROSTER[s.id].st==='preciso' ? 17 : 19) - (wxNow()==='sol' ? 1 : 0), fumble = !crit && (r===1 || (r===2 && wxNow()==='lluvia'));
   if(crit) d *= 1.5; if(fumble) d *= .5;
   d = Math.max(1, Math.round(d));
   const exec = !!o.nape && !t.boss && (t.hp-d)/t.max < .25 && d < t.hp;
@@ -210,7 +212,7 @@ function wound(t, s, mult){   // devuelve al soldado alcanzado (el escudo puede 
   if(t.blind>0){ ev({k:'miss', t:ti, s:tgt.id, txt:'FALLA', m:`${t.n} ${TITANS[t.id].a.k?'dispara a ciegas':'manotea a ciegas'} y falla.`}); return null; }
   if(f.evade>0){ f.evade=0; ev({k:'miss', t:ti, s:tgt.id, txt:'ESQUIVA', m:`${nm(tgt)} esquiva a ${t.n}.`}); return null; }
   // tirada de esquiva: d20 + bono de velocidad; 20 siempre esquiva
-  const r=d20(), mod=Math.max(0, Math.floor((spdOf(tgt)-10)/3)), die=`d20 ${r}${mod?'+'+mod:''}`; C.drolls.push(r);
+  const r=d20(), mod=Math.max(0, Math.floor((spdOf(tgt)-10)/3)) + (wxNow()==='niebla' ? 1 : 0), die=`d20 ${r}${mod?'+'+mod:''}`; C.drolls.push(r);
   if(r+mod>=20){ ev({k:'miss', t:ti, s:tgt.id, txt:'ESQUIVA', die, roll:r, mod, m:`${nm(tgt)} esquiva a ${t.n} <small class="die">${die} · esquiva</small>`}); return null; }
   if(guard || f.guard>0) d*=.5;
   if(f.titan>0) d*=.5;
@@ -371,3 +373,28 @@ function rateFight(type){
   if(lost*2 >= C.start && GRADES.findIndex(x=>x[0]===g) < 4) g='C';
   return {g, score, par, rounds:r, parts:parts.map(p=>({...p, v:Math.round(p.v)})), bonus, avg, lost, eff, taken:C.taken, type, boss: type==='b' ? C.titans[0].id : null};
 }
+
+// ---- ritmo: condiciones de zona (una por zona, visible en el mapa) y retos opcionales en combates normales y élites ----
+const WX = {
+  despejado:{n:'Despejado', d:'Sin nada especial.'},
+  niebla:{n:'Niebla', d:'Los soldados esquivan mejor: +1 a la tirada de esquiva.'},
+  noche:{n:'Noche', d:'Los titanes normales van más lentos (−3 de velocidad). Los anormales y los cambiantes, no.'},
+  sol:{n:'Sol de mediodía', d:'Buena visibilidad: los críticos también salen con un 18 (16 los Precisos).'},
+  viento:{n:'Viento de cara', d:'El gas rinde menos: recuperas 1 menos tras cada combate.'},
+  lluvia:{n:'Lluvia', d:'El acero resbala: un 2 en el d20 también es pifia.'}
+};
+const WX_W = [['despejado',30],['niebla',14],['noche',14],['sol',14],['viento',14],['lluvia',14]];
+function rollWx(z){ if(z%3===0) return 'despejado'; let x=Math.random()*100; for(const [k,p] of WX_W){ x-=p; if(x<0) return k; } return 'despejado'; }
+const wxNow = () => (S && !S.pvp && S.map && S.map.wx) || 'despejado';
+const RETOS = {
+  nuca2:{n:'Remata a dos en la nuca', ok:()=>C.execs>=2, min:2},
+  r3:{n:'Gana en 3 rondas o menos', ok:()=>C.rounds<=3},
+  sano:{n:'Que nadie acabe por debajo de la mitad de PV', ok:()=>S.squad.every(s=>s.hp>=maxHp(s)*.5)},
+  crit2:{n:'Consigue dos críticos', ok:()=>C.crits>=2, min:2},
+  ahorro:{n:'Gasta 2 de gas o menos', ok:()=>C.gas0 - (C.gasEnd==null ? S.gas : C.gasEnd) <= 2},
+  nat20:{n:'Saca un 20 natural', ok:()=>C.nat20>=1}
+};
+const RETO_COINS = 8;
+function pickReto(n){ const ks=Object.keys(RETOS).filter(k=>!RETOS[k].min || n>=RETOS[k].min); return ks[Math.floor(Math.random()*ks.length)]; }
+// al ganar: comprueba el reto antes de curar y repostar
+function checkReto(){ if(!C || !C.reto || !RETOS[C.reto]) return null; C.gasEnd = S.gas; const ok = !!RETOS[C.reto].ok(); return {k:C.reto, n:RETOS[C.reto].n, ok}; }

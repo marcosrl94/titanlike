@@ -2,8 +2,8 @@
 const $ = id=>document.getElementById(id);
 const NS = 'http://www.w3.org/2000/svg';
 const REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-let fast = !!store.get('fast');
-const animK = () => REDUCED || CFG.calm ? .15 : Math.min(ANIM[CFG.anim] ? ANIM[CFG.anim].k : 1, fast ? .5 : 1);
+let fast = false, quickK = 1;   // quickK: en combates normales, los golpes rutinarios van algo más deprisa
+const animK = () => REDUCED || CFG.calm ? .15 : (ANIM[CFG.anim] ? ANIM[CFG.anim].k : .66) * quickK;
 const sleep = ms => new Promise(r=>setTimeout(r, ms*animK()));
 const FXON = () => !(REDUCED || CFG.calm);   // partículas y sacudidas: fuera en modo tranquilo o con movimiento reducido
 const U = u => document.querySelector(`[data-u="${u}"]`);   // el primero: en combate, el sprite del escenario
@@ -186,6 +186,7 @@ const FX = {
   async bolt(e){ const s=U('s'+e.s); logLine(e.m); if(!s) return; const p=at(s,.4); boltAt(p,1); sfx('bolt'); flash('var(--gold)',.8); quake(500); cls(s,'glow',720); await sleep(260); float(p, 'TITÁN DE ATAQUE', 'tag'); await sleep(520); }
 };
 function play(done){
+  quickK = C && !S.pvp && !C.titans.some(t=>t.boss) && typeof curNode==='function' && curNode() && curNode().t==='c' ? .8 : 1;
   $('fx').style.setProperty('--k', animK());
   // golpes encadenados del mismo soldado (Torbellino, Colosal, Avanzad…): el dado rueda más deprisa
   const L=C.ev.splice(0); L.forEach((e,i)=>{ const pv=L[i-1]; if(e.k==='slash' && pv && pv.k==='slash') e.chain=1; });

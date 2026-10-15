@@ -112,7 +112,7 @@ function act(a, i){
   if(a==='evok'){ if(S.q && S.q.length){ S.after='advance'; return nextScene(); } return advance(); }
   if(a==='scn') return sceneAct(i);
   if(a==='inject'){ S.q=[{k:'drop', p:NINE.find(k=>S.pw[k]==='reserva'), src:'camp'}]; S.after='advance'; return nextScene(); }
-  if(a==='speed'){ const ks=Object.keys(ANIM), n=ks[(ks.indexOf(CFG.anim)+1)%ks.length]; setCfg('anim', n); fast = n!=='normal'; const b=document.querySelector('[data-a=speed]'); if(b) b.textContent=`Animación: ${ANIM[n].n}`; return; }
+  if(a==='speed'){ const ks=Object.keys(ANIM), n=ks[(ks.indexOf(CFG.anim)+1)%ks.length]; setCfg('anim', n); const b=document.querySelector('[data-a=speed]'); if(b) b.textContent=`Animación: ${ANIM[n].n}`; return; }
   if(scr!=='combat' || !C.active || C.busy) return;
   if(a==='order'){
     if(C.pending && C.pending.kind===i){ C.pending=null; return render(); }
@@ -135,6 +135,7 @@ document.querySelector('.snd').addEventListener('click', ev=>{
   auUnlock(); toggleSound(b.dataset.s); header(); sfx('click');
 });
 $('screen').addEventListener('click', ev=>{
+  const sc=ev.target.closest('.scene'); if(sc && !sc.classList.contains('skip')) sc.classList.add('skip');   // tocar la escena muestra todo el texto de golpe
   const b=ev.target.closest('[data-a]'); if(!b || b.disabled) return;
   act(b.dataset.a, b.dataset.i);
 });

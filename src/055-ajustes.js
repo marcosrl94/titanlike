@@ -1,7 +1,7 @@
 // ---------- Ajustes del jugador (se guardan en este navegador) ----------
 const CFG_DEF = {
   mus: 80, sfx: 80,              // volumen de música y efectos, 0–100
-  anim: 'normal',                // velocidad de las animaciones: normal, fast, instant
+  anim: 'agil',                  // velocidad de las animaciones: normal, agil, fast, instant
   preview: true, intent: true,   // previsión de daño e intenciones de los titanes
   shake: true, flash: true,      // sacudidas de pantalla y destellos
   dice: true,                    // dados animados en combate y eventos
@@ -11,7 +11,9 @@ const CFG_DEF = {
   diff: 'explorador'             // dificultad con la que se empiezan las expediciones
 };
 let CFG = Object.assign({}, CFG_DEF, store.get('cfg') || {});
-const ANIM = {normal:{n:'Normal', k:1}, fast:{n:'Rápida', k:.5}, instant:{n:'Instantánea', k:.12}};
+// 15.15: el ritmo por defecto pasa a «Ágil»; quien tenía «Normal» guardado se mueve una vez
+if(!CFG.v || CFG.v < 2){ if(CFG.anim==='normal') CFG.anim='agil'; CFG.v=2; store.set('cfg', CFG); }
+const ANIM = {normal:{n:'Pausada', k:1}, agil:{n:'Ágil', k:.66}, fast:{n:'Rápida', k:.45}, instant:{n:'Instantánea', k:.12}};
 const vol = k => Math.max(0, Math.min(100, +CFG[k] || 0)) / 100;
 function setCfg(k, v){
   CFG[k] = v; store.set('cfg', CFG); applyCfg();

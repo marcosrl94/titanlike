@@ -1,5 +1,11 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-16.15', t:'Más ritmo en cada saga', items:[
+    'Las animaciones van por defecto en «Ágil», un 50 % más deprisa, y en los combates normales los golpes rutinarios son aún más cortos. Críticos, habilidades y transformaciones siguen a tamaño completo. Si prefieres el ritmo de antes, está en Ajustes como «Pausada».',
+    'Retos: cada combate normal y cada élite proponen un objetivo opcional (ganar en 3 rondas, rematar en la nuca, no gastar gas…). Si lo cumples, 8 monedas extra.',
+    'Condiciones de zona: niebla, noche, sol, viento o lluvia cambian una regla pequeña durante las 5 jornadas de la zona. Se ven en el mapa y en el combate.',
+    'Toca una escena para ver todo su texto de golpe. Los consejos solo salen en las primeras expediciones.'
+  ]},
   {v:'2026-10-15.14', t:'La saga 4 aprieta', items:[
     'Los titanes y cambiantes de la saga 4 (y de lo que la sustituya) pegan más fuerte y aguantan más. Llegar al final ya no basta: el último jefe es el examen de verdad.'
   ]},

@@ -996,6 +996,17 @@ body.fm-open{overflow:hidden}
   .caption{padding:14px 16px} .caption p{font-size:16px}
 }
 body.calm .shero .sl,body.calm .sh-art svg,body.calm .fire,body.calm .embers{animation:none}
+/* ---- 15.15: condiciones de zona y retos ---- */
+.stage .stchips{position:absolute;right:12px;top:42px;z-index:4;display:flex;flex-direction:column;align-items:flex-end;gap:6px;pointer-events:none;max-width:60%}
+.stage.poke.multi .stchips{top:auto;bottom:42px}
+.stchips .lbl{background:rgba(14,16,15,.85);border:1px solid var(--stone-4);border-radius:999px;padding:3px 10px;font-size:11.5px;color:var(--bone);text-align:right;pointer-events:auto}
+.stchips .reto{color:var(--gold);border-color:rgba(216,180,95,.45)}
+.wxc.wx-niebla,.wxbar.wx-niebla{--wx:#bfd6e2} .wx-noche{--wx:#8f9bd6} .wx-sol{--wx:#ffd36a} .wx-viento{--wx:#9fd8c0} .wx-lluvia{--wx:#7fb0e6}
+.stchips .wxc{color:var(--wx,var(--bone));border-color:var(--wx,var(--stone-4))}
+.wxbar{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:10px 14px;border-radius:12px;background:linear-gradient(90deg,rgba(255,255,255,.05),transparent);border:1px solid rgba(255,255,255,.07);border-left:4px solid var(--wx,var(--gold))}
+.wxbar b{font-family:var(--display);font-size:20px;color:var(--wx,var(--bone))} .wxbar span:last-child{color:var(--muted);font-size:14px;flex-basis:100%}
+.scene.skip .ln{animation:none!important;opacity:1!important}
+.lbl.reto-r{margin-top:6px;max-width:30ch;text-align:center} .lbl.reto-r.ok{color:var(--cloak-hi)} .lbl.reto-r.ko{color:var(--muted)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
 </style>
 <div id="bgart" aria-hidden="true"></div>
