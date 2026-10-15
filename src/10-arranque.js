@@ -4,10 +4,10 @@ applyCosmetics();
 function header(){
   $('bmus').classList.toggle('off', !AU.on.m); $('bsfx').classList.toggle('off', !AU.on.s);
   $('bmus').setAttribute('aria-pressed', AU.on.m); $('bsfx').setAttribute('aria-pressed', AU.on.s);
-  const h=$('hacc'); if(h) h.innerHTML = !cloudOn() ? '' : CLOUD.user
+  const h=$('hacc'); if(h) h.innerHTML = (typeof lvBadge==='function' ? `<button class="ib lvh" data-a="nivel" aria-label="Tu nivel">${lvBadge(xpTotal(),'sm')}</button>` : '') + (!cloudOn() ? '' : CLOUD.user
     ? `<button class="ib av-b" data-a="acct" aria-label="Tu cuenta: ${esc(userName())}" title="${esc(userName())}">${avatar('sm')}</button>`
-    : `<button class="btn sm ghost hin" data-a="acct" aria-label="Entrar o crear cuenta"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Entrar</span></button>`;
-  const on = S && !S.pvp && !['title','starter','gallery','sagas','board','codex','settings','intendencia','ficha','comps','arbol','amigos','duelpick','duelres','howto'].includes(scr) && S.map;
+    : `<button class="btn sm ghost hin" data-a="acct" aria-label="Entrar o crear cuenta"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Entrar</span></button>`);
+  const on = S && !S.pvp && !['title','starter','gallery','sagas','board','codex','settings','intendencia','ficha','comps','arbol','amigos','duelpick','duelres','howto','nivel','pase'].includes(scr) && S.map;
   $('prog').hidden = !on;
   if(!on) return;
   $('gasbar').innerHTML = `<i style="width:${Math.round(S.gas/S.gasMax*100)}%"></i>`; $('gasn').textContent=`${S.gas}/${S.gasMax}`;
@@ -25,6 +25,7 @@ function render(){
   $('screen').innerHTML = `<div>${tipHTML()}${V[scr]()}</div>`;
   document.body.classList.toggle('on-title', scr==='title');
   if(typeof fichaModal==='function') fichaModal();
+  if(typeof maybeLevelUp==='function') maybeLevelUp();
   { const bg=$('bgart'), want = scr==='title' ? 'mo'+TITLE_BG : ''; if(bg && bg.dataset.k!==want){ bg.dataset.k=want; bg.innerHTML = want ? `<div class="mm-bg">${momentSVG(TITLE_BG)}</div>` : ''; } }
   if(scr!==lastScr && !REDUCED){ const el=$('screen').firstElementChild; if(el) el.classList.add('enter'); }   // transición al cambiar de pantalla
   if(scr==='event') rollDice($('screen'));
@@ -80,6 +81,7 @@ function act(a, i){
   if(a==='duelgo'){ const M=legendsLocal().find(l=>l.lid===i); if(!M||!DPICK) return; return startDuel(M, DPICK.foe, DPICK.foeName, DPICK.foeCloud && M.cloud ? {foe:DPICK.foeCloud, mine:M.cloud} : null); }
   if(a==='duelagain'){ if(DUEL) return startDuel(DUEL.mine, DUEL.foe, DUEL.foeName, DUEL.cloud); return; }
   if(a==='howto'){ scr='howto'; window.scrollTo(0,0); return render(); }
+  if(a==='nivel'){ scr='nivel'; window.scrollTo(0,0); return render(); }
   if(a==='arbol'){ scr='arbol'; window.scrollTo(0,0); return render(); }
   if(a==='moment') return showMoment(+i, 'Momento', true);
   if(a==='ficha'){ const was=scr==='ficha'; fichaOpen = i && ROSTER[i] ? i : null; if(fichaOpen) fichaId=fichaOpen; scr='ficha'; if(!was) window.scrollTo(0,0); render(); const m=document.querySelector('.fm-in'); if(m){ m.scrollTop=0; const x=m.querySelector('.fm-x'); if(x) x.focus({preventScroll:true}); } return; }
@@ -129,6 +131,7 @@ function act(a, i){
 document.addEventListener('pointerdown', auUnlock);
 document.addEventListener('keydown', auUnlock);
 document.querySelector('.snd').addEventListener('click', ev=>{
+  if(ev.target.closest('[data-a=nivel]')) return act('nivel');
   if(ev.target.closest('#bmenu') || ev.target.closest('[data-a=acct]')){ auUnlock(); return openMenu(); }
   const l=ev.target.closest('[data-a=login]'); if(l){ if(!l.disabled) cloudLogin(); return; }
   const b=ev.target.closest('[data-s]'); if(!b) return;

@@ -38,6 +38,7 @@ function check(k, dc){
   const b = who ? skillBonus(who,k) : 0, r = d20(), ok = r===20 || (r!==1 && r+b>=dc);
   const txt = `Tirada de ${SKILLS[k]} (${who?nm(who):'nadie'} +${b}): ${r}${r===20?' ¡20 natural!':r===1?' ¡pifia!':''}${b?' + '+b+' = '+(r+b):''} contra ${dc}. ${ok?'Éxito.':'Fallo.'}`;
   if(S && S.pend) (S.pend.dice = S.pend.dice || []).push({k, r, b, dc, ok, who: who ? who.id : null});
+  if(ok && typeof orderEvent==='function') orderEvent('prueba');
   return {ok, who, r, b, txt};
 }
 // crecimiento por jornada: 15 % de la base en la saga 1 y 13 % a partir de la 2 (la curva se aplanaba poco con los niveles del escuadrón)

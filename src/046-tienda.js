@@ -33,7 +33,8 @@ function insigniaSources(){
     {n:'Notas S', d:'1 por S y 3 por S+', v:(g['S']||0) + 3*(g['S+']||0)},
     {n:'Récords de jefe', d:'2 por jefe con nota A o mejor', v:2*Object.values(st.rec||{}).filter(r=>gradeIx(r.g)<=2).length},
     {n:'Mejor jornada', d:'1 por cada 5 jornadas de tu mejor marca', v:Math.floor((M.best||0)/5)},
-    {n:'Campañas', d:'15 por vuelta completada', v:15*(M.ngLevel||0)}
+    {n:'Campañas', d:'15 por vuelta completada', v:15*(M.ngLevel||0)},
+    {n:'Nivel de cuenta', d:'5 por cada nivel', v:typeof levelOf==='function' ? 5*(levelOf(M.xp||0).lv-1) : 0}
   ];
 }
 const insigniasEarned = () => insigniaSources().reduce((a,x)=>a+x.v,0);

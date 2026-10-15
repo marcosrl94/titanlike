@@ -55,7 +55,7 @@ function bringPower(id){ const k=BRINGS[id]; if(k && !(k in S.pw)) grant(k, id, 
 // ---- transformaciones en combate ----
 function usePower(s, k, target){
   const f=C.fx[s.id], P=POWERS[k], ti = target ? C.titans.indexOf(target) : -1;
-  C.usedPw[k] = true;
+  C.usedPw[k] = true; if(typeof orderEvent==='function' && !S.pvp) orderEvent('poder');
   ev({k:'shift', s:s.id, pw:k, art:P.art, txt:P.n.toUpperCase(), m:`${nm(s)} se transforma en el ${P.n}.`});
   switch(k){
     case 'ataque': f.titan=4; f.form=k; f.formT=4; break;

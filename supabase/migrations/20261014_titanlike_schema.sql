@@ -108,3 +108,10 @@ create policy "imagenes propias: borrar" on storage.objects for delete to authen
 --   puntuación, escuadrón con formato id+id (2-4 soldados), debe existir una expedición propia abierta (o cerrada
 --   hace menos de 30 min) con la misma dificultad y vuelta, máximo 40 envíos/hora y uno por jefe cada 2 minutos.
 --   Duelos: nota válida, rondas 2..99 (victoria al menos en 3), no contra uno mismo, uno por rival cada 20 s.
+
+-- 2026-10-16 (titanlike_level_and_pass): nivel de cuenta y pases.
+--   profiles.xp (protegida por el disparador profiles_guard: ni xp ni friend_code se cambian escribiendo el perfil),
+--   xp_log (registro de cada suma), passes (p1 = «Crónica de los Muros», permanente; los de temporada llevan fechas y
+--   su lote en data), pass_progress (xp y escalones reclamados por jugador), add_xp(src, amount) con topes por fuente,
+--   20.000 al día, 120 combates por hora, expedición abierta e importación única; claim_tier(pass, tier).
+--   leaderboard_v2, boss_board y my_friends añaden la columna xp al final.

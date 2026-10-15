@@ -96,12 +96,14 @@ function win(){
   G.reto = checkReto(); if(G.reto && G.reto.ok){ S.coins=(S.coins||0)+RETO_COINS; S.retos=(S.retos||0)+1; }
   if(typeof recordFight==='function') recordFight(G);
   if(typeof coinsFor==='function'){ G.coins=coinsFor(G,t); S.coins=(S.coins||0)+G.coins; }
+  if(typeof xpForFight==='function') xpForFight(G, t);
   const lost = S.squad.filter(s=>s.hp<=0).length;
   if(typeof cloudTelemetry==='function') cloudTelemetry('fight', {node:t, win:true, titans:C.titans.map(x=>x.id), rounds:C.rounds, taken:C.taken, gas:[C.gas0, S.gas], lost, squad:S.squad.map(x=>x.id+':'+x.lvl+':'+Math.round(x.hp/maxHp(x)*100)), pw:Object.keys(C.usedPw), acts:C.acts, comp:C.comp, grade:G.g, score:G.score, boss:G.boss});
   C.titans.forEach(x=>{ if(x.hp<=0) codex('t', x.id); });
   if(t==='b'){ ach('primer_jefe'); if(!lost) ach('impecable'); (S.flags.lastHit = S.flags.lastHit || {})[bossId] = C.titans[0].lastHit || null; }
   if(C.start===4 && alive().length===1) ach('solo');
   if(sagaEnd) ach('saga'+(sagaIx(S.wave)+1));
+  if(sagaEnd && typeof gainXP==='function'){ gainXP('saga', 200, 'Saga completada'); orderEvent('saga'); }
   if(S.wave>=30) ach('jornada30');
   const dead = S.squad.filter(s=>s.hp<=0).map(s=>s.id); S.deaths = (S.deaths||[]).concat(dead);   // también cuentan las del último combate para los epílogos
   S.squad.filter(s=>s.hp<=0).forEach(s=>{ S.fallen.push(s.id); if(pwOf(s.id).length){ S.note=`${nm(s)} ha caído. Su poder pasa a la reserva: se puede inyectar en un campamento.`; release(s.id); } });
@@ -117,8 +119,8 @@ function win(){
   if(t==='b' && typeof storyScenesAfter==='function') S.q.push(...storyScenesAfter(bossId));
   if(dead.length && typeof mournScene==='function') S.q.unshift(mournScene(dead));   // el duelo va primero
   if(owned().length>=3) ach('tres_poderes');
-  if(S.daily && sagaEnd){ finishDaily(true); if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, PER+1, null); store.del('run'); scr='victory'; return render(); }
-  if(S.wave>=TOTAL){ const ck = typeof recordRun==='function' ? recordRun(true) : null; if(typeof cloudTelemetry==='function') cloudTelemetry('end', {win:true, comp:ck, route:S.route, squad:S.squad.map(x=>x.id+':'+x.lvl), fallen:S.fallen, rel:S.rel, pw:S.pw, gasMax:S.gasMax}); S.q=(S.q||[]).filter(x=>{ if(x.k==='drop'){ grant(x.p,'reserva'); return false; } return true; }); S.ending=endingOf(); ach(S.ending==='retumbar' ? 'saga4' : S.ending); ach('saga4'); if(S.erenFell) ach('detener_eren'); if(onRoute('reina')) ach('reina');
+  if(S.daily && sagaEnd){ finishDaily(true); if(typeof gainXP==='function'){ gainXP('daily', 250, 'Expedición del día'); orderEvent('daily'); } if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, PER+1, null); store.del('run'); scr='victory'; return render(); }
+  if(S.wave>=TOTAL){ const ck = typeof recordRun==='function' ? recordRun(true) : null; if(typeof cloudTelemetry==='function') cloudTelemetry('end', {win:true, comp:ck, route:S.route, squad:S.squad.map(x=>x.id+':'+x.lvl), fallen:S.fallen, rel:S.rel, pw:S.pw, gasMax:S.gasMax}); S.q=(S.q||[]).filter(x=>{ if(x.k==='drop'){ grant(x.p,'reserva'); return false; } return true; }); S.ending=endingOf(); if(typeof gainXP==='function'){ gainXP('camp', 800 + (meta().endings.includes(S.ending) ? 0 : 400), 'Campaña completada'); orderEvent('camp'); } ach(S.ending==='retumbar' ? 'saga4' : S.ending); ach('saga4'); if(S.erenFell) ach('detener_eren'); if(onRoute('reina')) ach('reina');
     { const ep=epiloguesNow(); S.epilogues=ep.map(e=>e.k); recordEpilogues(ep); if(ep.length) ach('epilogo'); }
     if(typeof saveLegend==='function') S.legend = saveLegend();
     { const m=meta(); saveMeta({ngLevel:Math.max(m.ngLevel||0, (S.ng||0)+1), relics:[...new Set((m.relics||[]).concat(owned()))]}); if(S.ng>0) ach('vuelta'); if(S.ng>=2) ach('vuelta3'); } if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, TOTAL+1, S.ending); const m=meta(); if(!m.endings.includes(S.ending)) saveMeta({endings:m.endings.concat(S.ending)}); store.del('run'); scr='victory'; return render(); }
@@ -134,6 +136,7 @@ function lose(){
   const ck = typeof recordRun==='function' ? recordRun(false) : null;
   if(typeof cloudTelemetry==='function') cloudTelemetry('end', {win:false, comp:ck, route:S.route, node:C&&curNode()?curNode().t:null, titans:C?C.titans.map(x=>x.id):[], rounds:C?C.rounds:0, squad:S.squad.map(x=>x.id+':'+x.lvl), fallen:S.fallen, rel:S.rel, pw:S.pw, gasMax:S.gasMax, items:S.items});
   if(S.daily) finishDaily(false);
+  if(typeof gainXP==='function' && !S.daily) gainXP('run', Math.min(240, 4*S.wave), 'Expedición');
   if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, S.wave, null);
   S.squad.forEach(s=>S.fallen.push(s.id)); saveBest(S.wave-1);
   store.del('run'); scr='over'; render();

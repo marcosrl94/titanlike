@@ -61,7 +61,7 @@ function duelEnd(won){
   const rec = {at:Date.now(), won, g:G.g, sc:G.score, r:G.rounds, foe:D.foeName, mine:D.mine.name, theirs:D.foe.name};
   saveMeta({duels:[rec].concat(meta().duels||[]).slice(0,30)});
   if(D.cloud && typeof cloudRecordDuel==='function') cloudRecordDuel(D.cloud.foe, D.cloud.mine, won, G.rounds, G.g);
-  D.result = G;
+  D.result = G; if(typeof gainXP==='function'){ G.xp = gainXP('duel', won?60:25, won?'Duelo ganado':'Duelo perdido'); }
   S = typeof migrateRun==='function' ? migrateRun(store.get('run')) : null; C=null;
   scr='duelres'; render();
 }

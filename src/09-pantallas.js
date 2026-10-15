@@ -113,6 +113,7 @@ const V = {
         </nav>
       </div>
       <aside class="mm-side">
+        ${typeof lvCard==='function'?lvCard():''}
         <div class="mm-stats num"><div><b>${M.best}</b><span>mejor jornada</span></div><div><b>${M.unlocked}/${SAGAS.length}</b><span>sagas</span></div><div><b>${M.ngLevel||0}</b><span>campañas</span></div><div><b>${(st.g&&((st.g.S||0)+(st.g['S+']||0)))||0}</b><span>notas S</span></div></div>
         ${accountHTML('title')}
       </aside></section>`;
@@ -231,7 +232,7 @@ const V = {
     const sfx = S.sagaDone?'¡Saga!':t==='b'?'¡Abatido!':t==='e'?'¡Élite!':'¡Despejado!';
     const kind = r => r.t==='rec'?'rec':r.t==='item'?'it':'up';
     return `${hero(S.sagaDone?sagaLbl(S.wave):zoneOf(S.wave).n, title, `${S.sagaDone&&nx?`Se abre la saga ${sagaIx(S.wave)+2}, «${nx.n}». El escuadrón sigue adelante con el depósito lleno. `:'Los supervivientes suben de nivel. '}${S.picks>1?`Elige ${S.picks} recompensas.`:'Elige una recompensa.'}`, {sfx, cls:t==='b'||S.sagaDone?'big':''})}
-      ${gradeHTML(S.lastGrade)}${canReroll()?`<div class="row"><button class="btn ghost sm" data-a="reroll">Relanzar recompensas · una vez por saga</button></div>`:''}
+      ${gradeHTML(S.lastGrade)}${typeof xpStrip==='function'?xpStrip(S.lastGrade):''}${canReroll()?`<div class="row"><button class="btn ghost sm" data-a="reroll">Relanzar recompensas · una vez por saga</button></div>`:''}
       ${S.note?`<section class="panel note"><p>${S.note}</p></section>`:''}
       <span class="lbl sect">Recompensa</span>
       <div class="cards chs">${S.rewards.map((r,i)=> `<button class="card ch k-${kind(r)}" data-a="reward" data-i="${i}" data-n="${i+1}">${chN(i)}${r.t==='rec'
@@ -303,6 +304,7 @@ const V = {
       <div class="row"><button class="btn" data-a="sagas">Nueva expedición</button><button class="btn ghost" data-a="home">Portada</button></div></div>
       <div class="peek">${titanFig(won?(S.ending==='paradis'?TITANS.mar.a:TITANS.fun.a):TITANS.col.a)}</div></section>
       ${won && (S.epilogues||[]).length ? `<section class="panel epis"><span class="lbl">Epílogos</span>${S.epilogues.map(k=>EPILOGUES.find(e=>e.k===k)).filter(Boolean).map(e=>`<div class="epi">${e.who?portrait(e.who,true):''}<div><b>${e.n}</b><p>${e.d}</p></div></div>`).join('')}</section>` : ''}
+      ${S.xpRun?`<section class="panel xprun"><span class="lbl">Experiencia de esta expedición</span><b class="sfx">+${S.xpRun.toLocaleString('es-ES')} XP</b>${typeof lvCard==='function'?lvCard():''}</section>`:''}
       ${won?gradeHTML(S.lastGrade):''}
       ${insigniasEarned()-(S.ins0||0)>0?`<section class="panel note"><p><b>+${insigniasEarned()-(S.ins0||0)} insignias</b> en esta expedición. Tienes ${insignias()} para gastar en la Intendencia.</p><div class="row"><button class="btn ghost sm" data-a="intendencia">Ir a la Intendencia</button></div></section>`:''}
       ${cloudOn()&&!CLOUD.user?accountHTML('end'):''}
@@ -356,7 +358,7 @@ const V = {
       <p class="dim" style="font-size:13px">${CLOUD.season?`<b style="color:var(--gold)">${esc(CLOUD.season.name)}</b> · solo cuentan las expediciones empezadas desde el ${new Date(CLOUD.season.started_at).toLocaleDateString('es-ES')}. `:''}Puntos = jornadas × 1,25 en Veterano × (1 + 0,1 por vuelta de New Game+). Recluta no puntúa.</p>
       <section class="panel"><div class="tablewrap"><table class="chart num"><thead><tr><td class="lbl">#</td><td class="lbl">Jugador</td><td class="lbl">Puntos</td><td class="lbl">Mejor expedición</td><td class="lbl">Finales</td><td class="lbl">Los Nueve</td></tr></thead><tbody>
       ${!B ? '<tr><td colspan="6">Cargando…</td></tr>' : !B.length ? '<tr><td colspan="6">Aún no hay nadie. La primera expedición marca el listón.</td></tr>'
-        : B.map((r,i)=>`<tr style="${r.user_id===me?'color:var(--gold)':''}"><td>${i+1}</td><td>${esc(r.display_name)}${r.ng_level?` <span class="chip pwc" title="Campañas completadas">NG+${r.ng_level}</span>`:''}</td><td><b>${r.score}</b></td><td>${r.best} / ${TOTAL}${r.diff==='veterano'?' <span class="chip" style="color:var(--blood-hi)">Veterano</span>':''}${r.ng?` <span class="chip pwc">Vuelta ${r.ng+1}</span>`:''}</td><td>${r.endings} / ${Object.keys(ENDINGS).length}</td><td>${r.nine} / 9</td></tr>`).join('')}
+        : B.map((r,i)=>`<tr style="${r.user_id===me?'color:var(--gold)':''}"><td>${i+1}</td><td>${r.xp!=null&&typeof lvBadge==='function'?lvBadge(r.xp,'xs')+' ':''}${esc(r.display_name)}${r.ng_level?` <span class="chip pwc" title="Campañas completadas">NG+${r.ng_level}</span>`:''}</td><td><b>${r.score}</b></td><td>${r.best} / ${TOTAL}${r.diff==='veterano'?' <span class="chip" style="color:var(--blood-hi)">Veterano</span>':''}${r.ng?` <span class="chip pwc">Vuelta ${r.ng+1}</span>`:''}</td><td>${r.endings} / ${Object.keys(ENDINGS).length}</td><td>${r.nine} / 9</td></tr>`).join('')}
       </tbody></table></div></section>`}`;
   },
   codex(){

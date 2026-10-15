@@ -118,6 +118,7 @@ async function cloudPull(){
   }catch(e){ CLOUD.msg = 'No se pudo sincronizar con la nube.'; }
   render();
   cloudAudioPull();
+  if(typeof cloudXpSync==='function') cloudXpSync();
 }
 let pushT = null;
 function cloudPush(now){
@@ -132,7 +133,7 @@ async function cloudBoard(){
   CLOUD.board = null; render();
   const {data, error} = CLOUD.tab==='hoy'
     ? await CLOUD.sb.from('daily_board').select('display_name,score,wave,user_id').eq('day', today()).limit(50)
-    : await CLOUD.sb.from('leaderboard_v2').select('display_name,best,score,diff,ng,endings,nine,ng_level,user_id').limit(50);
+    : await CLOUD.sb.from('leaderboard_v2').select('display_name,best,score,diff,ng,endings,nine,ng_level,user_id,xp').limit(50);
   CLOUD.board = error ? [] : data; if(error) CLOUD.msg='No se pudo cargar la clasificación.';
   if(!CLOUD.season){ const r = await CLOUD.sb.from('season_current').select('name,started_at').maybeSingle(); if(r && r.data) CLOUD.season = r.data; }   // temporada en curso: la tabla solo cuenta sus partidas
   render();
@@ -144,7 +145,7 @@ function cloudBossRecord(G, comp){
 }
 async function cloudBossBoard(boss){
   CLOUD.bossBoard = null; CLOUD.bossSel = boss; render();
-  const {data, error} = await CLOUD.sb.from('boss_board').select('display_name,user_id,score,grade,rounds,comp,diff,ng').eq('boss', boss).limit(30);
+  const {data, error} = await CLOUD.sb.from('boss_board').select('display_name,user_id,score,grade,rounds,comp,diff,ng,xp').eq('boss', boss).limit(30);
   CLOUD.bossBoard = error ? [] : data; render();
 }
 async function cloudComps(){
@@ -262,4 +263,35 @@ async function cloudAudioPull(){
     }
     for(const k of Object.keys(TRACKS)) if(MY[k] && !inCloud[k]) await cloudAudioUp(k);
   }catch(e){ auMsg = 'No se pudo sincronizar la música con tu cuenta.'; render(); }
+}
+
+// ---- experiencia y pases en la nube (add_xp valida cada suma; claim_tier, cada escalón) ----
+let XPQ = Promise.resolve();
+function cloudAddXp(src, amt){
+  if(!CLOUD.user || !CLOUD.xpReady) return;
+  const go = () => CLOUD.sb.rpc('add_xp', {p_src:src, p_amount:Math.round(amt)}).then(({data})=>{ if(data && data.xp!=null) applyCloudXp(data); }, ()=>{});
+  XPQ = XPQ.then(() => src==='duel' ? new Promise(r=>setTimeout(r, 2500)).then(go) : go());   // el duelo se registra antes de sumar su experiencia
+}
+function applyCloudXp(d){
+  const M=meta(), p=Object.assign({}, M.pass||{});
+  Object.keys(d).forEach(k=>{ if(k.startsWith('p_')){ const id=k.slice(2); p[id]=Object.assign({claimed:[]}, p[id], {xp:d[k]}); } });
+  const before=levelOf(M.xp||0).lv, after=levelOf(d.xp).lv; saveMeta({xp:d.xp, pass:p});
+  if(after>before && !LVUP) LVUP={from:before, to:after};
+}
+async function cloudXpSync(){
+  if(!CLOUD.user || typeof ensureXp!=='function') return; ensureXp();
+  const sb=CLOUD.sb, uid=CLOUD.user.id;
+  try{
+    const pr = await sb.from('profiles').select('xp').eq('id', uid).maybeSingle(); if(pr.error) return;
+    let srv = pr.data ? +pr.data.xp : 0;
+    const imp = await sb.from('xp_log').select('id').eq('user_id', uid).eq('src', 'import').limit(1);
+    if(!imp.error && imp.data && !imp.data.length){ const local=meta().xp||0;
+      if(local>0){ const r=await sb.rpc('add_xp', {p_src:'import', p_amount:Math.min(20000, local)}); if(r.data && r.data.xp!=null) srv=+r.data.xp; } }
+    const pp = await sb.from('pass_progress').select('pass_id,xp,claimed').eq('user_id', uid);
+    const M=meta(), p=Object.assign({}, M.pass||{});
+    (pp.data||[]).forEach(r=>{ const loc=p[r.pass_id]||{claimed:[]}; p[r.pass_id]={xp:+r.xp, claimed:[...new Set((loc.claimed||[]).concat(r.claimed||[]))]}; });
+    saveMeta({xp:srv, pass:p}); CLOUD.xpReady=true;
+    if(typeof cloudClaimPending==='function') cloudClaimPending();
+    render();
+  }catch(e){}
 }

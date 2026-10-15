@@ -112,7 +112,7 @@ V.bossBoard = function(){
     ${mine?`<p class="lbl">Tu récord en este dispositivo: ${gradeChip(mine.g)} ${mine.sc} puntos en ${mine.r} rondas con ${compName(mine.co)}</p>`:''}
     <section class="panel"><div class="tablewrap"><table class="chart num"><thead><tr><td class="lbl">#</td><td class="lbl">Jugador</td><td class="lbl">Nota</td><td class="lbl">Puntos</td><td class="lbl">Rondas</td><td class="lbl">Escuadrón</td></tr></thead><tbody>
     ${!B?'<tr><td colspan="6">Cargando…</td></tr>':!B.length?`<tr><td colspan="6">Nadie ha puesto nota todavía contra ${TITANS[sel].n}. El primero marca el listón.</td></tr>`
-      :B.map((r,i)=>`<tr style="${r.user_id===me?'color:var(--gold)':''}"><td>${i+1}</td><td>${esc(r.display_name)}${r.diff==='veterano'?' <span class="chip" style="color:var(--blood-hi)">Veterano</span>':''}${r.ng?` <span class="chip pwc">Vuelta ${r.ng+1}</span>`:''}</td><td>${gradeChip(r.grade)}</td><td><b>${r.score}</b></td><td>${r.rounds}</td><td><div class="crow">${compIds(r.comp).map(x=>portrait(x)).join('')}</div></td></tr>`).join('')}
+      :B.map((r,i)=>`<tr style="${r.user_id===me?'color:var(--gold)':''}"><td>${i+1}</td><td>${r.xp!=null?lvBadge(r.xp,'xs')+' ':''}${esc(r.display_name)}${r.diff==='veterano'?' <span class="chip" style="color:var(--blood-hi)">Veterano</span>':''}${r.ng?` <span class="chip pwc">Vuelta ${r.ng+1}</span>`:''}</td><td>${gradeChip(r.grade)}</td><td><b>${r.score}</b></td><td>${r.rounds}</td><td><div class="crow">${compIds(r.comp).map(x=>portrait(x)).join('')}</div></td></tr>`).join('')}
     </tbody></table></div></section>`;
 };
 
@@ -195,7 +195,7 @@ V.amigos = function(){
     ${pend.length?`<section class="panel"><span class="lbl">Solicitudes</span>${pend.map(f=>`<div class="frow"><b>${esc(f.display_name)}</b>${f.mine?'<span class="dim">Esperando a que acepte</span>':`<button class="btn sm" data-a="frok" data-i="${f.friend_id}">Aceptar</button><button class="btn ghost sm" data-a="frno" data-i="${f.friend_id}">Rechazar</button>`}</div>`).join('')}</section>`:''}
     <span class="lbl">Amigos · ${acc.length}</span>
     ${!F||F.loading&&!acc.length ? '<p class="dim">Cargando…</p>' : !acc.length ? '<p class="dim">Aún no tienes amigos añadidos.</p>' : acc.map(f=>{ const L=legOf(f.friend_id);
-      return `<section class="panel friend"><div class="frow"><b>${esc(f.display_name)}</b><span class="num">${f.wins} – ${f.losses}</span></div>
+      return `<section class="panel friend"><div class="frow">${f.xp!=null?lvBadge(f.xp,'sm'):''}<b>${esc(f.display_name)}</b><span class="num">${f.wins} – ${f.losses}</span></div>
         ${L.length ? `<div class="cards">${L.slice(0,4).map(l=>legendHTML(l,'retar',`<span class="lbl" style="color:var(--gold)">Retar</span>`)).join('')}</div>` : '<p class="dim">Todavía no tiene ninguna leyenda: tiene que terminar una campaña.</p>'}</section>`; }).join('')}
     ${hist?`<span class="lbl">Últimos duelos</span><section class="panel"><div class="tablewrap"><table class="chart num">${hist}</table></div></section>`:''}`}
     <span class="lbl">Tus leyendas · ${mine.length}</span>
@@ -215,3 +215,22 @@ V.duelres = function(){
       <div class="row"><button class="btn" data-a="duelagain">Revancha</button><button class="btn ghost" data-a="amigos">Amigos y duelos</button></div></div>
       <div class="peek">${duelArt(D.foe.squad.s[0].id)}</div></section>${G.won?gradeHTML(G):''}`;
 };
+
+// ---- nivel de cuenta: rango, órdenes, de dónde sale la experiencia ----
+V.nivel = function(){
+  ensureXp(); const M=meta(), xp=xpTotal(), L=levelOf(xp), r=rankOf(L.lv), N=ordersNow(), tl=titlesFor(L.lv);
+  const ord = (x, v) => `<div class="ord ${x.done?'done':''}"><span class="ord-t"><b>${x.n}</b><span class="xpbar"><i style="width:${Math.round(x.p/x.goal*100)}%"></i></span></span><span class="num lbl">${x.done?'Cumplida':`${x.p}/${x.goal}`} · +${v} XP</span></div>`;
+  const ladder = RANKS.map((k,i)=>{ const nx=RANKS[i+1], on=L.lv>=k.min; return `<div class="rk ${on?'on':''} ${k===r?'cur':''}">${lvBadge(levelXp(k.min),'')}<b>${k.n}</b><span class="lbl num">Nivel ${k.min}${nx?`–${nx.min-1}`:'+'}</span></div>`; }).join('');
+  const log = (M.xpLog||[]).slice(0,12).map(g=>`<tr><td>${esc(g.n)}</td><td class="num" style="text-align:right"><b>+${g.v}</b></td></tr>`).join('');
+  return `<div class="row"><button class="btn ghost" data-a="home">Volver</button></div>
+    ${hero('Nivel de cuenta', `Nivel ${L.lv} · ${r.n}`, `${L.into.toLocaleString('es-ES')} de ${L.need.toLocaleString('es-ES')} XP para el siguiente nivel · ${xp.toLocaleString('es-ES')} XP en total${tl.length?` · Título: «${tl[tl.length-1]}»`:''}`,
+      {cls:'lvhero rk-'+r.k, art:'', side:`<div class="sh-side lvside"><i class="sl"></i>${lvBadge(xp,'xl')}</div>`})}
+    <span class="lbl sect">Órdenes de hoy</span><div class="ords">${N.daily.map(x=>ord(x, ORD_XP.d)).join('')}</div>
+    <span class="lbl sect">Órdenes de la semana</span><div class="ords">${N.weekly.map(x=>ord(x, ORD_XP.s)).join('')}</div>
+    <span class="lbl sect">Rangos</span><div class="ladder">${ladder}</div>
+    <span class="lbl sect">De dónde sale la experiencia</span>
+    <div class="isrc xs">${XP_SRC.map(x=>`<div class="on"><span>${x.n}</span><small>${x.d}</small></div>`).join('')}</div>
+    ${log?`<span class="lbl sect">Últimas sumas</span><section class="panel"><div class="tablewrap"><table class="chart num">${log}</table></div></section>`:''}
+    <p class="dim" style="font-size:13px">Cada nivel da 5 insignias para la Intendencia y cada pocos niveles, un título. ${cloudOn()&&CLOUD.user?'Tu experiencia se guarda en la nube.':'Sin sesión, la experiencia se guarda solo en este navegador; al entrar se sube a tu cuenta.'}</p>`;
+};
+function levelXp(lv){ let x=0; for(let i=1;i<lv;i++) x+=xpNeed(i); return x; }

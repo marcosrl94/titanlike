@@ -1,5 +1,11 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-16.16', t:'Nivel de cuenta y órdenes', items:[
+    'Todo lo que juegas da experiencia: cada combate según su nota, sagas, campañas, la expedición del día y los duelos. El primer combate ganado del día da 300 extra.',
+    'Tu nivel es permanente y lleva un borde que cambia con el rango: Recluta, Soldado, Veterano, Líder de escuadrón, Capitán y Comandante. Se ve en el menú, en la clasificación, en el tablón de jefes y en amigos.',
+    'Órdenes: tres diarias y tres semanales, iguales para todos. Cada nivel da 5 insignias para la Intendencia y cada pocos niveles, un título.',
+    'Lo que ya habías jugado cuenta: al abrir el juego recibes una vez la experiencia de tu historial.'
+  ]},
   {v:'2026-10-16.15', t:'Más ritmo en cada saga', items:[
     'Las animaciones van por defecto en «Ágil», un 50 % más deprisa, y en los combates normales los golpes rutinarios son aún más cortos. Críticos, habilidades y transformaciones siguen a tamaño completo. Si prefieres el ritmo de antes, está en Ajustes como «Pausada».',
     'Retos: cada combate normal y cada élite proponen un objetivo opcional (ganar en 3 rondas, rematar en la nuca, no gastar gas…). Si lo cumples, 8 monedas extra.',
