@@ -10,7 +10,7 @@ function migrateRun(r){
 const meta = () => Object.assign({unlocked:1, best:0, nine:[], endings:[], ach:[], codex:{t:{},s:{}}}, store.get('meta')||{});
 function saveMeta(p){ store.set('meta', Object.assign(meta(), p)); if(typeof cloudPush==='function') cloudPush(); }
 function rollType(r, z){
-  const w = (z>0 ? r>=1 : r>=3) ? [['c',37],['e',17],['v',20],['k',17],['t',9]] : r>=1 ? [['c',46],['v',26],['k',19],['t',9]] : [['c',50],['v',28],['k',22]];
+  const w = (z>0 ? r>=1 : r>=3) ? [['c',26],['e',17],['v',16],['k',15],['t',8],['p',7],['x',7],['r',4]] : r>=1 ? [['c',34],['v',22],['k',17],['t',8],['p',8],['x',z>0?7:0],['r',4]] : [['c',42],['v',24],['k',20],['p',8],['x',z>0?6:0]];
   let x = Math.random()*w.reduce((a,b)=>a+b[1],0);
   for(const [t,p] of w){ x-=p; if(x<0) return t; }
   return 'c';
@@ -68,6 +68,8 @@ function enterNode(r, j){
   const t = curNode().t;
   if(t==='b'){ const boss=zoneOf(S.wave).boss, b=betrayer(boss); if(b) return startBetrayal(b, boss); }
   if(t==='v'){ const ok=EVENTS.map((e,i)=>i).filter(i=>(!EVENTS[i].when || EVENTS[i].when()) && !(typeof eventLocked==='function' && eventLocked(i))); const pr=ok.filter(i=>EVENTS[i].prio); S.pend={k:'event', i:pr.length ? pr[0] : seeded('ev'+S.wave+'-'+r+'-'+j, ()=>pick(ok.filter(i=>!EVENTS[i].prio))), res:null}; scr='event'; }
+  else if(t==='p'){ const st=seeded('chase'+S.wave+'-'+r+'-'+j, ()=>CHASE_EV.slice().sort(()=>Math.random()-.5).slice(0,3)); S.pend={k:'event', i:st[0], res:null, chase:{n:1, ok:0, steps:st, log:[]}}; scr='event'; }
+  else if(t==='r'){ S.pend={k:'event', i:SCOUT_EV, res:null}; scr='event'; }
   else if(t==='k'){ S.pend={k:'camp'}; scr='camp'; }
   else if(t==='t'){ S.pend={k:'shop'}; S.shop={offers:seeded('shop'+S.wave+'-'+r+'-'+j, shopOffers)}; scr='shop'; }
   else S.pend={k:'fight'};
@@ -77,7 +79,7 @@ function enterNode(r, j){
 // el nodo actual queda resuelto: vuelve al mapa (o abre la zona o la saga siguiente)
 function advance(){
   const t = curNode().t, boss = t==='b';
-  if(t==='v' || t==='k') S.squad.forEach(levelUp);   // la veteranía sube con cada jornada
+  if(t==='v' || t==='k' || t==='p' || t==='r') S.squad.forEach(levelUp);   // la veteranía sube con cada jornada
   S.pend=null; S.rewards=null; S.picks=0; S.sagaDone=false; S.note=null; S.lastGrade=null; S.wave++; C=null;
   if(boss){ const z=S.map.z+1; S.map = seeded('map'+z, ()=>genMap(z)); }
   store.set('run', S); scr='map'; render();
@@ -93,6 +95,7 @@ function win(){
   const t = curNode().t, sagaEnd = t==='b' && dayOf(S.wave)===PER, btr = S.pend && S.pend.btr, bossId = t==='b' ? C.titans[0].id : null;
   S.q = []; S.note = null;
   const G = S.lastGrade = rateFight(t);   // nota del combate: se muestra en la recompensa
+  if(t==='x'){ S.coins=(S.coins||0)+6; G.civ=true; }
   G.reto = checkReto(); if(G.reto && G.reto.ok){ S.coins=(S.coins||0)+RETO_COINS; S.retos=(S.retos||0)+1; }
   if(typeof recordFight==='function') recordFight(G);
   if(typeof coinsFor==='function'){ G.coins=coinsFor(G,t); S.coins=(S.coins||0)+G.coins; }
@@ -310,3 +313,33 @@ const EVENTS = [
         hurtAll(.2); return `${c.txt} Llegáis tarde. Solo quedan titanes y equipo roto.`; }},
       {l:'Mantener la ruta', d:'Depósito de gas lleno.', f(){ S.gas=S.gasMax; return 'La disciplina también salva vidas. Llenáis el gas en un puesto de paso.'; }}]},
 ];
+
+// ---- nodos rápidos: persecución a caballo (3 decisiones) y reconocimiento; el rescate es un combate de 3 rondas ----
+NODE.p = {n:'Persecución', d:'Tres decisiones rápidas a caballo: tirada de habilidad o un pequeño coste.'};
+NODE.x = {n:'Rescate', d:'Combate corto: aguanta 3 rondas mientras los civiles cruzan. Más titanes, menos tiempo.'};
+NODE.r = {n:'Reconocimiento', d:'Exploras por delante: ventaja contra el jefe de la zona o suministros.'};
+const CHASE = [
+  {d:'Un titán os corta el paso en la calle mayor.', o:[{l:'Por los tejados', k:'sigilo'}, {l:'Dar un rodeo', cost:'gas'}]},
+  {d:'El puente está medio hundido.', o:[{l:'Saltarlo al galope', k:'aguante'}, {l:'Vadear el río', cost:'hp'}]},
+  {d:'Humo negro: no se ve a diez pasos.', o:[{l:'Guiaros por el oído', k:'percepcion'}, {l:'Esperar a que escampe', cost:'gas'}]},
+  {d:'Dos caminos y un mapa empapado.', o:[{l:'Leer el terreno', k:'ingenio'}, {l:'Coger el largo', cost:'hp'}]},
+  {d:'Un anormal galopa detrás de vosotros.', o:[{l:'Despistarlo entre los árboles', k:'sigilo'}, {l:'Soltar una bengala', cost:'gas'}]},
+  {d:'Un caballo empieza a cojear.', o:[{l:'Curarlo sobre la marcha', k:'ingenio'}, {l:'Repartir la carga', cost:'hp'}]}
+];
+function chaseNext(txt){
+  const P=S.pend.chase; P.log.push(txt);
+  if(P.n<3){ P.n++; S.pend.i=P.steps[P.n-1]; store.set('run', S); return null; }
+  let fin;
+  if(P.ok>=3){ S.coins=(S.coins||0)+10; fin=`Llegáis los primeros y con botín: +10 monedas y ${randomUpg()}.`; }
+  else if(P.ok===2){ S.coins=(S.coins||0)+6; fin=`Llegáis enteros: +6 monedas y ${randomUpg()}.`; }
+  else if(P.ok===1){ S.coins=(S.coins||0)+4; fin=`Llegáis por los pelos: +4 monedas y ${randomUpg()}.`; }
+  else { S.coins=(S.coins||0)+4; fin='Llegáis, que no es poco: +4 monedas.'; }
+  return P.log.join(' ') + ' ' + fin;
+}
+const CHASE_EV = CHASE.map(c=>EVENTS.push({n:'Persecución a caballo', chase:true, when:()=>false, d:c.d, o:c.o.map(o=> o.k
+  ? {l:o.l, d:`Prueba de ${SKILLS[o.k]} (12). Si sale bien, +5 monedas; si no, quien la tira pierde un 10 % de PV.`, f(){ const c=check(o.k, 12); if(c.ok){ S.coins=(S.coins||0)+5; S.pend.chase.ok++; } else if(c.who){ c.who.hp=Math.max(1, c.who.hp-Math.round(maxHp(c.who)*.1)); } return chaseNext(c.txt); }}
+  : o.cost==='gas' ? {l:o.l, d:'Sin tirada. Cuesta 1 de gas.', f(){ S.gas=Math.max(0, S.gas-1); return chaseNext(`${o.l}: perdéis algo de gas, pero seguís.`); }}
+  : {l:o.l, d:'Sin tirada. Todo el escuadrón pierde un 5 % de PV.', f(){ hurtAll(.05); return chaseNext(`${o.l}: llegáis magullados, pero llegáis.`); }})}) - 1);
+const SCOUT_EV = EVENTS.push({n:'Reconocimiento', when:()=>false, d:'Desde una torre se ve toda la zona, y al fondo, al cambiante que la guarda.',
+  o:[{l:'Estudiar al cambiante', d:'Al empezar el combate contra el jefe de esta zona, estará marcado 2 turnos (recibe +50 %).', f(){ S.scoutZ=S.map.z; return 'Apuntáis cómo se mueve y dónde se le abre la guardia.'; }},
+     {l:'Buscar suministros', d:'+3 de gas y todo el escuadrón recupera un 15 % de PV.', f(){ S.gas=Math.min(S.gasMax, S.gas+3); healAll(.15); return 'En la torre queda gas y un botiquín. Algo es algo.'; }}]}) - 1;

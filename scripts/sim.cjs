@@ -42,7 +42,7 @@ function run(ids, saga){ newRun(ids, saga); let n=0;
       sceneAct('go'); continue; }
     if(scr==='shop'){ const pr=['vendas','instruccion','mejora','gas']; S.shop.offers.map((o,i)=>[o,i]).sort((x,y)=>(pr.indexOf(x[0].k)+9)%9-(pr.indexOf(y[0].k)+9)%9).forEach(([o,i])=>{ if(!o.sold && S.coins>=o.p && (o.k!=='vendas' || S.squad.some(s=>s.hp<maxHp(s)*.6))) shopBuy(i); }); S.shop=null; advance(); continue; }
     if(scr==='camp'){ const hp=S.squad.reduce((a,s)=>a+s.hp/maxHp(s),0)/S.squad.length; CAMP[hp<.6?0:1].f(); advance(); continue; }
-    if(scr==='event'){ pick(EVENTS[S.pend.i].o).f(); if(S.q.length){ S.after='advance'; nextScene(); } else advance(); continue; }
+    if(scr==='event'){ while(pick(EVENTS[S.pend.i].o).f()===null && S.pend.chase); if(S.q.length){ S.after='advance'; nextScene(); } else advance(); continue; }
     if(scr==='reward'){ let i=S.rewards.findIndex(r=>r.t==='rec'&&S.squad.length<4); if(i<0) i=S.rewards.findIndex(r=>r.t==='upg'); const r=S.rewards[i]; r.t==='rec'?recruit(r.id):r.t==='item'?(S.items=S.items||[]).push(r.id):applyUpg(r.id); tookReward(i); continue; }
     break; }
   if(scr!=='victory' && scr!=='over') STUCK[scr+(S.scene?':'+S.scene.k:'')]=(STUCK[scr+(S.scene?':'+S.scene.k:'')]||0)+1;

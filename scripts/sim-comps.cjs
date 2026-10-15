@@ -68,7 +68,7 @@ function run(ids, saga){ newRun(ids, saga); if(process.env.ROUTE){ const [g,k]=p
     if(scr==='shop'){ const pr=['vendas','instruccion','mejora','gas']; S.shop.offers.map((o,i)=>[o,i]).sort((x,y)=>(pr.indexOf(x[0].k)+9)%9-(pr.indexOf(y[0].k)+9)%9).forEach(([o,i])=>{ if(!o.sold && S.coins>=o.p && (o.k!=='vendas' || S.squad.some(s=>s.hp<maxHp(s)*.6))) shopBuy(i); }); S.shop=null; advance(); continue; }
     if(scr==='camp'){ const hp=S.squad.reduce((a,s)=>a+s.hp/maxHp(s),0)/S.squad.length; (hp<.6?CAMP[0]:S.gas<S.gasMax*.4?CAMP[2]:CAMP[1]).f(); advance(); continue; }
     if(scr==='event' && EVENTS[S.pend.i].prio && process.env.ALT!=='0'){ const o=EVENTS[S.pend.i].o[0]; o.f(); if(S.q.length){ S.after='advance'; nextScene(); } else advance(); continue; }
-    if(scr==='event'){ const E=EVENTS[S.pend.i]; const o=E.o[0].d.match(/gas/i)&&S.gas<S.gasMax*.5?E.o[0]:E.o[1].d.match(/gas/i)&&S.gas<S.gasMax*.5?E.o[1]:pick(E.o); o.f(); if(S.q.length){ S.after='advance'; nextScene(); } else advance(); continue; }
+    if(scr==='event'){ const E=EVENTS[S.pend.i]; const o=E.o[0].d.match(/gas/i)&&S.gas<S.gasMax*.5?E.o[0]:E.o[1].d.match(/gas/i)&&S.gas<S.gasMax*.5?E.o[1]:pick(E.o); let res=o.f(); while(res===null && S.pend.chase) res=pick(EVENTS[S.pend.i].o).f(); if(S.q.length){ S.after='advance'; nextScene(); } else advance(); continue; }
     if(scr==='reward'){ const want=['bombona','bengala','cuchillas','capa','lanzas','cristal','caballos','vendas','shadis','raciones'];
       let i=S.rewards.findIndex(r=>r.t==='rec'&&S.squad.length<4&&(ROSTER[r.id].rare||S.squad.length<3));
       if(i<0){ const ups=S.rewards.map((r,j)=>({r,j})).filter(x=>x.r.t==='upg').sort((x,y)=>want.indexOf(x.r.id)-want.indexOf(y.r.id)); if(ups.length) i=ups[0].j; }

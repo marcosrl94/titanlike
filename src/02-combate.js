@@ -54,7 +54,7 @@ function genWave(w, type){
   const sc = scaleAt(w) * (elite ? 1.2 : 1);
   // jefe doble (p. ej. Colosal y Acorazado juntos en la brecha): cada uno al 72 %
   if(type==='b') return z.boss2 ? [mkTitan(z.boss, sc*.72), mkTitan(z.boss2, sc*.72)] : [mkTitan(z.boss, sc)];
-  const count = Math.min(3, 1 + Math.floor((k + (w>5?2:0))/2) + (elite?1:0));
+  const count = Math.min(type==='x' ? 4 : 3, 1 + Math.floor((k + (w>5?2:0))/2) + (elite?1:0) + (type==='x'?1:0));
   const out=[]; for(let i=0;i<count;i++) out.push(mkTitan(pick(k===0&&w<=5 ? ['t3','t5'] : z.pool), sc));
   return out;
 }
@@ -70,7 +70,9 @@ function startWave(){
   if(btr){ const b=C.titans[0]; b.n=`${ROSTER[btr.id].n} · ${b.n}`; b.max=b.hp=Math.round(b.max*(btr.id==='eren' ? 1+.15*btr.pws.length : 1.2)); b.atk*=1.1; }
   if(S.mod==='veloces') C.titans.forEach(t=>t.spd+=3);
   if(wxNow()==='noche') C.titans.forEach(t=>{ if(!t.boss && t.cls!=='anormal') t.spd=Math.max(1, t.spd-3); });
-  if(!S.pvp && (type==='c' || type==='e')) C.reto = seeded('reto'+S.wave+'-'+S.map.pos, ()=>pickReto(C.titans.length));
+  if(type==='x'){ C.hold=3; C.log.push('Rescate: aguantad 3 rondas mientras los civiles cruzan.'); }
+  if(!S.pvp && S.scoutZ===S.map.z && type==='b'){ C.titans.forEach(t=>{ if(t.boss) t.mark=Math.max(t.mark,2); }); C.log.push('Lo estudiasteis desde lejos: sabéis dónde golpear.'); }
+  if(!S.pvp && (type==='c' || type==='e' || type==='x')) C.reto = seeded('reto'+S.wave+'-'+S.map.pos, ()=>pickReto(C.titans.length));
   C.titans.forEach(t=>{ if(!TITANS[t.id].pvp) codex('t', t.id, 0); });
   S.squad.forEach(s=>{ C.fx[s.id]={up:0,guard:0,taunt:0,evade:0,titan:0,crit:0,armor:0,ward:0,form:null,formT:0,stun:0}; });
   S.gas = Math.min(S.gasMax, S.gas + rel('bengala'));
@@ -98,6 +100,7 @@ function nextTurn(){
   if(!C.queue.length){
     const u = alive().map(s=>({s, v:spdOf(s)+rnd(0,2)})).concat(liveT().map(t=>({t, v:t.spd+rnd(0,2)})));
     C.queue = u.sort((a,b)=>b.v-a.v); C.rounds++;
+    if(C.hold && C.rounds>C.hold){ C.rounds=C.hold; C.queue=[]; C.held=true; C.log.push('Los civiles han cruzado. ¡Retirada!'); render(); return setTimeout(win, 400); }
   }
   const u = C.queue.shift();
   if(u.s){
@@ -345,7 +348,7 @@ function checkPhase(t){
 
 // ---- nota del combate (E a S+): rapidez, daño recibido, eficacia, suerte del d20 y estilo ----
 // par de rondas según el tipo de combate y cuántos enemigos hay (calibrado con el simulador)
-function parOf(type, n){ if(S && S.pvp) return 11; return type==='b' ? (C && C.titans[0] && C.titans[0].m.summon ? PAR.bs : PAR.b) : (type==='e' ? PAR.e : PAR.n) + PAR.k*(Math.min(3,n)-1); }
+function parOf(type, n){ if(S && S.pvp) return 11; if(type==='x') return 3; return type==='b' ? (C && C.titans[0] && C.titans[0].m.summon ? PAR.bs : PAR.b) : (type==='e' ? PAR.e : PAR.n) + PAR.k*(Math.min(3,n)-1); }
 const SUPPORT = ['jean','connie','reiner','historia','mike','pw:carguero','pw:acorazado','pw:martillo','pw:ataque'];
 const PAR = {n:2.3, e:3.3, k:.95, b:4.5, bs:6};   // jefes: calibrado con partidas reales (los humanos tardan más que el bot)
 const GRADES = [['S+',95],['S',87],['A',76],['B',63],['C',50],['D',36],['E',0]];
@@ -388,14 +391,14 @@ const WX_W = [['despejado',30],['niebla',14],['noche',14],['sol',14],['viento',1
 function rollWx(z){ if(z%3===0) return 'despejado'; let x=Math.random()*100; for(const [k,p] of WX_W){ x-=p; if(x<0) return k; } return 'despejado'; }
 const wxNow = () => (S && !S.pvp && S.map && S.map.wx) || 'despejado';
 const RETOS = {
-  nuca2:{n:'Remata a dos en la nuca', ok:()=>C.execs>=2, min:2},
-  r3:{n:'Gana en 3 rondas o menos', ok:()=>C.rounds<=3},
+  nuca2:{n:'Remata a dos en la nuca', ok:()=>C.execs>=2, min:2, nohold:1},
+  r3:{n:'Gana en 3 rondas o menos', ok:()=>C.rounds<=3 && !C.held, nohold:1},
   sano:{n:'Que nadie acabe por debajo de la mitad de PV', ok:()=>S.squad.every(s=>s.hp>=maxHp(s)*.5)},
   crit2:{n:'Consigue dos críticos', ok:()=>C.crits>=2, min:2},
   ahorro:{n:'Gasta 2 de gas o menos', ok:()=>C.gas0 - (C.gasEnd==null ? S.gas : C.gasEnd) <= 2},
   nat20:{n:'Saca un 20 natural', ok:()=>C.nat20>=1}
 };
 const RETO_COINS = 8;
-function pickReto(n){ const ks=Object.keys(RETOS).filter(k=>!RETOS[k].min || n>=RETOS[k].min); return ks[Math.floor(Math.random()*ks.length)]; }
+function pickReto(n){ const ks=Object.keys(RETOS).filter(k=>(!RETOS[k].min || n>=RETOS[k].min) && !(RETOS[k].nohold && C && C.hold)); return ks[Math.floor(Math.random()*ks.length)]; }
 // al ganar: comprueba el reto antes de curar y repostar
 function checkReto(){ if(!C || !C.reto || !RETOS[C.reto]) return null; C.gasEnd = S.gas; const ok = !!RETOS[C.reto].ok(); return {k:C.reto, n:RETOS[C.reto].n, ok}; }

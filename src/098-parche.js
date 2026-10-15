@@ -1,5 +1,11 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-16.18', t:'Casillas rápidas en el mapa', items:[
+    'Persecución a caballo: tres decisiones seguidas, con tirada de habilidad o con un pequeño coste. Si sale bien, monedas y una mejora.',
+    'Rescate: un combate de solo 3 rondas con más titanes. No hace falta acabar con todos: aguantad hasta que los civiles crucen.',
+    'Reconocimiento: estudia al cambiante de la zona para empezar contra él con ventaja, o busca suministros.',
+    'Sustituyen a parte de los combates normales, así que cada zona tiene más variedad y menos peleas de relleno.'
+  ]},
   {v:'2026-10-16.17', t:'Pase 1 · Crónica de los Muros', items:[
     'Nuevo pase gratuito de 30 escalones que no caduca. Toda la experiencia que ganas lo hace avanzar.',
     'Trae reclutas, la expedición del día, la dificultad Veterano y los duelos, sucesos nuevos, documentos y estética: títulos, estandartes, color del corte, fondos de portada, efectos para el 20 natural, dados y un marco.',

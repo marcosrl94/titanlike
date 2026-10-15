@@ -63,7 +63,10 @@ const ICON = {
   v:'<text class="q" y="9">?</text>',
   k:'<path class="ic" d="M-12 9L0 -11L12 9Z M0 -11V9"/>',
   b:'<path class="ic" d="M-10 -2a10 10 0 1 1 20 0v6h-4v5h-12v-5h-4Z M-4 -3h.1 M4 -3h.1"/>',
-  t:'<path class="ic" d="M-9 -3h18l-2 12h-14Z M-4 -3v-3a4 4 0 0 1 8 0v3"/>'
+  t:'<path class="ic" d="M-9 -3h18l-2 12h-14Z M-4 -3v-3a4 4 0 0 1 8 0v3"/>',
+  p:'<path class="ic" d="M-11 4h6l4-8 6 0 4 5 2 0 M-7 4l-2 6 M5 1l3 9 M-1 -4l-3 -5"/>',
+  x:'<path class="ic" d="M0 -11l9 4v6c0 6-4 9-9 11-5-2-9-5-9-11v-6Z M-4 0l3 3 5-6"/>',
+  r:'<path class="ic" d="M-11 0c4-7 18-7 22 0-4 7-18 7-22 0Z"/><circle class="ic" r="3.5"/>'
 };
 function mapSVG(){
   const m=S.map, X=r=>50+r*105, Y=c=>50+c*75, open=openNodes();
@@ -221,7 +224,7 @@ const V = {
       const inner=`${pic}<i class="sh"></i><span class="nm">${R.n}</span>`;
       return pk ? `<button class="${cl}" data-u="s${s.id}" data-a="sol" data-i="${s.id}" aria-label="${R.n}">${inner}</button>` : `<div class="${cl}" data-u="s${s.id}">${inner}</div>`; }).join('');
     const par=parOf(curNode().t, C.titans.length), rn=Math.max(1,C.rounds);
-    return `<div class="cg"><div class="cg-l"><div class="stage poke ${C.titans.length>1?'multi':''}"><span class="rnd lbl num ${rn>par*1.3?'late':rn<=par?'ok':''}" title="Rondas de este combate y par para la nota">Ronda ${rn} · par ${par.toFixed(1).replace('.',',')}</span><div class="stchips">${wxNow()!=='despejado'?`<span class="wxc lbl wx-${wxNow()}" title="${WX[wxNow()].d}">${WX[wxNow()].n}</span>`:''}${C.reto?`<span class="reto lbl" title="Reto opcional: +${RETO_COINS} monedas">Reto · ${RETOS[C.reto].n}</span>`:''}</div><div class="titans">${tit}</div><div class="plates ${C.titans.length>1?'multi':''}">${plates.join('')}</div><div class="heroes">${heroes}</div></div>
+    return `<div class="cg"><div class="cg-l"><div class="stage poke ${C.titans.length>1?'multi':''}"><span class="rnd lbl num ${rn>par*1.3?'late':rn<=par?'ok':''}" title="Rondas de este combate y par para la nota">Ronda ${rn} · par ${par.toFixed(1).replace('.',',')}</span><div class="stchips">${C.hold?`<span class="wxc lbl" style="--wx:var(--cloak-hi)">Rescate · aguantad hasta la ronda ${C.hold}</span>`:''}${wxNow()!=='despejado'?`<span class="wxc lbl wx-${wxNow()}" title="${WX[wxNow()].d}">${WX[wxNow()].n}</span>`:''}${C.reto?`<span class="reto lbl" title="Reto opcional: +${RETO_COINS} monedas">Reto · ${RETOS[C.reto].n}</span>`:''}</div><div class="titans">${tit}</div><div class="plates ${C.titans.length>1?'multi':''}">${plates.join('')}</div><div class="heroes">${heroes}</div></div>
       <div class="log" id="log" aria-live="polite">${C.log.map(l=>`<div>${l}</div>`).join('')}</div></div>
       <div class="cg-r">${squadHTML(canAct && P && P.tgt==='ally' ? 'ally' : '')}
       <div class="dock"><div class="hint lbl"><span id="hint">${hint}</span><button class="btn ghost sm" data-a="speed" title="Velocidad de las animaciones">Animación: ${ANIM[CFG.anim].n}</button></div>
@@ -266,7 +269,7 @@ const V = {
     const E=EVENTS[S.pend.i];
     const dice = S.pend.res && S.pend.dice && S.pend.dice.length && CFG.dice ? `<div class="evdice">${S.pend.dice.map(d=>`<div class="dz"><div class="d20 ev ${d.r===20?'crit':d.r===1?'bad':d.ok?'ok':'fail'}${S.pend.diceShown?' done land':''}" data-r="${d.r}">${D20}<b>${S.pend.diceShown?d.r:'?'}</b>${d.b?`<small>+${d.b}</small>`:''}</div>
       <div class="dres${S.pend.diceShown?' show':''}"><span class="lbl">${SKILLS[d.k]}${d.who?' · '+ROSTER[d.who].n:''}</span><b>${d.r}${d.b?' + '+d.b+' = '+(d.r+d.b):''} contra ${d.dc}</b><span class="${d.ok?'okt':'kot'}">${d.r===20?'¡20 natural! ':d.r===1?'¡Pifia! ':''}${d.ok?'Éxito':'Fallo'}</span></div></div>`).join('')}</div>` : '';
-    return `${hero('Evento', E.n, '', {cls:'ev'})}${dice}<section class="caption ${S.pend.res?'res':''}"><p>${S.pend.res||E.d}</p></section>
+    return `${hero(S.pend.chase?'Persecución':E.n==='Reconocimiento'?'Reconocimiento':'Evento', E.n+(S.pend.chase&&!S.pend.res?` · ${S.pend.chase.n} de 3`:''), '', {cls:'ev'})}${dice}<section class="caption ${S.pend.res?'res':''}"><p>${S.pend.res||E.d}</p></section>
       ${S.pend.res ? `<div><button class="btn ch" data-a="evok" data-n="1">Seguir la ruta</button></div>`
         : `<div class="cards chs">${E.o.map((o,i)=>`<button class="card ch k-ev" data-a="evopt" data-i="${i}" data-n="${i+1}">${chN(i)}<h3>${o.l}</h3><p>${chk(o.d)}</p></button>`).join('')}</div>`}
       <span class="lbl sect">Tu escuadrón</span>${squadHTML()}`;
