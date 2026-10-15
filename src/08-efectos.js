@@ -109,6 +109,7 @@ const FX = {
     if(B.intro) B.intro(p, el); else { flash('var(--bone)',.4); quake(800); sfx('roar'); }
     await sleep(1300);
   },
+  async duel(e){ logLine(e.m); banner(`${e.a}  ×  ${e.b}`, 'Duelo', 'var(--gold)', 2000); sfx('roar'); flash('var(--gold)',.35); await sleep(1500); },
   async shift(e){
     const s=U('s'+e.s); logLine(e.m); if(!s) return;
     const p=at(s,.4), B=BFX[e.art]||{};

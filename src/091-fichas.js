@@ -145,3 +145,42 @@ V.intendencia = function(){
     <span class="lbl">Para la expedición</span><div class="cards">${Object.keys(SHOP).filter(k=>SHOP[k].kind==='exp').map(card).join('')}</div>
     <span class="lbl">Estética</span><div class="cards">${Object.keys(SHOP).filter(k=>SHOP[k].kind!=='exp').map(card).join('')}</div>`;
 };
+
+// ---- amigos y duelos ----
+let DPICK = null;   // rival elegido: {foe, foeName, foeCloud}
+const newDuels = () => ((CLOUD.fr&&CLOUD.fr.duels)||[]).filter(d=>!d.i_challenged && Date.parse(d.created_at) > (meta().duelSeen||0)).length;
+V.amigos = function(){
+  const F=CLOUD.fr, on=cloudOn()&&CLOUD.user, mine=legendsLocal();
+  const fr = F&&F.friends||[], acc=fr.filter(f=>f.status==='accepted'), pend=fr.filter(f=>f.status==='pending');
+  const legOf = uid => (F&&F.legends||[]).filter(l=>l.user_id===uid);
+  const hist = (F&&F.duels||[]).map(d=>{ const won = d.i_challenged ? d.win : !d.win, other = d.i_challenged ? d.defender_name : d.challenger_name;
+    const again = d.i_challenged ? d.legend_d : d.legend_c;
+    return `<tr><td>${new Date(d.created_at).toLocaleDateString('es-ES',{day:'numeric',month:'short'})}</td><td>${d.i_challenged?'Retaste a':'Te retó'} <b>${esc(other)}</b></td><td class="${won?'okt':'kot'}">${won?'Victoria':'Derrota'}</td><td>${d.grade?gradeChip(d.grade):''} <span class="dim">${d.rounds} rondas</span></td><td>${again?`<button class="btn ghost sm" data-a="retar" data-i="${again}">Revancha</button>`:''}</td></tr>`; }).join('');
+  return `<div><h2>Amigos y duelos</h2><p class="dim">Reta a tus amigos con un escuadrón de leyenda: el que terminó una campaña, con sus niveles, poderes y mejoras. Tú mandas a los tuyos; los suyos pelean solos.</p></div>
+    <div class="row"><button class="btn ghost" data-a="home">Volver</button>${on?`<button class="btn ghost sm" data-a="amigos">Actualizar</button>`:''}</div>
+    ${!cloudOn() ? '<section class="panel"><p>Los duelos con amigos necesitan la versión con cuentas.</p></section>' : !CLOUD.user ? `<section class="panel"><p>Inicia sesión para tener código de amigo y retar a otros.</p>${accountHTML('end')}</section>` : `
+    <section class="panel fr-top"><div><span class="lbl">Tu código de amigo</span><div class="fcode num">${F&&F.code?esc(F.code):'…'}</div><span class="dim" style="font-size:13px">Pásaselo a quien quieras retar.</span></div>
+      <div><label class="lbl" for="fcode">Añadir por código</label><div class="row"><input id="fcode" maxlength="8" placeholder="ABC123" autocomplete="off" style="text-transform:uppercase"><button class="btn sm" data-a="addfriend">Añadir</button></div>${F&&F.msg?`<span class="lbl" style="color:var(--gold)">${esc(F.msg)}</span>`:''}</div></section>
+    ${pend.length?`<section class="panel"><span class="lbl">Solicitudes</span>${pend.map(f=>`<div class="frow"><b>${esc(f.display_name)}</b>${f.mine?'<span class="dim">Esperando a que acepte</span>':`<button class="btn sm" data-a="frok" data-i="${f.friend_id}">Aceptar</button><button class="btn ghost sm" data-a="frno" data-i="${f.friend_id}">Rechazar</button>`}</div>`).join('')}</section>`:''}
+    <span class="lbl">Amigos · ${acc.length}</span>
+    ${!F||F.loading&&!acc.length ? '<p class="dim">Cargando…</p>' : !acc.length ? '<p class="dim">Aún no tienes amigos añadidos.</p>' : acc.map(f=>{ const L=legOf(f.friend_id);
+      return `<section class="panel friend"><div class="frow"><b>${esc(f.display_name)}</b><span class="num">${f.wins} – ${f.losses}</span></div>
+        ${L.length ? `<div class="cards">${L.slice(0,4).map(l=>legendHTML(l,'retar',`<span class="lbl" style="color:var(--gold)">Retar</span>`)).join('')}</div>` : '<p class="dim">Todavía no tiene ninguna leyenda: tiene que terminar una campaña.</p>'}</section>`; }).join('')}
+    ${hist?`<span class="lbl">Últimos duelos</span><section class="panel"><div class="tablewrap"><table class="chart num">${hist}</table></div></section>`:''}`}
+    <span class="lbl">Tus leyendas · ${mine.length}</span>
+    ${mine.length ? `<div class="cards">${mine.map(l=>legendHTML(l,'practica',`<span class="lbl">${l.cloud?'Guardada en tu cuenta':'Solo en este dispositivo'} · entrenar contra ella</span>`)).join('')}</div>` : '<p class="dim">Termina una campaña y el escuadrón que llegue al final se convierte en tu primera leyenda.</p>'}`;
+};
+V.duelpick = function(){
+  const mine=legendsLocal();
+  return `<div><span class="lbl">Duelo</span><h2>Contra ${esc(DPICK.foeName)}</h2><p class="dim">Su leyenda «${esc(DPICK.foe.name)}». Elige con cuál de las tuyas sales.</p></div>
+    <div class="cards">${legendHTML(DPICK.foe, null)}</div>
+    <div class="row"><button class="btn ghost" data-a="amigos">Volver</button></div>
+    <span class="lbl">Tus leyendas</span><div class="cards">${mine.map(l=>legendHTML(l,'duelgo',`<span class="lbl" style="color:var(--gold)">Salir con esta</span>${DPICK.foeCloud&&!l.cloud?'<span class="dim" style="font-size:12px">No está en tu cuenta: el resultado no contará.</span>':''}`)).join('')}</div>`;
+};
+V.duelres = function(){
+  const D=DUEL, G=D&&D.result; if(!G) return '<div><button class="btn" data-a="amigos">Volver</button></div>';
+  return `<section class="hero"><div class="txt"><span class="lbl">Duelo · ${esc(D.mine.name)} contra ${esc(D.foe.name)}</span>
+      <h1>${G.won?'<em>Victoria</em>':'Derrota'}</h1><p>${G.won?`El escuadrón de ${esc(D.foeName)} cae en ${G.rounds} rondas.`:`El escuadrón de ${esc(D.foeName)} os supera.`}${D.cloud?' El resultado queda en vuestro historial.':''}</p>
+      <div class="row"><button class="btn" data-a="duelagain">Revancha</button><button class="btn ghost" data-a="amigos">Amigos y duelos</button></div></div>
+      <div class="peek">${duelArt(D.foe.squad.s[0].id)}</div></section>${G.won?gradeHTML(G):''}`;
+};

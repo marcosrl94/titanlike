@@ -48,6 +48,7 @@ function mkTitan(id, sc){
   return {id, n:b.n, cls:b.cls, boss:!!b.boss, m:b.m||{}, twice:!!b.twice, v:b.v||'golpea a', hp, max:hp, atk:b.atk*sc, spd:b.spd, turns:0, mark:0, stun:0, blind:0, hard:0, alert:0};
 }
 function genWave(w, type){
+  if(S && S.pvp && typeof duelFoes==='function') return duelFoes();   // duelo: el escuadrón de leyenda rival
   const z = zoneOf(w), k = (w-1)%5, elite = type==='e';
   const sc = scaleAt(w) * (elite ? 1.2 : 1);
   // jefe doble (p. ej. Colosal y Acorazado juntos en la brecha): cada uno al 72 %
@@ -67,12 +68,13 @@ function startWave(){
   const btr = S.pend && S.pend.btr;
   if(btr){ const b=C.titans[0]; b.n=`${ROSTER[btr.id].n} · ${b.n}`; b.max=b.hp=Math.round(b.max*(btr.id==='eren' ? 1+.15*btr.pws.length : 1.2)); b.atk*=1.1; }
   if(S.mod==='veloces') C.titans.forEach(t=>t.spd+=3);
-  C.titans.forEach(t=>codex('t', t.id, 0));
+  C.titans.forEach(t=>{ if(!TITANS[t.id].pvp) codex('t', t.id, 0); });
   S.squad.forEach(s=>{ C.fx[s.id]={up:0,guard:0,taunt:0,evade:0,titan:0,crit:0,armor:0,ward:0,form:null,formT:0,stun:0}; });
   S.gas = Math.min(S.gasMax, S.gas + rel('bengala'));
   C.log.push(type==='b' ? `¡${C.titans[0].n} a la vista!` : `${type==='e'?'Grupo de élite: ':''}${C.titans.length===1?'un titán':C.titans.length+' titanes'} en ${zoneOf(S.wave).n}.`);
   scr='combat';
   // entrada de jefe: presentación cinematográfica antes del primer turno
+  if(S.pvp){ C.busy=true; render(); ev({k:'duel', m:`Duelo contra ${DUEL.foeName}.`, a:DUEL.mine.name, b:DUEL.foeName}); return play(()=>{ C.busy=false; nextTurn(); }); }
   const bi = C.titans.findIndex(t=>t.boss);
   if(bi>=0){ C.busy=true; render(); ev({k:'intro', t:bi, m:''}); return play(()=>{ C.busy=false; nextTurn(); }); }
   nextTurn();
@@ -87,8 +89,8 @@ function eff(sol, t){ return EFF[ROSTER[sol.id].st][t.cls] || 1; }
 
 function nextTurn(){
   C.active=null; C.pending=null;
-  if(!liveT().length) return setTimeout(win, 450);
-  if(!alive().length) return setTimeout(lose, 700);
+  if(!liveT().length) return setTimeout(S.pvp ? ()=>duelEnd(true) : win, 450);
+  if(!alive().length) return setTimeout(S.pvp ? ()=>duelEnd(false) : lose, 700);
   planAll();
   if(!C.queue.length){
     const u = alive().map(s=>({s, v:spdOf(s)+rnd(0,2)})).concat(liveT().map(t=>({t, v:t.spd+rnd(0,2)})));
@@ -339,7 +341,7 @@ function checkPhase(t){
 
 // ---- nota del combate (E a S+): rapidez, daño recibido, eficacia, suerte del d20 y estilo ----
 // par de rondas según el tipo de combate y cuántos enemigos hay (calibrado con el simulador)
-function parOf(type, n){ return type==='b' ? (C && C.titans[0] && C.titans[0].m.summon ? PAR.bs : PAR.b) : (type==='e' ? PAR.e : PAR.n) + PAR.k*(Math.min(3,n)-1); }
+function parOf(type, n){ if(S && S.pvp) return 11; return type==='b' ? (C && C.titans[0] && C.titans[0].m.summon ? PAR.bs : PAR.b) : (type==='e' ? PAR.e : PAR.n) + PAR.k*(Math.min(3,n)-1); }
 const SUPPORT = ['jean','connie','reiner','historia','mike','pw:carguero','pw:acorazado','pw:martillo','pw:ataque'];
 const PAR = {n:2.3, e:3.3, k:.95, b:4.5, bs:6};   // jefes: calibrado con partidas reales (los humanos tardan más que el bot)
 const GRADES = [['S+',95],['S',87],['A',76],['B',63],['C',50],['D',36],['E',0]];

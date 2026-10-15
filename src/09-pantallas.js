@@ -71,6 +71,7 @@ const V = {
         <div class="cta2">
           <button class="btn ghost" data-a="daily" ${dailyDone()?'disabled title="Ya has jugado la de hoy"':''}>${dailyDone()?'Del día: vuelve mañana':'Expedición del día'}</button>
           <button class="btn ghost" data-a="codex">Logros · ${M.ach.length}/${ACH.length}</button>
+          <button class="btn ghost" data-a="amigos">Amigos y duelos</button>
           <button class="btn ghost" data-a="intendencia">Intendencia · ${insignias()} insignias</button>
           <button class="btn ghost" data-a="gallery">Imágenes y música</button>
         </div>

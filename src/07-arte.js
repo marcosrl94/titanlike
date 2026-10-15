@@ -63,7 +63,7 @@ function titanFig(a){
       <rect x="${cx-mw/2}" y="${my}" width="${mw}" height="${th}" rx="2" fill="var(--bone)" stroke="var(--blood)" stroke-width="1.6"/><path d="${teeth}" stroke="var(--blood)" stroke-width="1"/>
     </g>${extra}</svg>`;
 }
-const titanArt = id => CUSTOM[id] ? `<img src="${CUSTOM[id]}" alt="" style="${fitStyle(id)}">` : TITANS[id].a.k ? marleyFig(TITANS[id].a.k) : titanFig(TITANS[id].a);
+const titanArt = id => TITANS[id] && TITANS[id].pvp ? duelArt(TITANS[id].pvp) : CUSTOM[id] ? `<img src="${CUSTOM[id]}" alt="" style="${fitStyle(id)}">` : TITANS[id].a.k ? marleyFig(TITANS[id].a.k) : titanFig(TITANS[id].a);
 // ejército de Marley: soldados, tirador, artillería antititán y unidad Panzer (dibujos propios, a escala humana)
 function marleyFig(k){
   const U='#5b6b5a', D='#3a4638', ST='var(--stone)', BN='var(--bone)', SK='var(--flesh)';

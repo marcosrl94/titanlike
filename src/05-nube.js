@@ -152,6 +152,37 @@ async function cloudComps(){
   const {data, error} = await CLOUD.sb.from('comp_stats').select('*').limit(200);
   CLOUD.comps = error ? [] : (data||[]).filter(r=>r.comp); render();
 }
+// ---- amigos, leyendas y duelos ----
+async function cloudFriendsLoad(){
+  if(!CLOUD.user){ CLOUD.fr=null; return render(); }
+  CLOUD.fr = Object.assign({}, CLOUD.fr||{}, {loading:true}); render();
+  const [code, fr, du, leg] = await Promise.all([CLOUD.sb.rpc('my_friend_code'), CLOUD.sb.from('my_friends').select('*'),
+    CLOUD.sb.from('my_duels').select('*').limit(20), CLOUD.sb.from('legends').select('id,user_id,name,ending,squad,created_at').order('created_at',{ascending:false}).limit(100)]);
+  const legends = (leg.data||[]).map(l=>Object.assign(l, {lid:l.id}));
+  // leyendas propias guardadas en la nube que este dispositivo no tenga
+  const mine = legends.filter(l=>l.user_id===CLOUD.user.id), loc = legendsLocal();
+  const add = mine.filter(l=>!loc.some(x=>x.cloud===l.id)).map(l=>({lid:l.id, name:l.name, ending:l.ending, at:Date.parse(l.created_at), squad:l.squad, cloud:l.id}));
+  if(add.length) saveMeta({legends:loc.concat(add).sort((a,b)=>b.at-a.at).slice(0,12)});
+  CLOUD.fr = {code:code.data, friends:fr.data||[], duels:du.data||[], legends, msg:CLOUD.fr&&CLOUD.fr.msg}; render();
+}
+async function cloudAddFriend(code){
+  if(!CLOUD.user || !code) return; const {data} = await CLOUD.sb.rpc('add_friend', {p_code:code});
+  const M = {enviada:'Solicitud enviada. Cuando la acepte, aparecerá en tu lista.', aceptada:'¡Ya sois amigos!', 'no existe':'No hay nadie con ese código.', 'eres tú':'Ese es tu propio código.', pending:'Ya hay una solicitud pendiente.', accepted:'Ya sois amigos.', demasiadas:'Demasiadas solicitudes seguidas. Espera un rato.'};
+  CLOUD.fr = Object.assign({}, CLOUD.fr, {msg:M[data]||'No se pudo enviar.'}); cloudFriendsLoad();
+}
+async function cloudAnswerFriend(uid, ok){ if(!CLOUD.user) return; await CLOUD.sb.rpc('answer_friend', {p_user:uid, p_accept:ok}); cloudFriendsLoad(); }
+async function cloudSaveLegend(L, runId){
+  if(!CLOUD.user || !runId) return;
+  for(let i=0;i<4;i++){   // la expedición se cierra en el servidor a la vez: se reintenta un par de veces
+    await new Promise(r=>setTimeout(r, 1200*(i+1)));
+    const {data} = await CLOUD.sb.rpc('save_legend', {p_run:runId, p_name:L.name, p_ending:L.ending, p_squad:L.squad});
+    if(data){ saveMeta({legends:legendsLocal().map(x=>x.lid===L.lid ? Object.assign(x, {cloud:data}) : x)}); return; }
+  }
+}
+function cloudRecordDuel(foeId, mineId, won, rounds, g){
+  if(!CLOUD.user || !foeId || !mineId) return;
+  CLOUD.sb.rpc('record_duel', {p_legend_d:foeId, p_legend_c:mineId, p_win:won, p_rounds:rounds, p_grade:g}).then(()=>{ if(scr==='amigos') cloudFriendsLoad(); }, ()=>{});
+}
 async function cloudRename(n){
   n = (n||'').trim().slice(0,32); if(!n || !CLOUD.user) return;
   const {error} = await CLOUD.sb.from('profiles').update({display_name:n}).eq('id', CLOUD.user.id);

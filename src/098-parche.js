@@ -1,5 +1,12 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-15.10', t:'Amigos y duelos 1 contra 1', items:[
+    'Escuadrones de leyenda: el escuadrón que termina una campaña queda guardado con sus niveles, poderes y mejoras. Desde ahora, cada campaña completada te da una leyenda nueva.',
+    'Amigos: cada cuenta tiene un código de amigo. Pásalo, añade el de los demás y acepta sus solicitudes desde «Amigos y duelos» (portada y menú).',
+    'Duelos: reta a un amigo eligiendo una de sus leyendas y una de las tuyas. Tú mandas a los tuyos; los suyos pelean solos con sus poderes convertidos en ataques especiales. El resultado queda en el historial de los dos, con marcador por amigo y botón de revancha.',
+    'Entrenamiento: puedes enfrentarte a tus propias leyendas sin conexión.',
+    'Calibrado con simulación: con la misma leyenda en los dos lados, quien controla gana algo más de la mitad de las veces. Un duelo dura unas diez rondas.'
+  ]},
   {v:'2026-10-15.9', t:'Revisión general, arte en las sagas y menos destripes', items:[
     'Las sagas y las sendas llevan su ilustración. Las que aún no has descubierto se quedan en sombra.',
     'Menos información de la cuenta: ni el códice, ni el árbol de la historia, ni las opciones de los eventos, ni las notas de parches anteriores cuentan ya cómo se abren las sendas, los finales o los epílogos. Toca descubrirlo jugando.',

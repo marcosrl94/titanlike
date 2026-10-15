@@ -89,6 +89,7 @@ function healAll(p){ S.squad.forEach(s=>{ s.hp=Math.min(maxHp(s), s.hp+Math.roun
 function hurtAll(p){ S.squad.forEach(s=>{ s.hp=Math.max(1, s.hp-Math.round(maxHp(s)*p)); }); }
 function saveBest(w){ if(w>meta().best) saveMeta({best:w}); }
 function win(){
+  if(S && S.pvp) return duelEnd(true);
   const t = curNode().t, sagaEnd = t==='b' && dayOf(S.wave)===PER, btr = S.pend && S.pend.btr, bossId = t==='b' ? C.titans[0].id : null;
   S.q = []; S.note = null;
   const G = S.lastGrade = rateFight(t);   // nota del combate: se muestra en la recompensa
@@ -118,6 +119,7 @@ function win(){
   if(S.daily && sagaEnd){ finishDaily(true); if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, PER+1, null); store.del('run'); scr='victory'; return render(); }
   if(S.wave>=TOTAL){ const ck = typeof recordRun==='function' ? recordRun(true) : null; if(typeof cloudTelemetry==='function') cloudTelemetry('end', {win:true, comp:ck, route:S.route, squad:S.squad.map(x=>x.id+':'+x.lvl), fallen:S.fallen, rel:S.rel, pw:S.pw, gasMax:S.gasMax}); S.ending=endingOf(); ach(S.ending==='retumbar' ? 'saga4' : S.ending); ach('saga4'); if(S.erenFell) ach('detener_eren'); if(onRoute('reina')) ach('reina');
     { const ep=epiloguesNow(); S.epilogues=ep.map(e=>e.k); recordEpilogues(ep); if(ep.length) ach('epilogo'); }
+    if(typeof saveLegend==='function') S.legend = saveLegend();
     { const m=meta(); saveMeta({ngLevel:Math.max(m.ngLevel||0, (S.ng||0)+1), relics:[...new Set((m.relics||[]).concat(owned()))]}); if(S.ng>0) ach('vuelta'); if(S.ng>=2) ach('vuelta3'); } if(typeof cloudFinishRun==='function') cloudFinishRun(S.runId, TOTAL+1, S.ending); const m=meta(); if(!m.endings.includes(S.ending)) saveMeta({endings:m.endings.concat(S.ending)}); store.del('run'); scr='victory'; return render(); }
   // encrucijada: lo hecho en la saga abre una senda alternativa para la siguiente
   if(sagaEnd){ const alt=crossroadAt(sagaIx(S.wave)); if(alt && !(S.route||{})[ALT_SAGAS[alt].slot]) S.q.push({k:'cross', alt}); }
@@ -127,6 +129,7 @@ function win(){
   nextScene();
 }
 function lose(){
+  if(S && S.pvp) return duelEnd(false);   // rendirse en un duelo no toca la expedición guardada
   const ck = typeof recordRun==='function' ? recordRun(false) : null;
   if(typeof cloudTelemetry==='function') cloudTelemetry('end', {win:false, comp:ck, route:S.route, node:C&&curNode()?curNode().t:null, titans:C?C.titans.map(x=>x.id):[], rounds:C?C.rounds:0, squad:S.squad.map(x=>x.id+':'+x.lvl), fallen:S.fallen, rel:S.rel, pw:S.pw, gasMax:S.gasMax, items:S.items});
   if(S.daily) finishDaily(false);

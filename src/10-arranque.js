@@ -7,7 +7,7 @@ function header(){
   const h=$('hacc'); if(h) h.innerHTML = !cloudOn() ? '' : CLOUD.user
     ? `<button class="ib av-b" data-a="acct" aria-label="Tu cuenta: ${esc(userName())}" title="${esc(userName())}">${avatar('sm')}</button>`
     : `<button class="btn sm ghost hin" data-a="acct" aria-label="Entrar o crear cuenta"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Entrar</span></button>`;
-  const on = S && !['title','starter','gallery','sagas','board','codex','settings','intendencia','ficha','comps','arbol'].includes(scr) && S.map;
+  const on = S && !S.pvp && !['title','starter','gallery','sagas','board','codex','settings','intendencia','ficha','comps','arbol','amigos','duelpick','duelres'].includes(scr) && S.map;
   $('prog').hidden = !on;
   if(!on) return;
   let g=''; for(let i=0;i<S.gasMax;i++) g+=`<i class="${i<S.gas?'on':''}"></i>`;
@@ -67,6 +67,14 @@ function act(a, i){
   if(a==='intendencia'){ scr='intendencia'; window.scrollTo(0,0); return render(); }
   if(a==='shopbuy'){ buyShop(i); return render(); }
   if(a==='shopeq'){ equipShop(i); return render(); }
+  if(a==='amigos'){ scr='amigos'; window.scrollTo(0,0); saveMeta({duelSeen:Date.now()}); render(); return cloudOn()&&CLOUD.user ? cloudFriendsLoad() : null; }
+  if(a==='addfriend'){ const v=($('fcode')||{}).value; return cloudAddFriend((v||'').trim()); }
+  if(a==='frok' || a==='frno') return cloudAnswerFriend(i, a==='frok');
+  if(a==='retar'){ const L=(CLOUD.fr&&CLOUD.fr.legends||[]).find(l=>l.id===i); if(!L) return; const f=(CLOUD.fr.friends||[]).find(x=>x.friend_id===L.user_id);
+    DPICK={foe:L, foeName:f?f.display_name:'tu amigo', foeCloud:L.id}; scr='duelpick'; window.scrollTo(0,0); return render(); }
+  if(a==='practica'){ const L=legendsLocal().find(l=>l.lid===i); if(!L) return; DPICK={foe:L, foeName:'tu propia leyenda', foeCloud:null}; scr='duelpick'; return render(); }
+  if(a==='duelgo'){ const M=legendsLocal().find(l=>l.lid===i); if(!M||!DPICK) return; return startDuel(M, DPICK.foe, DPICK.foeName, DPICK.foeCloud && M.cloud ? {foe:DPICK.foeCloud, mine:M.cloud} : null); }
+  if(a==='duelagain'){ if(DUEL) return startDuel(DUEL.mine, DUEL.foe, DUEL.foeName, DUEL.cloud); return; }
   if(a==='arbol'){ scr='arbol'; window.scrollTo(0,0); return render(); }
   if(a==='moment') return showMoment(+i, 'Momento', true);
   if(a==='ficha'){ fichaId=i; scr='ficha'; window.scrollTo(0,0); return render(); }

@@ -97,3 +97,8 @@ create policy "imagenes propias: borrar" on storage.objects for delete to authen
 -- (solo guarda si mejora; jefes, notas y dificultad validados), vista boss_board (temporada en curso) y vista comp_stats
 -- (agregados anónimos de telemetría por escuadrón: combates, nota media, % de S, expediciones, campañas, mejor jornada).
 -- ach_routes_epilogues: logros reina, paradis y epilogo permitidos en sync_progress_v2.
+
+-- friends_legends_duels + friend_code_no_pgcrypto: profiles.friend_code; friendships (a<b, pending/accepted);
+-- legends (escuadrón de una campaña completada, solo vía save_legend con run propia wave>=61 y final);
+-- duels (resultado declarado por el retador, solo entre amigos y con leyendas válidas, 60/hora);
+-- RPC my_friend_code, add_friend, answer_friend, save_legend, record_duel; vistas my_friends y my_duels.
