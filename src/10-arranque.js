@@ -24,6 +24,7 @@ function render(){
   document.body.classList.toggle('wide', scr==='combat' || scr==='map');
   $('screen').innerHTML = `<div>${tipHTML()}${V[scr]()}</div>`;
   document.body.classList.toggle('on-title', scr==='title');
+  if(typeof fichaModal==='function') fichaModal();
   { const bg=$('bgart'), want = scr==='title' ? 'mo'+TITLE_BG : ''; if(bg && bg.dataset.k!==want){ bg.dataset.k=want; bg.innerHTML = want ? `<div class="mm-bg">${momentSVG(TITLE_BG)}</div>` : ''; } }
   if(scr!==lastScr && !REDUCED){ const el=$('screen').firstElementChild; if(el) el.classList.add('enter'); }   // transición al cambiar de pantalla
   if(scr==='event') rollDice($('screen'));
@@ -81,7 +82,8 @@ function act(a, i){
   if(a==='howto'){ scr='howto'; window.scrollTo(0,0); return render(); }
   if(a==='arbol'){ scr='arbol'; window.scrollTo(0,0); return render(); }
   if(a==='moment') return showMoment(+i, 'Momento', true);
-  if(a==='ficha'){ fichaId=i; scr='ficha'; window.scrollTo(0,0); return render(); }
+  if(a==='ficha'){ const was=scr==='ficha'; fichaOpen = i && ROSTER[i] ? i : null; if(fichaOpen) fichaId=fichaOpen; scr='ficha'; if(!was) window.scrollTo(0,0); render(); const m=document.querySelector('.fm-in'); if(m){ m.scrollTop=0; const x=m.querySelector('.fm-x'); if(x) x.focus({preventScroll:true}); } return; }
+  if(a==='fclose'){ const id=fichaOpen; fichaOpen=null; render(); const c=id && document.querySelector(`.pcard[data-i="${id}"]`); if(c) c.focus({preventScroll:true}); return; }
   if(a==='comps'){ compsTab=i||'mine'; scr='comps'; if(compsTab==='all') return cloudComps(); return render(); }
   if(a==='rename'){ const f=document.getElementById('nm'); return cloudRename(f && f.value); }
   if(a==='continue'){
@@ -175,3 +177,11 @@ $('sheet').addEventListener('click', ev=>{ if(ev.target.id==='sheet' || ev.targe
 
 cloudInit();
 render();
+// ---- atajos 1-9: eligen la opción numerada en recompensas, campamento, eventos, mercader y escenas ----
+document.addEventListener('keydown', ev=>{
+  if(ev.ctrlKey || ev.metaKey || ev.altKey || !/^[1-9]$/.test(ev.key)) return;
+  const tg=ev.target && ev.target.tagName; if(tg==='INPUT' || tg==='TEXTAREA' || tg==='SELECT') return;
+  if(!$('menu').hidden || !$('sheet').hidden || document.getElementById('fmodal') || scr==='combat') return;
+  const b=$('screen').querySelector(`.ch[data-n="${ev.key}"]`); if(!b || b.disabled) return;
+  ev.preventDefault(); b.click();
+});

@@ -39,7 +39,7 @@ function menuAct(m){
   if(m==='title'){ scr='title'; return render(); }
   if(m==='tips') return tipAct('tipreset');
   if(m==='patch') return showPatch(PATCHES);
-  if(m==='ficha') return act('ficha', fichaId);
+  if(m==='ficha') return act('ficha');
   if(m==='settings'){ confirmErase=false; dataMsg=''; scr='settings'; return render(); }
   act(m==='sagas' ? 'sagas' : m==='continue' ? 'continue' : m, m==='board' ? 'general' : undefined);
 }
@@ -114,6 +114,11 @@ $('menu').addEventListener('click', ev=>{
   const b=ev.target.closest('[data-m]'); if(b && !b.disabled) menuAct(b.dataset.m);
 });
 document.addEventListener('keydown', ev=>{
+  if(scr==='ficha' && fichaOpen && $('menu').hidden){   // en una ficha abierta: Esc cierra, flechas pasan de personaje
+    const ids=Object.keys(ROSTER), i=ids.indexOf(fichaOpen);
+    if(ev.key==='Escape'){ ev.preventDefault(); return act('fclose'); }
+    if(ev.key==='ArrowRight' || ev.key==='ArrowLeft'){ ev.preventDefault(); return act('ficha', ids[(i+(ev.key==='ArrowRight'?1:-1)+ids.length)%ids.length]); }
+  }
   if(ev.key!=='Escape') return;
   if(!$('sheet').hidden){ $('sheet').hidden=true; return; }
   if($('menu').hidden) openMenu(); else closeMenu();

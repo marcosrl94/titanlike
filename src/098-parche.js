@@ -1,5 +1,12 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-15.13', t:'Fichas en rejilla, pantallas renovadas y récords validados', items:[
+    'Fichas de personaje: todo el plantel en una rejilla con su mejor nota y su historial. Toca a cualquiera y su ficha se abre encima; con las flechas pasas de uno a otro y con Esc la cierras.',
+    'Recompensas, campamento, eventos, mercader, escenas e Intendencia con la nueva línea: cabecera ilustrada con el arte de la zona, viñeta de narración y opciones numeradas (en escritorio, las teclas 1-9 eligen).',
+    'Las pruebas de los eventos se marcan con su d20, la habilidad y la dificultad. En la Intendencia ves cada dado y cada marco antes de comprarlo.',
+    'Los Nueve: el final más difícil ya se puede conseguir. Algunos jefes guardan más de lo que parece.',
+    'Los récords de jefe y los duelos se comprueban en el servidor: se descartan notas que no cuadran con la puntuación y envíos fuera de una expedición en curso.'
+  ]},
   {v:'2026-10-15.12', t:'Más anime: sellos, cortinillas y líneas de acción', items:[
     'Las sagas y sendas completadas llevan un sello con tu mejor nota contra su jefe final, en rótulo de manga y con líneas de acción.',
     'Cortinillas: cuando un soldado usa su habilidad, cruza la pantalla una franja diagonal con su retrato y el nombre del ataque.',

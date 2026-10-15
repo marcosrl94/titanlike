@@ -102,3 +102,9 @@ create policy "imagenes propias: borrar" on storage.objects for delete to authen
 -- legends (escuadrón de una campaña completada, solo vía save_legend con run propia wave>=61 y final);
 -- duels (resultado declarado por el retador, solo entre amigos y con leyendas válidas, 60/hora);
 -- RPC my_friend_code, add_friend, answer_friend, save_legend, record_duel; vistas my_friends y my_duels.
+
+-- 2026-10-15.13 (titanlike_validate_records): submit_boss_record y record_duel validan en servidor.
+--   Récords de jefe: puntuación 0..110, rondas 1..80, la nota no puede ser mejor que la que corresponde a la
+--   puntuación, escuadrón con formato id+id (2-4 soldados), debe existir una expedición propia abierta (o cerrada
+--   hace menos de 30 min) con la misma dificultad y vuelta, máximo 40 envíos/hora y uno por jefe cada 2 minutos.
+--   Duelos: nota válida, rondas 2..99 (victoria al menos en 3), no contra uno mismo, uno por rival cada 20 s.

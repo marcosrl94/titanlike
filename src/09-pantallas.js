@@ -51,7 +51,11 @@ const UIC = {   // iconos de interfaz (trazo, 24×24)
   help:'<svg class="ui" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7 M12 17h.01"/></svg>',
   gas:'<svg class="ui" viewBox="0 0 24 24"><rect x="7" y="6" width="10" height="15" rx="3"/><path d="M10 6V3h4v3 M7 11h10"/></svg>',
   coin:'<svg class="ui" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v8 M9.5 10h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4"/></svg>',
-  flag:'<svg class="ui" viewBox="0 0 24 24"><path d="M5 21V4 M5 4h11l-2 4 2 4H5"/></svg>'
+  flag:'<svg class="ui" viewBox="0 0 24 24"><path d="M5 21V4 M5 4h11l-2 4 2 4H5"/></svg>',
+  up:'<svg class="ui" viewBox="0 0 24 24"><path d="M12 20V5 M6 11l6-6 6 6 M5 20h14"/></svg>',
+  heart:'<svg class="ui" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>',
+  die:'<svg class="ui" viewBox="0 0 24 24"><path d="M12 2l9 5v10l-9 5-9-5V7z M12 7l4.5 7.5h-9z"/></svg>',
+  frame:'<svg class="ui" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>'
 };
 const ICON = {
   c:'<path class="ic" d="M-9 9L9 -9M-9 -9L9 9"/>',
@@ -74,6 +78,13 @@ function mapSVG(){
   }));
   return `<svg class="map" viewBox="0 0 520 262" role="group" aria-label="Mapa de rutas">${edges}${nodes}</svg>`;
 }
+// ---- piezas comunes de las pantallas interiores (estética anime: viñeta con arte de la zona, líneas de acción y onomatopeya) ----
+const zoneArt = () => { if(!S || !S.map) return ''; const zn=zoneOf(S.wave), mo = zn.mo!==undefined ? zn.mo : S.map.z; return MOMENTS[mo] ? momentSVG(mo) : ''; };
+function hero(kick, title, sub, o){ o=o||{};
+  return `<header class="shero ${o.cls||''}"><div class="sh-art">${o.art!==undefined?o.art:zoneArt()}</div><i class="sl"></i><i class="sh-ht"></i>
+    <div class="sh-tx"><span class="lbl">${kick}</span><h2>${title}</h2>${sub?`<p>${sub}</p>`:''}</div>${o.sfx?`<b class="sfx sh-sfx">${o.sfx}</b>`:''}${o.side||''}</header>`; }
+const chN = i => `<span class="chn num" aria-hidden="true">${i+1}</span>`;   // atajo de teclado 1-9
+const chk = t => String(t).replace(/Prueba de ([A-Za-zÁÉÍÓÚáéíóúñ ]+?) \((\d+)\)/g, '<span class="chk"><i>d20</i>$1 · $2</span>');
 const sagaLbl = w => `Saga ${sagaIx(w)+1} · ${sagaOf(w).n}`;
 const V = {
   title(){
@@ -215,15 +226,18 @@ const V = {
   },
   reward(){
     const t=curNode().t, nx=SAGAS[sagaIx(S.wave)+1];
-    return `<div>${S.sagaDone?`<span class="lbl">${sagaLbl(S.wave)}</span>`:''}<h2>${S.sagaDone?'Saga completada':t==='b'?'Cambiante derrotado':t==='e'?'Élite abatida':'Zona despejada'}</h2>
-      <p class="dim">${S.sagaDone&&nx?`Se abre la saga ${sagaIx(S.wave)+2}, «${nx.n}». El escuadrón sigue adelante con el depósito lleno. `:'Los supervivientes suben de nivel. '}${S.picks>1?`Elige ${S.picks} recompensas.`:'Elige una recompensa.'}</p></div>
+    const title = S.sagaDone?'Saga completada':t==='b'?'Cambiante derrotado':t==='e'?'Élite abatida':'Zona despejada';
+    const sfx = S.sagaDone?'¡Saga!':t==='b'?'¡Abatido!':t==='e'?'¡Élite!':'¡Despejado!';
+    const kind = r => r.t==='rec'?'rec':r.t==='item'?'it':'up';
+    return `${hero(S.sagaDone?sagaLbl(S.wave):zoneOf(S.wave).n, title, `${S.sagaDone&&nx?`Se abre la saga ${sagaIx(S.wave)+2}, «${nx.n}». El escuadrón sigue adelante con el depósito lleno. `:'Los supervivientes suben de nivel. '}${S.picks>1?`Elige ${S.picks} recompensas.`:'Elige una recompensa.'}`, {sfx, cls:t==='b'||S.sagaDone?'big':''})}
       ${gradeHTML(S.lastGrade)}${canReroll()?`<div class="row"><button class="btn ghost sm" data-a="reroll">Relanzar recompensas · una vez por saga</button></div>`:''}
       ${S.note?`<section class="panel note"><p>${S.note}</p></section>`:''}
-      <div class="cards">${S.rewards.map((r,i)=> r.t==='rec'
-        ? `<button class="card" data-a="reward" data-i="${i}"><span class="lbl kind">Recluta${ROSTER[r.id].rare?' veterano':''} · se une al nivel ${joinLvl()}</span>${solCard(r.id, joinLvl())}</button>`
-        : r.t==='item' ? `<button class="card" data-a="reward" data-i="${i}"><span class="lbl kind">Objeto · un solo uso</span><h3>${ITEMS[r.id].n}</h3><p>${ITEMS[r.id].d} Llevas ${(S.items||[]).length} de 3.</p></button>`
-        : `<button class="card" data-a="reward" data-i="${i}"><span class="lbl kind">Mejora</span><h3>${UPG[r.id].n}</h3><p>${UPG[r.id].d}</p></button>`).join('')}</div>
-      <span class="lbl">Tu escuadrón</span>${squadHTML()}${relicsHTML()}`;
+      <span class="lbl sect">Recompensa</span>
+      <div class="cards chs">${S.rewards.map((r,i)=> `<button class="card ch k-${kind(r)}" data-a="reward" data-i="${i}" data-n="${i+1}">${chN(i)}${r.t==='rec'
+        ? `<span class="lbl kind">Recluta${ROSTER[r.id].rare?' veterano':''} · se une al nivel ${joinLvl()}</span>${solCard(r.id, joinLvl())}`
+        : r.t==='item' ? `<span class="ch-ic">${UIC.bag||''}</span><span class="lbl kind">Objeto · un solo uso</span><h3>${ITEMS[r.id].n}</h3><p>${ITEMS[r.id].d}</p><span class="lbl ch-ft">Llevas ${(S.items||[]).length} de ${itemCap()}</span>`
+        : `<span class="ch-ic">${UIC.up||UIC.star||''}</span><span class="lbl kind">Mejora</span><h3>${UPG[r.id].n}</h3><p>${UPG[r.id].d}</p>`}</button>`).join('')}</div>
+      <span class="lbl sect">Tu escuadrón</span>${squadHTML()}${relicsHTML()}`;
   },
   replace(){
     return `<div><h2>El escuadrón está completo</h2>
@@ -232,26 +246,27 @@ const V = {
   },
   shop(){
     const O=S.shop.offers, c=S.coins||0, full=(S.items||[]).length>=itemCap();
-    return `<div><span class="lbl">Mercader</span><h2>Un carro en el cruce</h2><p class="dim">Un comerciante del interior vende lo que le sobra a la Guarnición. Tienes <b class="num" style="color:var(--gold)">${c} monedas</b>; se ganan con la nota de cada combate.${owns('amigo')?' Te hace un 20 % de descuento.':''}</p></div>
-      <div class="cards">${O.map((o,i)=>{ const isIt=o.k.startsWith('it:'), off=o.sold || c<o.p || (isIt&&full);
-        return `<button class="card shopc ${o.sold?'sold':''}" data-a="buy" data-i="${i}" ${off?'disabled':''}><span class="lbl kind">${o.sold?'Comprado':isIt?'Objeto':'Servicio'}</span><h3>${o.n}</h3><p>${o.d}${o.got?` <b>${o.got}</b>.`:''}${isIt&&full&&!o.sold?' <b>Llevas el máximo de objetos.</b>':''}</p><span class="price num">${o.p} monedas</span></button>`; }).join('')}</div>
+    return `${hero('Mercader', 'Un carro en el cruce', `Un comerciante del interior vende lo que le sobra a la Guarnición. Las monedas se ganan con la nota de cada combate.${owns('amigo')?' Te hace un 20 % de descuento.':''}`, {cls:'shop', side:`<div class="sh-side"><span class="lbl">Tu bolsa</span><b class="num coin">${c}</b><span class="lbl">monedas</span></div>`})}
+      <div class="cards chs">${O.map((o,i)=>{ const isIt=o.k.startsWith('it:'), off=o.sold || c<o.p || (isIt&&full);
+        return `<button class="card ch shopc ${isIt?'k-it':'k-up'} ${o.sold?'sold':''}" data-a="buy" data-i="${i}" data-n="${i+1}" ${off?'disabled':''}>${chN(i)}<span class="lbl kind">${o.sold?'Comprado':isIt?'Objeto':'Servicio'}</span><h3>${o.n}</h3><p>${o.d}${o.got?` <b>${o.got}</b>.`:''}${isIt&&full&&!o.sold?' <b>Llevas el máximo de objetos.</b>':''}</p><span class="price num ${c<o.p&&!o.sold?'short':''}">${o.sold?'Vendido':o.p+' monedas'}</span></button>`; }).join('')}</div>
       <div><button class="btn" data-a="shopleave">Seguir la ruta</button></div>
-      <span class="lbl">Tu escuadrón</span>${squadHTML()}${relicsHTML()}`;
+      <span class="lbl sect">Tu escuadrón</span>${squadHTML()}${relicsHTML()}`;
   },
   camp(){
-    return `<div><h2>Campamento</h2><p class="dim">Hay tiempo para una sola cosa antes de que amanezca.</p></div>
-      <div class="cards">${CAMP.map((c,i)=>`<button class="card" data-a="camp" data-i="${i}"><h3>${c.n}</h3><p>${c.d}</p></button>`).join('')}
-      ${NINE.some(k=>S.pw[k]==='reserva') && S.squad.some(hasRoom) ? `<button class="card" data-a="inject"><span class="lbl kind">Reserva</span><h3>Inyectar un suero</h3><p>Un soldado hereda el poder del ${POWERS[NINE.find(k=>S.pw[k]==='reserva')].n}.</p></button>` : ''}</div>
-      <span class="lbl">Tu escuadrón</span>${squadHTML()}`;
+    const ic=['heart','up','gas'], inj = NINE.some(k=>S.pw[k]==='reserva') && S.squad.some(hasRoom);
+    return `${hero('Campamento', 'Una noche junto al fuego', 'Hay tiempo para una sola cosa antes de que amanezca.', {cls:'camp', art:`${zoneArt()}<i class="fire"></i><i class="embers"></i>`})}
+      <div class="cards chs">${CAMP.map((c,i)=>`<button class="card ch k-camp" data-a="camp" data-i="${i}" data-n="${i+1}">${chN(i)}<span class="ch-ic">${UIC[ic[i]]||''}</span><h3>${c.n}</h3><p>${c.d}</p></button>`).join('')}
+      ${inj ? `<button class="card ch k-pw" data-a="inject" data-n="${CAMP.length+1}">${chN(CAMP.length)}<span class="lbl kind">Reserva</span><h3>Inyectar un suero</h3><p>Un soldado hereda el poder del ${POWERS[NINE.find(k=>S.pw[k]==='reserva')].n}.</p></button>` : ''}</div>
+      <span class="lbl sect">Tu escuadrón</span>${squadHTML()}`;
   },
   event(){
     const E=EVENTS[S.pend.i];
     const dice = S.pend.res && S.pend.dice && S.pend.dice.length && CFG.dice ? `<div class="evdice">${S.pend.dice.map(d=>`<div class="dz"><div class="d20 ev ${d.r===20?'crit':d.r===1?'bad':d.ok?'ok':'fail'}${S.pend.diceShown?' done land':''}" data-r="${d.r}">${D20}<b>${S.pend.diceShown?d.r:'?'}</b>${d.b?`<small>+${d.b}</small>`:''}</div>
       <div class="dres${S.pend.diceShown?' show':''}"><span class="lbl">${SKILLS[d.k]}${d.who?' · '+ROSTER[d.who].n:''}</span><b>${d.r}${d.b?' + '+d.b+' = '+(d.r+d.b):''} contra ${d.dc}</b><span class="${d.ok?'okt':'kot'}">${d.r===20?'¡20 natural! ':d.r===1?'¡Pifia! ':''}${d.ok?'Éxito':'Fallo'}</span></div></div>`).join('')}</div>` : '';
-    return `<div><span class="lbl">Evento</span><h2>${E.n}</h2></div>${dice}<section class="panel"><p style="max-width:62ch">${S.pend.res||E.d}</p></section>
-      ${S.pend.res ? `<div><button class="btn" data-a="evok">Seguir la ruta</button></div>`
-        : `<div class="cards">${E.o.map((o,i)=>`<button class="card" data-a="evopt" data-i="${i}"><h3>${o.l}</h3><p>${o.d}</p></button>`).join('')}</div>`}
-      <span class="lbl">Tu escuadrón</span>${squadHTML()}`;
+    return `${hero('Evento', E.n, '', {cls:'ev'})}${dice}<section class="caption ${S.pend.res?'res':''}"><p>${S.pend.res||E.d}</p></section>
+      ${S.pend.res ? `<div><button class="btn ch" data-a="evok" data-n="1">Seguir la ruta</button></div>`
+        : `<div class="cards chs">${E.o.map((o,i)=>`<button class="card ch k-ev" data-a="evopt" data-i="${i}" data-n="${i+1}">${chN(i)}<h3>${o.l}</h3><p>${chk(o.d)}</p></button>`).join('')}</div>`}
+      <span class="lbl sect">Tu escuadrón</span>${squadHTML()}`;
   },
   gallery(){
     const fitCtl = k => CUSTOM[k] ? `<div class="fit" role="group" aria-label="Encuadre de ${k}"><span class="lbl">Encuadre${k.endsWith('@a')?' adulto':''}</span>${[['out','−','Alejar'],['in','+','Acercar'],['l','←','Mover a la izquierda'],['r','→','Mover a la derecha'],['u','↑','Subir'],['d','↓','Bajar'],['reset','↺','Restablecer']].map(([o,t,l])=>`<button class="btn ghost sm" data-a="fit" data-i="${k}|${o}" aria-label="${l}" title="${l}">${t}</button>`).join('')}</div>` : '';
@@ -294,7 +309,8 @@ const V = {
   },
   scene(){
     const sc=S.scene, lines=a=>a.map((l,i)=>`<p class="ln" style="animation-delay:${i*.7}s">${l}</p>`).join('');
-    const wrap=(lbl,title,art,body,act)=>`<section class="scene"><div class="sart">${art}</div><div class="stx"><span class="lbl">${lbl}</span><h2>${title}</h2>${body}</div></section>${act}<span class="lbl">Tu escuadrón</span>${squadHTML()}${relicsHTML()}`;
+    let n=0; const num = h => h.replace(/<button class="(card[^"]*)" data-a="scn"/g, (m,c)=>{ n++; return `<button class="${c} ch" data-n="${n}" data-a="scn"`; }).replace(/(<button class="card[^"]* ch" data-n="(\d+)"[^>]*>)/g, (m,b,k)=>b+chN(+k-1));
+    const wrap=(lbl,title,art,body,act)=>`<section class="scene"><i class="sl"></i><div class="sart">${art}</div><div class="stx"><span class="lbl">${lbl}</span><h2>${title}</h2>${body}</div></section>${num(act).replace('class="cards"','class="cards chs"')}<span class="lbl sect">Tu escuadrón</span>${squadHTML()}${relicsHTML()}`;
     if(sc.k==='betray'){ const id=sc.id;
       return wrap('Traición', id==='eren'?'El Retumbar':`${ROSTER[id].n} se aparta del escuadrón`, titanArt(sc.boss), lines(BETRAY[id].pre),
         `<div><button class="btn" data-a="scn" data-i="go">Desenvainar</button></div>`); }
@@ -345,7 +361,7 @@ const V = {
   codex(){
     const M=meta(), c=M.codex||{t:{},s:{}};
     return `<div><h2>Logros y códice</h2><p class="dim">${M.ach.length} de ${ACH.length} logros. Algunos desbloquean reclutas iniciales para la saga 1.</p></div>
-      <div class="row"><button class="btn ghost" data-a="home">Volver</button><button class="btn ghost" data-a="ficha" data-i="${Object.keys(ROSTER).find(id=>codexSeen('s',id))||'eren'}">Fichas de personaje</button><button class="btn ghost" data-a="comps" data-i="mine">Escuadrones</button><button class="btn ghost" data-a="arbol">Árbol de la historia</button></div>
+      <div class="row"><button class="btn ghost" data-a="home">Volver</button><button class="btn ghost" data-a="ficha">Fichas de personaje</button><button class="btn ghost" data-a="comps" data-i="mine">Escuadrones</button><button class="btn ghost" data-a="arbol">Árbol de la historia</button></div>
       <div class="achs">${ACH.map(a=>{ const got=M.ach.includes(a.k); return `<div class="ach ${got?'got':''}"><b>${a.n}</b><span>${a.d}</span>${a.unlock?`<span class="lbl">${got?'Desbloquea':'Desbloqueará'} a ${ROSTER[a.unlock].n}</span>`:''}</div>`; }).join('')}</div>
       <span class="lbl">Titanes y enemigos · ${Object.keys(c.t||{}).length} de ${Object.keys(TITANS).length} vistos</span>
       <div class="gal">${Object.keys(TITANS).map(id=>{ const seen=codexSeen('t',id); return `<div class="card cx ${seen?'':'unk'}"><span class="art">${titanArt(id)}</span><b>${seen?TITANS[id].n:'Sin descubrir'}</b>${seen?`<span class="lbl num">${CLS[TITANS[id].cls]} · abatidos: ${c.t[id]||0}</span>${TITANS[id].boss?`<span class="dim" style="font-size:13px">${BOSS_PW[id]?'Puede soltar el '+POWERS[BOSS_PW[id]].n+'.':'Jefe final.'}</span>`:''}`:''}</div>`; }).join('')}</div>

@@ -12,7 +12,8 @@ Object.assign(TITANS, {
   bes2: {n:'Titán Bestia, el asedio', cls:'grande', hp:460, atk:16, spd:10, boss:1, m:{aoe:3, throw:4, txt:'LLUVIA DE ROCAS'}, a:TITANS.bes.a},
   mar2: {n:'Martillo de Guerra, asalto final', cls:'blindado', hp:540, atk:18, spd:12, boss:1, m:{aoe:3, harden:2, txt:'PÚAS DE CRISTAL'}, a:TITANS.mar.a}
 });
-Object.assign(BOSS_PW, {bes2:'bestia', mar2:'martillo'});
+Object.assign(BOSS_PW, {bes2:'bestia', mar2:'martillo', frieda:'fundador', fun:'fundador'});
+Object.assign(BOSS_SPARE, {mar2:'carguero', bes2:'carguero'});
 
 const ALT_SAGAS = {
   reina: {slot:2, n:'La reina de las murallas', d:'Golpe de Estado en el interior. La Policía Militar caza al escuadrón y los Reiss esconden la verdad bajo una capilla.',

@@ -28,8 +28,35 @@ const BOSSES = SAGAS.flatMap(sg=>sg.zones.map(z=>z.boss));
 const dodgePct = spd => (Math.max(0, Math.floor((spd-10)/3))+1)*5;
 let fichaId = 'eren', compsTab = 'mine';
 
+// ---- rejilla de personajes: se ve a todo el plantel y la ficha se abre al hacer clic ----
+let fichaOpen = null;
 V.ficha = function(){
-  const ids=Object.keys(ROSTER), id=ROSTER[fichaId]?fichaId:'eren', R=ROSTER[id], i=ids.indexOf(id), st=statsOf(), h=st.ch[id], seen=codexSeen('s',id);
+  const ids=Object.keys(ROSTER), st=statsOf(), n=ids.filter(id=>codexSeen('s',id)).length;
+  const card = id => { const R=ROSTER[id], h=st.ch[id], seen=codexSeen('s',id);
+    return `<button class="pcard st-${R.st} ${seen?'':'new'} ${fichaOpen===id?'on':''}" data-a="ficha" data-i="${id}" aria-label="Ficha de ${R.n}">
+      <span class="pc-art">${portrait(id,true)}<i class="sl"></i></span>
+      <span class="pc-tx"><b>${R.n}</b><span class="lbl">${STYLE[R.st]}</span></span>
+      ${h&&h.best?`<span class="pc-g">${gradeChip(gradeOf(h.best))}</span>`:''}
+      <span class="pc-ft num">${h?`${h.f} combates · ${h.k} abatidos`:seen?'Sin combates':'Sin reclutar'}</span></button>`; };
+  return `<div class="row"><button class="btn ghost" data-a="home">Volver</button><button class="btn ghost" data-a="codex">Códice</button></div>
+    <div><h2>Fichas de personaje</h2><p class="dim">${n} de ${ids.length} reclutados alguna vez. Toca a cualquiera para abrir su ficha.</p></div>
+    <div class="pgrid">${ids.map(card).join('')}</div>`;
+};
+// la ficha abierta vive fuera de #screen (que se anima con transform) para que el fondo fijo cubra toda la ventana
+function fichaModal(){
+  if(typeof document==='undefined') return;
+  let host=document.getElementById('fmodal');
+  const want = scr==='ficha' && fichaOpen && ROSTER[fichaOpen];
+  if(!want){ if(host) host.remove(); document.body.classList.remove('fm-open'); return; }
+  if(!host){ host=document.createElement('div'); host.id='fmodal'; host.className='fmodal'; host.setAttribute('role','dialog'); host.setAttribute('aria-modal','true'); document.body.appendChild(host);
+    host.classList.add('anim'); setTimeout(()=>host.classList.remove('anim'), 400);
+    host.addEventListener('click', ev=>{ if(ev.target===host) return act('fclose'); const b=ev.target.closest('[data-a]'); if(b && !b.disabled) act(b.dataset.a, b.dataset.i); }); }
+  host.setAttribute('aria-label', 'Ficha de '+ROSTER[fichaOpen].n);
+  host.innerHTML = `<div class="fm-in">${fichaBody(fichaOpen)}</div>`;
+  document.body.classList.add('fm-open');
+}
+function fichaBody(fid){
+  const ids=Object.keys(ROSTER), id=ROSTER[fid]?fid:'eren', R=ROSTER[id], i=ids.indexOf(id), st=statsOf(), h=st.ch[id], seen=codexSeen('s',id);
   const prev=ids[(i-1+ids.length)%ids.length], next=ids[(i+1)%ids.length];
   const e=EFF[R.st], up=Object.keys(e).find(k=>e[k]>1), dn=Object.keys(e).find(k=>e[k]<1);
   const lv=[1,15,30,45,60].map(l=>{ const m=1+.05*(l-1); return `<tr><td class="lbl">Nv ${l}</td><td>${Math.round(R.hp*m)}</td><td>${Math.round(R.atk*m)}</td></tr>`; }).join('');
@@ -38,8 +65,8 @@ V.ficha = function(){
   const gd = h ? GRADE_ORDER.map(g=>({g, n:h.g[g]||0})) : [], gmax=Math.max(1,...gd.map(x=>x.n));
   const best = Object.entries(st.co).filter(([k,c])=>compIds(k).includes(id) && c.f>=2).sort((a,b)=>b[1].sc/b[1].f-a[1].sc/a[1].f).slice(0,3);
   const sk=R.sk, inn=BRINGS[id];
-  return `<div class="row ficha-nav"><button class="btn ghost sm" data-a="codex">Volver</button><span class="spacer"></span>
-      <button class="btn ghost sm" data-a="ficha" data-i="${prev}" aria-label="Anterior">← ${ROSTER[prev].n}</button><button class="btn ghost sm" data-a="ficha" data-i="${next}" aria-label="Siguiente">${ROSTER[next].n} →</button></div>
+  return `<div class="row ficha-nav"><button class="btn ghost sm" data-a="ficha" data-i="${prev}" aria-label="Anterior">← ${ROSTER[prev].n}</button><button class="btn ghost sm" data-a="ficha" data-i="${next}" aria-label="Siguiente">${ROSTER[next].n} →</button><span class="spacer"></span>
+      <button class="btn sm fm-x" data-a="fclose" aria-label="Cerrar ficha">Cerrar ✕</button></div>
     <section class="ficha"><div class="f-hd">${portrait(id,true)}<div><span class="lbl">Ficha de personaje${R.rare?' · veterano':''}</span><h2>${R.n}</h2>
       <div class="row">${chip(R.st)}<span class="lbl">Disponible desde la saga ${R.sg+1}${R.sg?` · «${SAGA_N(R.sg)}»`:''}</span></div>
       <p class="dim">${seen?BIO[id]:'Todavía no lo has reclutado.'}</p></div></div>
@@ -63,7 +90,7 @@ V.ficha = function(){
         :'<p class="dim">Aún no ha combatido contigo. Las notas, bajas y récords de cada combate se apuntan aquí.</p>'}</div>
       ${best.length?`<div class="panel"><span class="lbl">Sus mejores escuadrones</span>${best.map(([k,c])=>`<div class="crow">${compIds(k).map(x=>portrait(x)).join('')}<span>${compName(k)}</span><span class="num dim">${c.f} combates</span>${gradeChip(gradeOf(c.sc/c.f))}</div>`).join('')}</div>`:''}
     </div></section>`;
-};
+}
 V.comps = function(){
   const mine = compsTab!=='all', st=statsOf();
   const rows = mine ? Object.entries(st.co).map(([k,c])=>({comp:k, fights:c.f, avg:c.f?c.sc/c.f:null, s:c.f?Math.round(100*((c.g['S']||0)+(c.g['S+']||0))/c.f):0, runs:c.runs, wins:c.wins, best:c.bw}))
@@ -135,15 +162,19 @@ V.arbol = function(){
 // ---- Intendencia: insignias, de dónde salen y en qué se gastan ----
 V.intendencia = function(){
   const src=insigniaSources(), sh=shopOf(), have=insignias();
-  const card = k => { const it=SHOP[k], own=sh.own.includes(k), eq=sh.eq[it.kind]===k;
-    return `<div class="card shopc ${own?'own':''}"><span class="lbl kind">${it.kind==='exp'?'Para la expedición':it.kind==='dado'?'Dado':'Marco'}</span><h3>${it.n}</h3><p>${it.d}</p>
-      ${own ? (it.kind==='exp' ? '<span class="lbl" style="color:var(--cloak-hi)">Tuyo</span>' : `<button class="btn ${eq?'':'ghost'} sm" data-a="shopeq" data-i="${k}">${eq?'Equipado':'Equipar'}</button>`)
-            : `<button class="btn sm" data-a="shopbuy" data-i="${k}" ${have<it.p?'disabled':''}>${it.p} insignias</button>`}</div>`; };
-  return `<div><h2>Intendencia</h2><p class="dim">Las insignias salen de lo que has conseguido y no se pierden. Aquí se cambian por ventajas para empezar mejor y por estética; nada sube las estadísticas en bruto. Dentro de cada expedición hay monedas aparte, que se ganan con la nota de cada combate y se gastan en el mercader del mapa.</p></div>
-    <div class="row"><button class="btn ghost" data-a="home">Volver</button><span class="ins num">${have} insignias</span><span class="lbl">${insigniasEarned()} ganadas · ${sh.spent} gastadas</span></div>
-    <section class="panel"><span class="lbl">Cómo se ganan</span><div class="tablewrap"><table class="chart num"><tbody>${src.map(x=>`<tr><td><b>${x.n}</b></td><td class="dim">${x.d}</td><td style="text-align:right"><b>${x.v}</b></td></tr>`).join('')}</tbody></table></div></section>
-    <span class="lbl">Para la expedición</span><div class="cards">${Object.keys(SHOP).filter(k=>SHOP[k].kind==='exp').map(card).join('')}</div>
-    <span class="lbl">Estética</span><div class="cards">${Object.keys(SHOP).filter(k=>SHOP[k].kind!=='exp').map(card).join('')}</div>`;
+  const card = k => { const it=SHOP[k], own=sh.own.includes(k), eq=sh.eq[it.kind]===k, poor=!own && have<it.p;
+    const art = it.kind==='dado' ? `<span class="dprev d20 sk-${k.slice(2)}">${D20}<b>20</b></span>` : it.kind==='marco' ? `<span class="fprev fr-${k.slice(2)}">${portrait('eren')}</span>` : `<span class="ch-ic">${UIC.bag}</span>`;
+    return `<div class="card ishop k-${it.kind} ${own?'own':''} ${eq?'eq':''}">${own?`<span class="ribbon">${eq?'Equipado':'Tuyo'}</span>`:''}${art}
+      <span class="lbl kind">${it.kind==='exp'?'Para la expedición':it.kind==='dado'?'Dado':'Marco'}</span><h3>${it.n}</h3><p>${it.d}</p>
+      ${own ? (it.kind==='exp' ? '' : `<button class="btn ${eq?'':'ghost'} sm" data-a="shopeq" data-i="${k}">${eq?'Quitar':'Equipar'}</button>`)
+            : `<button class="btn sm price-b" data-a="shopbuy" data-i="${k}" ${poor?'disabled':''}><span class="ins-ic"></span>${it.p}${poor?` <small>· te faltan ${it.p-have}</small>`:''}</button>`}</div>`; };
+  return `<div class="row"><button class="btn ghost" data-a="home">Volver</button></div>
+    ${hero('Intendencia', 'Insignias del Cuerpo', 'Salen de lo que has conseguido y no se pierden. Se cambian por ventajas para empezar mejor y por estética; nada sube las estadísticas en bruto. Las monedas de cada expedición son aparte y se gastan en el mercader del mapa.',
+      {cls:'intd', art:'', side:`<div class="sh-side medal"><i class="sl"></i><b class="num">${have}</b><span class="lbl">insignias</span><small class="num">${insigniasEarned()} ganadas · ${sh.spent} gastadas</small></div>`})}
+    <span class="lbl sect">Cómo se ganan</span>
+    <div class="isrc">${src.map(x=>`<div class="${x.v?'on':''}"><b class="num">${x.v}</b><span>${x.n}</span><small>${x.d}</small></div>`).join('')}</div>
+    <span class="lbl sect">Para la expedición</span><div class="cards ishops">${Object.keys(SHOP).filter(k=>SHOP[k].kind==='exp').map(card).join('')}</div>
+    <span class="lbl sect">Estética</span><div class="cards ishops">${Object.keys(SHOP).filter(k=>SHOP[k].kind!=='exp').map(card).join('')}</div>`;
 };
 
 // ---- amigos y duelos ----

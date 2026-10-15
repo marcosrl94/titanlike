@@ -14,6 +14,7 @@ const NINE = Object.keys(POWERS);
 const EREN3 = ['ataque','fundador','martillo'];
 const MINOR = ['colosal','acorazado','hembra','bestia','mandibula','carguero'];
 const BOSS_PW = {col:'colosal', col2:'colosal', hem:'hembra', hem2:'hembra', bes:'bestia', aco:'acorazado', aco2:'acorazado', man:'mandibula', mar:'martillo', rod:'fundador'};
+const BOSS_SPARE = {man:'carguero', mar:'carguero'};
 const BRINGS = {eren:'ataque', ymir:'mandibula', pieck:'carguero'};
 const WARRIORS = ['reiner','annie','bertolt'];
 const BETRAY = {
@@ -106,7 +107,8 @@ function sceneAct(i){
 // botín tras vencer a un jefe o a una élite
 function rollDrop(t, bossId){
   if(t==='b'){
-    const k = BOSS_PW[bossId]; if(!k || k in S.pw) return;
+    // si el poder del jefe ya es vuestro, algunos jefes de Marley llevan encima otro (el Carguero viaja con ellos)
+    const k0 = BOSS_PW[bossId], k = k0 && !(k0 in S.pw) ? k0 : (BOSS_SPARE[bossId] && !(BOSS_SPARE[bossId] in S.pw) ? BOSS_SPARE[bossId] : null); if(!k) return;
     if(Math.random() < dropP()){ S.pity=0; S.q.push({k:'drop', p:k, src:'boss', boss:bossId}); }
     else { S.pity=(S.pity||0)+.2; S.note=`El portador del ${POWERS[k].n} se evapora con su poder. La próxima vez: ${Math.round(dropP()*100)} %.`; }
   } else if(t==='e' && Math.random()<.06){
