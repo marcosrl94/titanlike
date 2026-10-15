@@ -1,5 +1,8 @@
 // ---------- Pantallas ----------
 let TITLE_BG = 0;
+// sello de saga completada: la mejor nota contra su jefe final, en rótulo de manga con líneas de acción
+function sagaStamp(boss){ const r=statsOf().rec[boss]; if(!r) return ''; const k=r.g.replace('+','p');
+  return `<span class="stamp g-${k}" title="Saga completada · mejor nota contra ${TITANS[boss].n}: ${r.g} (${r.sc} puntos)"><i class="sl"></i><b>${r.g}</b><small>Completada</small></span>`; }
 let pendingRec = null, pendingSaga = 0, picked = [], pendingNg = false, relicPick = [], pendingAlt = null;
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const chip = st => `<span class="chip s-${st}">${STYLE[st]}</span>`;
@@ -129,11 +132,11 @@ const V = {
         <div class="seg" role="radiogroup" aria-label="Dificultad">${Object.keys(DIFF).map(k=>`<button class="btn sm ${CFG.diff===k?'':'ghost'}" role="radio" aria-checked="${CFG.diff===k}" data-a="diff" data-i="${k}">${DIFF[k].n}</button>`).join('')}</div>
         <p class="dim" style="font-size:13.5px">${DIFF[CFG.diff]?DIFF[CFG.diff].d:DIFF.explorador.d} La expedición del día siempre es Explorador.</p></section>
       <div class="sagas">${SAGAS.map((g,i)=>`<button class="card saga ${i<u?'':'locked'}" data-a="saga" data-i="${i}" ${i<u?'':'disabled'}>
-        <span class="thumb">${momentSVG(i*3)}${i<u?'':'<i class="lock" aria-hidden="true"></i>'}</span><span class="n">SAGA ${i+1}${i<u?'':' · BLOQUEADA'}</span><h3>${g.n}</h3><p>${i<u?g.d:`Vence la saga ${i} para abrirla.`}</p>
+        <span class="thumb">${momentSVG(i*3)}${i<u?'':'<i class="lock" aria-hidden="true"></i>'}${sagaStamp(g.zones[2].boss)}</span><span class="n">SAGA ${i+1}${i<u?'':' · BLOQUEADA'}</span><h3>${g.n}</h3><p>${i<u?g.d:`Vence la saga ${i} para abrirla.`}</p>
         <ul>${g.zones.map(z=>`<li>${z.n}</li>`).join('')}</ul></button>`).join('')}</div>
       <span class="lbl">Sendas alternativas · ${altsSeen().length} de ${Object.keys(ALT_SAGAS).length} descubiertas</span>
       <div class="sagas alts">${Object.entries(ALT_SAGAS).map(([k,A])=>{ const seen=altsSeen().includes(k), ok=seen && A.slot<u;
-        return `<button class="card saga alt ${seen?'':'veiled'}" data-a="saga" data-i="${A.slot}:${k}" ${ok?'':'disabled'}><span class="thumb">${momentSVG(A.zones[0].mo)}</span><span class="n">${seen?`EN LUGAR DE LA SAGA ${A.slot+1}`:'SIN DESCUBRIR'}</span><h3>${seen?A.n:'???'}</h3><p>${seen?A.d:'Una senda que aún no has descubierto.'}</p>${seen?`<ul>${A.zones.map(z=>`<li>${z.n}</li>`).join('')}</ul>`:''}</button>`; }).join('')}</div>
+        return `<button class="card saga alt ${seen?'':'veiled'}" data-a="saga" data-i="${A.slot}:${k}" ${ok?'':'disabled'}><span class="thumb">${momentSVG(A.zones[0].mo)}${seen?sagaStamp(A.zones[2].boss):''}</span><span class="n">${seen?`EN LUGAR DE LA SAGA ${A.slot+1}`:'SIN DESCUBRIR'}</span><h3>${seen?A.n:'???'}</h3><p>${seen?A.d:'Una senda que aún no has descubierto.'}</p>${seen?`<ul>${A.zones.map(z=>`<li>${z.n}</li>`).join('')}</ul>`:''}</button>`; }).join('')}</div>
       <div><button class="btn ghost" data-a="home">Volver</button></div>`;
   },
   starter(){

@@ -169,6 +169,7 @@ function doAction(kind, target){
   else if(kind.startsWith('pw:')) usePower(s, kind.slice(3), target);
   else {
     S.gas -= R.sk.gas; if(R.sk.once) C.used[s.id]=true;
+    ev({k:'cutin', s:s.id, txt:R.sk.n});   // cortinilla de anime con el retrato y el nombre de la habilidad
     switch(s.id){
       case 'eren': strike(s,target, s.hp<maxHp(s)/2 ? 2.2 : 1.5, {verb:'se lanza contra'}); break;
       case 'mikasa': strike(s,target,1); strike(s,target,1); break;

@@ -1,5 +1,11 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-15.12', t:'Más anime: sellos, cortinillas y líneas de acción', items:[
+    'Las sagas y sendas completadas llevan un sello con tu mejor nota contra su jefe final, en rótulo de manga y con líneas de acción.',
+    'Cortinillas: cuando un soldado usa su habilidad, cruza la pantalla una franja diagonal con su retrato y el nombre del ataque.',
+    'La nota del combate aparece con líneas de acción, y si es S o S+, con su «¡Rango S!».',
+    'Rótulos de impacto en críticos y avisos, líneas de acción en las entradas de los jefes y trama de puntos en el escenario, la portada y las escenas.'
+  ]},
   {v:'2026-10-15.11', t:'Interfaz renovada', items:[
     'Nueva portada: menú de juego sobre la escena de la última zona a la que has llegado, con «Continuar» bien visible, accesos con iconos (expedición del día, duelos, clasificación, Intendencia, códice, árbol, fichas) y tus marcas a mano.',
     'Marcador de la expedición más limpio: zona y saga a la izquierda; gas, monedas y jornada como fichas con icono a la derecha. El gas se pone en rojo cuando queda poco.',

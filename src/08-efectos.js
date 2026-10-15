@@ -109,6 +109,8 @@ const FX = {
     if(B.intro) B.intro(p, el); else { flash('var(--bone)',.4); quake(800); sfx('roar'); }
     await sleep(1300);
   },
+  async cutin(e){ if(!FXON() || animK()<.3) return;
+    const d=addK('div','cutin',{}, 900); d.innerHTML=`<div class="ci-band"><i class="sl"></i><span class="ci-pt">${portrait(e.s,true)}</span><b class="sfx">${e.txt}</b></div>`; sfx('buff'); await sleep(560); },
   async duel(e){ logLine(e.m); banner(`${e.a}  ×  ${e.b}`, 'Duelo', 'var(--gold)', 2000); sfx('roar'); flash('var(--gold)',.35); await sleep(1500); },
   async shift(e){
     const s=U('s'+e.s); logLine(e.m); if(!s) return;

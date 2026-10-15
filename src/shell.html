@@ -344,6 +344,42 @@ body.calm .m-art svg,body.calm .m-art *{animation:none!important}
 .tnode .ttl{fill:var(--bone);font:16px var(--display)} .tnode:not(.seen) .ttl{fill:var(--steel);letter-spacing:.3em}
 .tnode .tev{fill:var(--gold);font:600 10.5px var(--label);letter-spacing:.03em;opacity:.9} .tnode .thint{fill:var(--steel);font:italic 10.5px var(--label)}
 .cards.people .card{display:flex;gap:12px;align-items:flex-start} .cards.people .pt{width:48px;height:48px;flex:none} .cards.people p{margin:4px 0 0;font-size:14px}
+/* ==== estética anime: líneas de acción, trama, rótulos de impacto, cortinillas ==== */
+.sl{position:absolute;inset:-60%;pointer-events:none;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.22) 0deg 1.2deg,transparent 1.2deg 7deg);-webkit-mask:radial-gradient(circle,transparent 18%,#000 46%,transparent 72%);mask:radial-gradient(circle,transparent 18%,#000 46%,transparent 72%);animation:slspin 9s linear infinite}
+@keyframes slspin{to{transform:rotate(360deg)}}
+.sfx{font-family:var(--label);font-weight:800;font-style:italic;text-transform:uppercase;letter-spacing:.02em;color:var(--bone);-webkit-text-stroke:5px #0a0b0b;paint-order:stroke fill;transform:skewX(-8deg);display:inline-block}
+.float.crit,.float.tag{font-family:var(--label);font-weight:800;font-style:italic;-webkit-text-stroke:5px #0a0b0b;paint-order:stroke fill;text-shadow:none}
+.float.crit{font-size:54px;color:#ffd36a}
+.float.tag{letter-spacing:.06em;font-size:21px}
+.cine .ttl b{font-style:italic}
+.cine::before{content:'';position:absolute;inset:-40%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.16) 0deg 1deg,transparent 1deg 6deg);-webkit-mask:radial-gradient(circle,transparent 22%,#000 50%,transparent 75%);mask:radial-gradient(circle,transparent 22%,#000 50%,transparent 75%);animation:cbar calc(1.9s*var(--k)) ease-in-out both}
+/* trama de puntos (screentone) */
+.mm-bg::before,.stage.poke::after,.m-art::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1.4px);background-size:6px 6px;-webkit-mask:linear-gradient(115deg,#000,transparent 55%);mask:linear-gradient(115deg,#000,transparent 55%);z-index:1}
+.stage.poke{position:relative}
+/* cortinilla de habilidad */
+.cutin{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;z-index:3}
+.ci-band{position:relative;width:120%;height:132px;display:flex;align-items:center;gap:22px;padding-left:22%;background:linear-gradient(90deg,rgba(10,12,11,0),#151917 18%,#1d2420 50%,#151917 82%,rgba(10,12,11,0));border-block:3px solid var(--gold);transform:rotate(-6deg);overflow:hidden;animation:ciband calc(.85s*var(--k)) cubic-bezier(.2,.8,.2,1) both}
+.ci-band .sl{inset:-200% -10%;-webkit-mask:linear-gradient(90deg,transparent,#000 30%,#000 70%,transparent);mask:linear-gradient(90deg,transparent,#000 30%,#000 70%,transparent);background:repeating-linear-gradient(90deg,rgba(255,255,255,.12) 0 2px,transparent 2px 26px);animation:cilines .4s linear infinite}
+@keyframes cilines{to{transform:translateX(-26px)}}
+.ci-pt .pt{display:block;width:104px;height:104px;border:3px solid var(--gold);box-shadow:0 0 0 4px #0a0b0b;overflow:hidden;border-radius:12px;flex:none;transform:skewX(-6deg)}
+.ci-pt .pt svg,.ci-pt .pt img{width:100%;height:100%;display:block;object-fit:cover}
+.ci-band .sfx{font-size:clamp(28px,5vw,52px)}
+@keyframes ciband{0%{transform:rotate(-6deg) translateX(-110%)}22%{transform:rotate(-6deg) translateX(0)}78%{transform:rotate(-6deg) translateX(0);opacity:1}100%{transform:rotate(-6deg) translateX(110%);opacity:0}}
+@media (max-width:620px){.ci-band{height:96px;padding-left:12%}.ci-pt .pt{width:72px;height:72px}}
+/* nota: líneas de acción y rótulo */
+.gwrap{position:relative;display:grid;place-items:center;width:150px;height:130px;overflow:hidden;border-radius:14px}
+.gwrap .sl{opacity:.5} .gwrap.hi .sl{opacity:1;background:repeating-conic-gradient(from 0deg,rgba(255,211,106,.35) 0deg 1.4deg,transparent 1.4deg 7deg)}
+.gwrap .grade.big{position:relative;font-style:italic;-webkit-text-stroke:3px #0a0b0b;paint-order:stroke fill;background:#0e1110}
+.gsfx{font-size:24px;color:#ffd36a;margin-top:-6px}
+/* sello de saga completada */
+.card.saga .thumb .stamp{position:absolute;right:10px;bottom:8px;z-index:2;width:84px;height:84px;display:grid;place-items:center;border-radius:50%;overflow:hidden;background:radial-gradient(circle,rgba(10,12,11,.85) 40%,rgba(10,12,11,.2) 72%);animation:stampin .6s cubic-bezier(.2,1.6,.4,1) both}
+.stamp .sl{inset:-40%;-webkit-mask:radial-gradient(circle,transparent 30%,#000 55%,transparent 75%);mask:radial-gradient(circle,transparent 30%,#000 55%,transparent 75%)}
+.stamp b{position:relative;font-family:var(--label);font-weight:800;font-style:italic;font-size:42px;line-height:1;transform:skewX(-8deg) rotate(-8deg);-webkit-text-stroke:4px #0a0b0b;paint-order:stroke fill;color:var(--bone)}
+.stamp small{position:absolute;bottom:10px;font-family:var(--label);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--bone);opacity:.8}
+.stamp.g-Sp b{color:#ffe08a;text-shadow:0 0 18px rgba(255,211,106,.9)} .stamp.g-S b{color:#ffd36a} .stamp.g-A b{color:var(--cloak-hi)} .stamp.g-B b{color:#bfd6e2} .stamp.g-C b{color:var(--bone)} .stamp.g-D b{color:#e09a5c} .stamp.g-E b{color:var(--blood-hi)}
+.stamp.g-Sp .sl,.stamp.g-S .sl{background:repeating-conic-gradient(from 0deg,rgba(255,211,106,.45) 0deg 1.4deg,transparent 1.4deg 8deg)}
+@keyframes stampin{0%{transform:scale(2.2) rotate(-25deg);opacity:0}60%{opacity:1}100%{transform:none}}
+body.calm .sl,body.calm .ci-band .sl{animation:none}
 /* ==== capa moderna: menú principal, HUD, microinteracciones ==== */
 svg.ui{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
 #screen>div.enter{animation:scrin .32s cubic-bezier(.2,.8,.2,1) both}
