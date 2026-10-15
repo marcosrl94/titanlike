@@ -94,18 +94,18 @@ const wrapTxt = (t, n) => { const w=t.split(' '), out=[]; let l=''; w.forEach(x=
 V.arbol = function(){
   const M=meta(), u=M.unlocked, alts=altsSeen(), ends=M.endings||[], st=statsOf();
   const N = {   // c: columna, r: fila; seen: descubierto; h: pista del camino que lleva hasta allí
-    s1:{c:0,r:1.5, t:SAGAS[0].n, sub:'Saga 1', seen:true, ev:'La llave de Grisha'},
-    s2:{c:1,r:.6, t:SAGAS[1].n, sub:'Saga 2', seen:u>=2, ev:'Historia · la Bestia y Zeke', h:'Vence la saga 1.'},
-    caida:{c:1,r:2.6, t:ALT_SAGAS.caida.n, sub:'Senda · saga 2', seen:alts.includes('caida'), alt:1, ev:'Ragako · un titán de ojos verdes', h:'Que Eren caiga en la saga 1.'},
-    s3:{c:2,r:.6, t:SAGAS[2].n, sub:'Saga 3', seen:u>=3, ev:'El sótano · Floch · una carta', h:'Vence la saga 2.'},
-    reina:{c:2,r:2.6, t:ALT_SAGAS.reina.n, sub:'Senda · saga 3', seen:alts.includes('reina'), alt:1, ev:'Kenny · Frieda · Uri', h:'Protege a Historia en la saga 2.'},
+    s1:{c:0,r:1.5, t:SAGAS[0].n, sub:'Saga 1', seen:true},
+    s2:{c:1,r:.6, t:SAGAS[1].n, sub:'Saga 2', seen:u>=2, h:'Vence la saga 1.'},
+    caida:{c:1,r:2.6, t:ALT_SAGAS.caida.n, sub:'Senda · saga 2', seen:alts.includes('caida'), alt:1, ev:'Ragako · un titán de ojos verdes', h:'Sin descubrir.'},
+    s3:{c:2,r:.6, t:SAGAS[2].n, sub:'Saga 3', seen:u>=3, h:'Vence la saga 2.'},
+    reina:{c:2,r:2.6, t:ALT_SAGAS.reina.n, sub:'Senda · saga 3', seen:alts.includes('reina'), alt:1, ev:'Kenny · Frieda · Uri', h:'Sin descubrir.'},
     s4:{c:3,r:0, t:SAGAS[3].n, sub:'Saga 4', seen:u>=4, h:'Vence la saga 3.'},
-    jaeger:{c:3,r:1.5, t:ALT_SAGAS.jaeger.n, sub:'Senda · saga 4', seen:alts.includes('jaeger'), alt:1, ev:'Floch al frente', h:'Dale la razón a Floch, con Eren vivo.'},
-    paradis:{c:3,r:3, t:ALT_SAGAS.paradis.n, sub:'Senda · saga 4', seen:alts.includes('paradis'), alt:1, ev:'El asedio de Zeke', h:'Llega sin Eren o con un guerrero perdonado.'},
-    e_ret:{c:4,r:0, t:ENDINGS.retumbar.n, sub:'Final', seen:ends.includes('retumbar'), end:1, h:'Detén al Fundador.'},
-    e_coo:{c:4,r:1, t:ENDINGS.coordenada.n, sub:'Final', seen:ends.includes('coordenada'), end:1, h:'Reúne Ataque, Fundador y Martillo.'},
-    e_nue:{c:4,r:2, t:ENDINGS.nueve.n, sub:'Final', seen:ends.includes('nueve'), end:1, h:'Reúne los nueve poderes.'},
-    e_par:{c:4,r:3, t:ENDINGS.paradis.n, sub:'Final', seen:ends.includes('paradis'), end:1, h:'Gana la guerra en la isla.'}
+    jaeger:{c:3,r:1.5, t:ALT_SAGAS.jaeger.n, sub:'Senda · saga 4', seen:alts.includes('jaeger'), alt:1, ev:'Floch al frente', h:'Sin descubrir.'},
+    paradis:{c:3,r:3, t:ALT_SAGAS.paradis.n, sub:'Senda · saga 4', seen:alts.includes('paradis'), alt:1, ev:'El asedio de Zeke', h:'Sin descubrir.'},
+    e_ret:{c:4,r:0, t:ENDINGS.retumbar.n, sub:'Final', seen:ends.includes('retumbar'), end:1, h:'Sin descubrir.'},
+    e_coo:{c:4,r:1, t:ENDINGS.coordenada.n, sub:'Final', seen:ends.includes('coordenada'), end:1, h:'Sin descubrir.'},
+    e_nue:{c:4,r:2, t:ENDINGS.nueve.n, sub:'Final', seen:ends.includes('nueve'), end:1, h:'Sin descubrir.'},
+    e_par:{c:4,r:3, t:ENDINGS.paradis.n, sub:'Final', seen:ends.includes('paradis'), end:1, h:'Sin descubrir.'}
   };
   const E = [['s1','s2'],['s1','caida'],['s2','s3'],['s2','reina'],['caida','s3'],['caida','reina'],['s3','s4'],['s3','jaeger'],['s3','paradis'],['reina','s4'],
     ['s4','e_ret'],['s4','e_coo'],['s4','e_nue'],['jaeger','e_ret'],['jaeger','e_coo'],['paradis','e_par'],['paradis','e_nue']];
@@ -117,18 +117,19 @@ V.arbol = function(){
     return `<g class="tnode ${n.seen?'seen':''} ${n.alt?'alt':''} ${n.end?'end':''}"><rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="10"/>
       <text x="${x+12}" y="${y+19}" class="tsub">${n.sub.toUpperCase()}</text>${lines.map((l,i)=>`<text x="${x+12}" y="${y+40+i*18}" class="ttl">${esc(l)}</text>`).join('')}
       ${wrapTxt(foot,30).slice(0,2).map((l,i)=>`<text x="${x+12}" y="${y+bh-22+i*13}" class="${n.seen?'tev':'thint'}">${esc(l)}</text>`).join('')}</g>`; };
-  const people = [['eren','Grisha Jaeger','No se recluta. Su llave y sus diarios cambian el final de Eren.', null],
-    ['historia','Familia Reiss','Rod, Frieda y Uri: la capilla, el recuerdo del Fundador y una tumba olvidada.', null],
-    ['kenny','Kenny Ackerman','Capitán de la brigada antipersonal. Se le puede reclutar.', 'kenny'],
-    ['zeke','Zeke Jaeger','Portador de la Bestia. Se le puede capturar.', 'zeke'],
-    ['bertolt','Bertolt Hoover','Recluta de la promoción 104. Esconde al Titán Colosal: perdónalo o quítale el poder.', null],
-    ['erwin','Las bajas','Quién cae también cambia la historia: duelo, juramentos, la jeringa de Shiganshina y epílogos que solo existen por una ausencia.', null],
-    ['floch','Floch Forster','Si le das la razón, se lleva a los jaegeristas.', null]];
-  return `<div><h2>Árbol de la historia</h2><p class="dim">Lo que haces en cada expedición abre sendas y finales. Lo que aún no has descubierto sale como «???», con la pista del camino que lleva hasta allí.</p></div>
+  const met = id => codexSeen('s', id);
+  const people = [['eren','Grisha Jaeger','El padre de Eren. Desapareció la noche en que cayó el muro.', null],
+    ['historia','Familia Reiss','Una familia noble del interior con más secretos que tierras.', null],
+    ['kenny', met('kenny')?'Kenny Ackerman':'???', met('kenny')?'Capitán de la brigada antipersonal. Ya lo conoces.':'Alguien a quien aún no has conocido.', 'kenny'],
+    ['zeke', met('zeke')?'Zeke Jaeger':'???', met('zeke')?'Portador de la Bestia. Ya lo conoces.':'Alguien a quien aún no has conocido.', 'zeke'],
+    ['bertolt','Bertolt Hoover','Recluta de la promoción 104, alto y callado.', null],
+    ['floch','Floch Forster','Recluta superviviente con ideas muy claras sobre lo que necesita la isla.', null],
+    ['erwin','Los que caen','Quién cae también cambia la historia.', null]];
+  return `<div><h2>Árbol de la historia</h2><p class="dim">Lo que haces en cada expedición abre sendas y finales. Lo que aún no has descubierto sale como «???».</p></div>
     <div class="row"><button class="btn ghost" data-a="codex">Volver</button><span class="lbl">Sendas ${alts.length}/${Object.keys(ALT_SAGAS).length} · Finales ${ends.length}/${Object.keys(ENDINGS).length} · Epílogos ${(st.ep||[]).length}/${EPILOGUES.length}</span></div>
     <section class="panel tree"><div class="tree-wrap"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Árbol de sagas, sendas y finales">${E.map(edge).join('')}${Object.keys(N).map(node).join('')}</svg></div></section>
     <span class="lbl">Personajes de la historia</span>
-    <div class="cards people">${people.map(([pid,n,d,rid])=>`<div class="card">${portrait(pid)}<div><b>${n}</b><p class="dim">${d}${rid?(codexSeen('s',rid)?' <span class="lbl" style="color:var(--gold)">Conocido · se puede elegir al empezar</span>':''):''}</p></div></div>`).join('')}</div>`;
+    <div class="cards people">${people.map(([pid,n,d,rid])=>`<div class="card">${rid && !met(rid) ? '<span class="pt unk-pt"></span>' : portrait(pid)}<div><b>${n}</b><p class="dim">${d}</p></div></div>`).join('')}</div>`;
 };
 
 // ---- Intendencia: insignias, de dónde salen y en qué se gastan ----

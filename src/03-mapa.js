@@ -244,13 +244,13 @@ const EVENTS = [
   // ---- eventos que abren sendas (salen antes que los demás cuando se cumplen) ----
   {n:'Vienen a por Historia', prio:true, when:()=>sagaIx(S.wave)===1 && has('historia') && !S.flags.reina && !S.flags.entregada,
    d:'Un destacamento de la Policía Militar os corta el paso. Traen una orden con el sello real: Historia tiene que acompañarlos a la capital.',
-   o:[{l:'Esconderla y huir', d:'Prueba de Sigilo (13). Si falla, el escuadrón pierde un 15 % de PV. Puede abrir otra senda.', f(){ const c=check('sigilo',13); if(!c.ok) hurtAll(.15); S.flags.reina=1;
+   o:[{l:'Esconderla y huir', d:'Prueba de Sigilo (13). Si falla, el escuadrón pierde un 15 % de PV.', f(){ const c=check('sigilo',13); if(!c.ok) hurtAll(.15); S.flags.reina=1;
         return `${c.txt} ${c.ok?'Os perdéis entre los callejones antes de que den la alarma.':'Hay disparos antes de que podáis escabulliros.'} Historia no dice nada en toda la noche. Al amanecer pregunta por qué la quieren tanto los Reiss.`; }},
       {l:'Entregarla', d:'Historia deja el escuadrón. A cambio, dos mejoras al azar.', f(){ const h=who('historia'); S.squad=S.squad.filter(x=>x!==h); S.flags.entregada=1; const a=randomUpg(), b=randomUpg();
         return `Historia se va sin mirar atrás. El oficial os deja material de sobra: ${a} y ${b}.`; }}]},
   {n:'Una carta de Marley', prio:true, when:()=>sagaIx(S.wave)===2 && WARRIORS.some(id=>S.loyal[id] && has(id)) && !S.flags.alianza && !S.flags.carta,
    d:'Un pájaro mensajero trae una carta cifrada al cuartel. Solo el guerrero que perdonasteis sabe leerla.',
-   o:[{l:'Que la lea en voz alta', d:'Puede abrir otra senda al final de la saga.', f(){ S.flags.alianza=1; S.flags.carta=1; return 'Marley prepara un desembarco en la isla. El guerrero dibuja en la mesa dónde van a atacar y cuántos son.'; }},
+   o:[{l:'Que la lea en voz alta', d:'Saber qué trama Marley.', f(){ S.flags.alianza=1; S.flags.carta=1; return 'Marley prepara un desembarco en la isla. El guerrero dibuja en la mesa dónde van a atacar y cuántos son.'; }},
       {l:'Quemarla', d:'Todos suben 1 nivel.', f(){ S.flags.carta=1; S.squad.forEach(levelUp); return 'La carta arde en la chimenea. Nadie pregunta qué decía.'; }}]},
   {n:'Una reina en el escuadrón', when:()=>inParadis() && has('historia'), d:'Un pueblo reconoce a Historia y os ofrece lo poco que tiene.',
    o:[{l:'Aceptar la ayuda', d:'Todos recuperan el 35 % de sus PV.', f(){ healAll(.35); return 'Comida, vendas y camas limpias. Historia da las gracias casa por casa.'; }},

@@ -1,5 +1,11 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-15.9', t:'Revisión general, arte en las sagas y menos destripes', items:[
+    'Las sagas y las sendas llevan su ilustración. Las que aún no has descubierto se quedan en sombra.',
+    'Menos información de la cuenta: ni el códice, ni el árbol de la historia, ni las opciones de los eventos, ni las notas de parches anteriores cuentan ya cómo se abren las sendas, los finales o los epílogos. Toca descubrirlo jugando.',
+    'Nota de los combates contra jefes ajustada con partidas reales: el par sube a 4,5 rondas (6 contra el Fundador), porque estaba calibrado con un bot más rápido que cualquiera de vosotros.',
+    'Revisión completa: 30 000 combinaciones de combate, 5 000 combates al azar, 2 400 campañas simuladas por todas las sendas sin un solo atasco y cinco minutos de partida real pulsando la interfaz, mercader incluido.'
+  ]},
   {v:'2026-10-15.8', t:'Monedas, mercader e Intendencia', items:[
     'Monedas: cada combate ganado da monedas según su nota (de 4 con una E a 22 con una S+; el doble contra jefes, ×1,5 contra élites). Se ven arriba, junto a la jornada.',
     'Mercader: un nodo nuevo en el mapa. Vende objetos, vendas (40 % de vida), bombonas (+5 de gas), instrucción (+1 nivel a todos) y cajas con una mejora al azar. Las monedas no pasan de una expedición a otra.',
@@ -9,35 +15,27 @@ const PATCHES = [
   ]},
   {v:'2026-10-15.7', t:'Las bajas también escriben la historia', items:[
     'Tras un combate con bajas hay duelo: el escuadrón entierra a los caídos y decide entre seguir adelante (+3 de gas y un 10 % de vida) o jurar por ellos.',
-    'Juramentos: quien tenía un vínculo con el caído (Mikasa y Armin con Eren, Connie con Sasha, Levi con Erwin, Historia con Ymir, los guerreros entre sí…) sube 2 niveles y hace un 10 % más de daño el resto de la expedición. Se ve en su tarjeta.',
-    '«Una sola jeringa»: en la saga 3, con Levi, Erwin y Armin en el escuadrón y sin el poder del Colosal, Levi tiene que elegir a quién salva. El otro muere.',
-    'Seis epílogos que solo existen por una ausencia: «La última orden», «El mar que querías ver», «Media patata», «La carta de Ymir», «Sin bufanda» y «Lo juramos».'
+    'Juramentos: quien tenía un vínculo con el caído sube 2 niveles y hace un 10 % más de daño el resto de la expedición. Se ve en su tarjeta.',
+    'Hay momentos en los que no se puede salvar a todos.',
+    'Nuevos epílogos que dependen de quién no llega al final.'
   ]},
   {v:'2026-10-15.6', t:'Bertolt se une a la promoción 104', items:[
-    'Bertolt es recluta desde la saga 1: fuerza, mucho aguante y «Golpe de vapor» (daño ×1,6 al objetivo y un 40 % al resto, ignorando resistencias).',
-    'Si llega con vosotros al Colosal de la saga 3, se aparta del escuadrón y se transforma. Al vencerle, como con Reiner y Annie: perdonarlo o quitarle el poder del Colosal.',
-    'Un guerrero perdonado también abre «Defender Paradis», y si perdonas a los tres y llegan al final hay epílogo propio: «Los tres de Marley».'
+    'Bertolt se une a la promoción 104 como recluta desde la saga 1: fuerza, mucho aguante y «Golpe de vapor» (daño ×1,6 al objetivo y un 40 % al resto, ignorando resistencias).',
+    'Igual que algunos de sus compañeros, guarda un secreto.'
   ]},
   {v:'2026-10-15.5', t:'Nueva senda: «El muro Rose cae»', items:[
-    'Si Eren cae en la saga 1, al cerrar Trost aparece una encrucijada: la saga 2 puede ser «El muro Rose cae». Sin el Titán de Ataque nadie tapa la brecha y la retirada empieza en los pueblos del sur: la Bestia en Ragako, el Sonriente en los bosques y, en la brecha de Rose, el Colosal y el Acorazado a la vez (primer combate contra dos cambiantes).',
-    'A mitad de la senda aparece un titán de ojos verdes que lucha contra los demás. Si le sigues, Eren vuelve al escuadrón con su poder. Un epílogo nuevo para quien lo consiga.',
-    'El árbol de la historia ya tiene desvíos en las sagas 2, 3 y 4: cuatro sendas, cuatro finales y quince epílogos. Tres momentos nuevos.'
+    'Otra senda por descubrir, con el primer combate contra dos cambiantes a la vez.',
+    'El árbol de la historia ya tiene desvíos en tres de las cuatro sagas. Más epílogos y tres momentos nuevos.'
   ]},
   {v:'2026-10-15.4', t:'Grisha, los Reiss, Kenny, Zeke y Floch: el árbol de la historia', items:[
-    'Grisha Jaeger: Eren lleva su llave desde la saga 1 y, si llega con ella a la saga 3, puede bajar al sótano y leer los diarios. Eso cambia su epílogo.',
-    'La familia Reiss en «La reina de las murallas»: la capilla esconde un recuerdo del Titán de Frieda Reiss, Rod espera en Orvud y detrás de la capilla hay una tumba con el nombre de Uri.',
-    'Kenny Ackerman manda la brigada antipersonal. Al vencerle puedes quedarte con su jeringa o llevártelo: es un recluta nuevo, con escopeta y dos pistolas.',
-    'Zeke Jaeger: al vencer a la Bestia puedes capturarlo. Se une con su poder y una lluvia de piedras que derriba a los titanes normales.',
-    'Floch: si en la saga 3 le das la razón y Eren sigue con vosotros, se lleva a los jaegeristas. Nueva senda «La isla tomada», en lugar de la saga 4: Shiganshina tomada con Floch como jefe, el puerto y el Retumbar. Al vencerle decides si lo perdonas.',
-    'Árbol de la historia (menú y códice): sagas, sendas y finales. Lo que te falta sale como «???» con la pista del camino. Cuatro epílogos nuevos (catorce en total) y dos momentos nuevos.',
-    'Kenny y Zeke solo llegan por su escena; una vez conocidos, se pueden elegir al empezar en sagas avanzadas.'
+    'Más personajes de la historia: Grisha Jaeger, la familia Reiss, Kenny Ackerman, Zeke Jaeger y un Floch con mucho más peso. Algunos se cruzan en tu camino; otros se pueden unir al escuadrón.',
+    'Nueva senda por descubrir.',
+    'Árbol de la historia (menú y códice): sagas, sendas y finales; lo que aún no has visto sale como «???». Más epílogos y momentos.'
   ]},
   {v:'2026-10-15.3', t:'Sendas alternativas, un final nuevo y epílogos de personaje', items:[
-    'Lo que haces en la partida abre sendas. Al cerrar una saga puede aparecer una encrucijada: seguir la historia de siempre o tomar otra saga, con sus enemigos, sus jefes y sus escenas.',
-    '«La reina de las murallas» (en lugar de la saga 3): si en la saga 2 proteges a Historia cuando la Policía Militar viene a por ella. Golpe de Estado en el interior: Policía Militar, la brigada antipersonal y su capitán, y lo que esconden los Reiss bajo la capilla.',
-    '«Defender Paradis» (en lugar de la saga 4): si llegas al final de la saga 3 sin Eren en el escuadrón o con un guerrero perdonado. Sin Eren no hay Retumbar: Marley desembarca en la isla. Tiene final propio, «Paradis resiste».',
-    'Epílogos de personaje: al terminar la campaña, según quién siga vivo y qué haya hecho (quién dio el último golpe a la Bestia o al Fundador, quién heredó el Colosal, a quién perdonasteis…). Hay diez y se pueden juntar varios en la misma partida.',
-    'Finales, epílogos y sendas se apuntan en el códice; los que no tienes muestran una pista. Las sendas descubiertas se pueden empezar directamente desde «Nueva expedición».',
+    'Sendas alternativas: lo que haces en la partida puede abrir otra saga en lugar de la de siempre, con sus propios enemigos, jefes y escenas. Cuando ocurra, lo sabrás: aparece una encrucijada y eliges tú.',
+    'Un final nuevo y epílogos de personaje al terminar la campaña, según quién siga en pie y qué haya pasado por el camino.',
+    'Finales, epílogos y sendas se apuntan en el códice. Las sendas que descubras se pueden empezar directamente desde «Nueva expedición».',
     'La pantalla de sagas ya no desvela qué jefe hay en cada zona.'
   ]},
   {v:'2026-10-15.2', t:'Nota en cada combate, fichas de personaje y momentos en el mapa', items:[

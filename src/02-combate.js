@@ -341,7 +341,7 @@ function checkPhase(t){
 // par de rondas según el tipo de combate y cuántos enemigos hay (calibrado con el simulador)
 function parOf(type, n){ return type==='b' ? (C && C.titans[0] && C.titans[0].m.summon ? PAR.bs : PAR.b) : (type==='e' ? PAR.e : PAR.n) + PAR.k*(Math.min(3,n)-1); }
 const SUPPORT = ['jean','connie','reiner','historia','mike','pw:carguero','pw:acorazado','pw:martillo','pw:ataque'];
-const PAR = {n:2.3, e:3.3, k:.95, b:3.6, bs:5};
+const PAR = {n:2.3, e:3.3, k:.95, b:4.5, bs:6};   // jefes: calibrado con partidas reales (los humanos tardan más que el bot)
 const GRADES = [['S+',95],['S',87],['A',76],['B',63],['C',50],['D',36],['E',0]];
 const compKey = sq => sq.map(s=>s.id).sort().join('+');
 const clamp01 = x => Math.max(0, Math.min(1, x));

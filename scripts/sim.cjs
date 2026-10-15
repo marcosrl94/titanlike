@@ -28,12 +28,15 @@ function ai(){ const a=C.active,R=ROSTER[a.id],sk=R.sk,ts=liveT();
   if(S.gas>=1 && S.gas>S.gasMax/2) return doAction('nape',best);
   doAction('cut',best);
 }
-const USE={}, EV={betray:0,spare:0,drop:0,eren:0}, END={};
+const STUCK={}; const USE={}, EV={betray:0,spare:0,drop:0,eren:0}, END={};
 function run(ids, saga){ newRun(ids, saga); let n=0;
   while(n++<2000000){ if(q.length){ q.shift()(); continue; }
     if(scr==='combat'&&C&&C.active&&!C.busy){ ai(); continue; }
     if(scr==='map'){ if(S.wave%15===1&&S.wave>1&&!S.map.pos){ const k=S.wave; (stat[k]=stat[k]||[]).push([S.squad.length, Object.values(S.rel).reduce((a,b)=>a+b,0), S.gasMax, owned().length, NINE.filter(x=>S.pw[x]&&S.pw[x]!=='reserva').length, S.squad.reduce((a,b)=>a+b.lvl,0)/S.squad.length]); } const o=pick(openNodes()); enterNode(o[0],o[1]); continue; }
     if(scr==='scene'){ const sc=S.scene; EV[sc.k]=(EV[sc.k]||0)+1;
+      if(sc.k==='cross'){ sceneAct(Math.random()<.5?'alt':'canon'); continue; }
+      if(sc.k==='story'){ sceneAct('st:'+Math.floor(Math.random()*2)); continue; }
+      if(sc.k==='duelo'){ sceneAct(Math.random()<.5?'vow':'seguir'); continue; }
       if(sc.k==='spare'){ sceneAct(Math.random()<.5?'rescue':'take'); continue; }
       if(sc.k==='drop'){ const r=S.squad.find(x=>hasRoom(x)); sceneAct(r?'give:'+r.id:'keep'); continue; }
       sceneAct('go'); continue; }
@@ -42,6 +45,7 @@ function run(ids, saga){ newRun(ids, saga); let n=0;
     if(scr==='event'){ pick(EVENTS[S.pend.i].o).f(); if(S.q.length){ S.after='advance'; nextScene(); } else advance(); continue; }
     if(scr==='reward'){ let i=S.rewards.findIndex(r=>r.t==='rec'&&S.squad.length<4); if(i<0) i=S.rewards.findIndex(r=>r.t==='upg'); const r=S.rewards[i]; r.t==='rec'?recruit(r.id):r.t==='item'?(S.items=S.items||[]).push(r.id):applyUpg(r.id); tookReward(i); continue; }
     break; }
+  if(scr!=='victory' && scr!=='over') STUCK[scr+(S.scene?':'+S.scene.k:'')]=(STUCK[scr+(S.scene?':'+S.scene.k:'')]||0)+1;
   if(scr==='victory') END[S.ending]=(END[S.ending]||0)+1;
   return scr==='victory'?TOTAL+1:S.wave; }
 const stat={}; const N=+process.argv[2]||300;
@@ -55,6 +59,6 @@ for(const sg of [1,2,3]) rep('saga '+(sg+1)+' ', ()=>{ const p=Object.keys(ROSTE
 src+=`
 for(const k in stat){ const a=stat[k]; console.log('al empezar jornada',k,'n',a.length,'escuadrón',(a.reduce((x,y)=>x+y[0],0)/a.length).toFixed(1),'mejoras',(a.reduce((x,y)=>x+y[1],0)/a.length).toFixed(1),'gasMax',(a.reduce((x,y)=>x+y[2],0)/a.length).toFixed(1),'poderes',(a.reduce((x,y)=>x+y[3],0)/a.length).toFixed(2),'en uso',(a.reduce((x,y)=>x+y[4],0)/a.length).toFixed(2),'nivel',(a.reduce((x,y)=>x+y[5],0)/a.length).toFixed(1)); }`;
 src+=`
-console.log('usos de poder', JSON.stringify(USE)); console.log('escenas', JSON.stringify(EV)); console.log('finales', JSON.stringify(END));`;
+console.log('usos de poder', JSON.stringify(USE)); console.log('escenas', JSON.stringify(EV)); console.log('finales', JSON.stringify(END)); console.log('ATASCOS', JSON.stringify(STUCK));`;
 eval(src);
 

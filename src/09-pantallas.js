@@ -99,12 +99,12 @@ const V = {
       <section class="panel"><span class="lbl">Dificultad</span>
         <div class="seg" role="radiogroup" aria-label="Dificultad">${Object.keys(DIFF).map(k=>`<button class="btn sm ${CFG.diff===k?'':'ghost'}" role="radio" aria-checked="${CFG.diff===k}" data-a="diff" data-i="${k}">${DIFF[k].n}</button>`).join('')}</div>
         <p class="dim" style="font-size:13.5px">${DIFF[CFG.diff]?DIFF[CFG.diff].d:DIFF.explorador.d} La expedición del día siempre es Explorador.</p></section>
-      <div class="sagas">${SAGAS.map((g,i)=>`<button class="card saga" data-a="saga" data-i="${i}" ${i<u?'':'disabled'}>
-        <span class="n">SAGA ${i+1}${i<u?'':' · BLOQUEADA'}</span><h3>${g.n}</h3><p>${i<u?g.d:`Vence la saga ${i} para abrirla.`}</p>
+      <div class="sagas">${SAGAS.map((g,i)=>`<button class="card saga ${i<u?'':'locked'}" data-a="saga" data-i="${i}" ${i<u?'':'disabled'}>
+        <span class="thumb">${momentSVG(i*3)}${i<u?'':'<i class="lock" aria-hidden="true"></i>'}</span><span class="n">SAGA ${i+1}${i<u?'':' · BLOQUEADA'}</span><h3>${g.n}</h3><p>${i<u?g.d:`Vence la saga ${i} para abrirla.`}</p>
         <ul>${g.zones.map(z=>`<li>${z.n}</li>`).join('')}</ul></button>`).join('')}</div>
       <span class="lbl">Sendas alternativas · ${altsSeen().length} de ${Object.keys(ALT_SAGAS).length} descubiertas</span>
       <div class="sagas alts">${Object.entries(ALT_SAGAS).map(([k,A])=>{ const seen=altsSeen().includes(k), ok=seen && A.slot<u;
-        return `<button class="card saga alt" data-a="saga" data-i="${A.slot}:${k}" ${ok?'':'disabled'}><span class="n">EN LUGAR DE LA SAGA ${A.slot+1}${seen?'':' · SIN DESCUBRIR'}</span><h3>${seen?A.n:'???'}</h3><p>${seen?A.d:A.hint}</p>${seen?`<ul>${A.zones.map(z=>`<li>${z.n}</li>`).join('')}</ul>`:''}</button>`; }).join('')}</div>
+        return `<button class="card saga alt ${seen?'':'veiled'}" data-a="saga" data-i="${A.slot}:${k}" ${ok?'':'disabled'}><span class="thumb">${momentSVG(A.zones[0].mo)}</span><span class="n">${seen?`EN LUGAR DE LA SAGA ${A.slot+1}`:'SIN DESCUBRIR'}</span><h3>${seen?A.n:'???'}</h3><p>${seen?A.d:'Una senda que aún no has descubierto.'}</p>${seen?`<ul>${A.zones.map(z=>`<li>${z.n}</li>`).join('')}</ul>`:''}</button>`; }).join('')}</div>
       <div><button class="btn ghost" data-a="home">Volver</button></div>`;
   },
   starter(){
@@ -115,12 +115,12 @@ const V = {
       <div class="cards">${starters().map(id=>`<button class="card ${picked.includes(id)?'sel':''}" data-a="pickst" data-i="${id}" aria-pressed="${picked.includes(id)}">${solCard(id)}</button>`).join('')}</div>
       <section class="panel"><span class="lbl">Reliquias · ${relicPick.length} de ${mx}</span><p class="dim">Poderes de los Nueve que ganaste en campañas anteriores. Los lleva quien tenga hueco (Eren, hasta tres); el resto queda en la reserva para inyectarlo en un campamento.</p>
         <div class="row">${R.map(k=>`<button class="btn sm ${relicPick.includes(k)?'':'ghost'}" data-a="relic" data-i="${k}" aria-pressed="${relicPick.includes(k)}">${POWERS[k].n}</button>`).join('')||'<span class="dim">Aún no tienes reliquias.</span>'}</div></section>`; }
-    if(g===0) return `<div><span class="lbl">Saga 1 · ${SAGAS[0].n}</span><h2>Elige a tu primer recluta</h2></div>
+    if(g===0) return `<div class="saga-head"><span class="thumb">${momentSVG(0)}</span></div><div><span class="lbl">Saga 1 · ${SAGAS[0].n}</span><h2>Elige a tu primer recluta</h2></div>
       <div class="cards">${starters().map(id=>`<button class="card" data-a="start" data-i="${id}">${solCard(id)}</button>`).join('')}
         ${ACH.filter(a=>a.unlock && !starters().includes(a.unlock)).map(a=>`<div class="card locked"><div class="who">${portrait(a.unlock,true)}<div><h3>${ROSTER[a.unlock].n}</h3><span class="lbl">Bloqueado</span></div></div><p>Se desbloquea con el logro «${a.n}»: ${a.d}</p></div>`).join('')}</div>`;
     const pool=Object.keys(ROSTER).filter(id=>ROSTER[id].sg<=g && (!ROSTER[id].story || codexSeen('s',id))).sort((a,b)=>(ROSTER[b].rare?1:0)-(ROSTER[a].rare?1:0));
     const n=startSize(g), npw=KIT_PW[g];
-    return `<div><span class="lbl">Saga ${g+1} · ${pendingAlt?ALT_SAGAS[pendingAlt].n+' (senda alternativa)':SAGAS[g].n}</span><h2>Forma un escuadrón de ${n===4?'cuatro':'tres'}</h2>
+    return `<div class="saga-head"><span class="thumb">${momentSVG(pendingAlt?ALT_SAGAS[pendingAlt].zones[0].mo:g*3)}</span></div><div><span class="lbl">Saga ${g+1} · ${pendingAlt?ALT_SAGAS[pendingAlt].n+' (senda alternativa)':SAGAS[g].n}</span><h2>Forma un escuadrón de ${n===4?'cuatro':'tres'}</h2>
       <p class="dim">Veteranos de nivel ${startLvl(g)} con ${KITS[g]} mejoras al azar, como si vinieran de las sagas anteriores. Los soldados raros también están disponibles.</p></div>
       <div class="row"><button class="btn" data-a="go" ${picked.length===n?'':'disabled'}>Partir · ${picked.length} de ${n}</button><button class="btn ghost" data-a="sagas">Cambiar de saga</button></div>
       ${npw?`<section class="panel"><span class="lbl">Poderes de los Nueve · ${relicPick.length} de ${npw}</span><p class="dim">Elige con qué poderes salen (los que no elijas se sortean). Los lleva quien tenga hueco; Eren, hasta tres.</p>
@@ -273,7 +273,7 @@ const V = {
     if(sc.k==='duelo'){ const names=sc.ids.map(id=>ROSTER[id].n), heirs=sc.heirs.filter(([id])=>has(id));
       return wrap('Entregaron su corazón', names.join(', '), `<div class="row">${sc.ids.map(id=>portrait(id,true)).join('')}</div>`,
         `<p>${names.length>1?'No vuelven':'No vuelve'} del combate. El escuadrón ${names.length>1?'los entierra':'lo entierra'} junto al camino antes de seguir.</p>${heirs.length?`<p class="dim">${heirs.map(([id,d])=>`${ROSTER[id].n} no deja de mirar la tumba de ${ROSTER[d].n}.`).join(' ')}</p>`:''}`,
-        `<div class="cards">${heirs.length?`<button class="card" data-a="scn" data-i="vow"><h3>Jurar por ${names.length>1?'ellos':names[0]}</h3><p>${heirs.map(([id])=>ROSTER[id].n).join(' y ')} ${heirs.length>1?'suben':'sube'} 2 niveles y ${heirs.length>1?'hacen':'hace'} un 10 % más de daño el resto de la expedición. Puede abrir un epílogo.</p></button>`:''}
+        `<div class="cards">${heirs.length?`<button class="card" data-a="scn" data-i="vow"><h3>Jurar por ${names.length>1?'ellos':names[0]}</h3><p>${heirs.map(([id])=>ROSTER[id].n).join(' y ')} ${heirs.length>1?'suben':'sube'} 2 niveles y ${heirs.length>1?'hacen':'hace'} un 10 % más de daño el resto de la expedición.</p></button>`:''}
          <button class="card" data-a="scn" data-i="seguir"><h3>Seguir adelante</h3><p>Recuperáis el aliento: +3 de gas y un 10 % de PV para todos.</p></button></div>`); }
     if(sc.k==='story'){ const T=STORY_SCENES[sc.id];
       return wrap('Tras el combate', T.title, T.art(), `<p>${T.body}</p>`,
@@ -319,7 +319,7 @@ const V = {
       <div class="gal">${Object.keys(TITANS).map(id=>{ const seen=codexSeen('t',id); return `<div class="card cx ${seen?'':'unk'}"><span class="art">${titanArt(id)}</span><b>${seen?TITANS[id].n:'Sin descubrir'}</b>${seen?`<span class="lbl num">${CLS[TITANS[id].cls]} · abatidos: ${c.t[id]||0}</span>${TITANS[id].boss?`<span class="dim" style="font-size:13px">${BOSS_PW[id]?'Puede soltar el '+POWERS[BOSS_PW[id]].n+'.':'Jefe final.'}</span>`:''}`:''}</div>`; }).join('')}</div>
       <span class="lbl">Finales · ${M.endings.length} de ${Object.keys(ENDINGS).length} · Epílogos · ${(statsOf().ep||[]).length} de ${EPILOGUES.length}</span>
       <div class="achs">${Object.entries(ENDINGS).map(([k,E])=>{ const got=M.endings.includes(k); return `<div class="ach ${got?'got':''}"><b>${got?E.n:'Final sin descubrir'}</b><span>${got?E.d:'Termina la campaña de otra manera.'}</span></div>`; }).join('')}
-        ${EPILOGUES.map(e=>{ const got=(statsOf().ep||[]).includes(e.k); return `<div class="ach ${got?'got':''}"><b>${got?'Epílogo · '+e.n:'Epílogo sin descubrir'}</b><span>${got?e.d:'Pista: '+e.hint}</span></div>`; }).join('')}</div>
+        ${EPILOGUES.map(e=>{ const got=(statsOf().ep||[]).includes(e.k); return `<div class="ach ${got?'got':''}"><b>${got?'Epílogo · '+e.n:'Epílogo sin descubrir'}</b><span>${got?e.d:'Aún no lo has visto.'}</span></div>`; }).join('')}</div>
       <span class="lbl">Momentos · ${(M.moments||[]).length} de ${MOMENTS.length}</span>
       <div class="gal moments">${MOMENTS.map((mo,i)=>(M.moments||[]).includes(i) ? `<button class="card cx mo" data-a="moment" data-i="${i}"><span class="m-thumb">${momentSVG(i)}</span><b>${mo.t}</b><span class="lbl">${mo.sg||SAGAS[Math.floor(i/3)].n}</span></button>` : `<div class="card cx unk mo"><span class="m-thumb"></span><b>Sin descubrir</b><span class="lbl">${mo.sg?'Senda alternativa':SAGAS[Math.floor(i/3)].n}</span></div>`).join('')}</div>
       <span class="lbl">Soldados · ${Object.keys(c.s||{}).length} de ${Object.keys(ROSTER).length} reclutados</span>

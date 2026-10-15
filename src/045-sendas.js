@@ -117,16 +117,16 @@ takeRoute = function(k){ _takeRoute(k); if(k==='jaeger'){ const f=S.squad.find(x
 EVENTS.push(
   {n:'La llave de Grisha', prio:true, when:()=>sagaIx(S.wave)===0 && has('eren') && !S.flags.llave,
    d:'Eren lleva al cuello una llave que le dio su padre, Grisha, antes de desaparecer. «Lo que buscas está en el sótano de casa», le dijo.',
-   o:[{l:'Prometer que bajaréis al sótano', d:'Eren sube 1 nivel. Abre una escena en la saga 3.', f(){ S.flags.llave=1; levelUp(who('eren')); return 'Eren aprieta la llave en el puño. Shiganshina queda muy lejos, pero ahora todo el escuadrón sabe adónde va.'; }},
+   o:[{l:'Prometer que bajaréis al sótano', d:'Eren sube 1 nivel.', f(){ S.flags.llave=1; levelUp(who('eren')); return 'Eren aprieta la llave en el puño. Shiganshina queda muy lejos, pero ahora todo el escuadrón sabe adónde va.'; }},
       {l:'Que la guarde y descanse', d:'Todos recuperan el 20 % de sus PV.', f(){ S.flags.llave=1; healAll(.2); return 'Esa noche nadie habla del sótano. Mañana habrá tiempo.'; }}]},
   {n:'El sótano de Grisha', prio:true, when:()=>sagaIx(S.wave)===2 && !onRoute('reina') && S.flags.llave && has('eren') && !S.flags.diarios && !S.flags.quemados,
    d:'La casa de Eren es un montón de escombros, pero la puerta del sótano sigue en pie. La llave entra a la primera.',
-   o:[{l:'Leer los diarios', d:'Prueba de Ingenio (12): si sale, todos suben 1 nivel. Cambia el final de Eren.', f(){ const c=check('ingenio',12); S.flags.diarios=1; if(c.ok) S.squad.forEach(levelUp);
+   o:[{l:'Leer los diarios', d:'Prueba de Ingenio (12): si sale, todos suben 1 nivel.', f(){ const c=check('ingenio',12); S.flags.diarios=1; if(c.ok) S.squad.forEach(levelUp);
         return `${c.txt} Tres cuadernos y una fotografía. Hay un mundo al otro lado del mar, y ese mundo os teme. ${c.ok?'Entender lo que leéis os hace mejores soldados.':'Cuesta creer lo que dicen.'}`; }},
       {l:'Quemarlos sin leerlos', d:'+2 de gas máximo.', f(){ S.flags.quemados=1; addGasMax(2); S.gas=Math.min(S.gasMax, S.gas+2); return 'El papel arde rápido. Eren mira el fuego sin decir nada.'; }}]},
   {n:'Floch habla de libertad', prio:true, when:()=>sagaIx(S.wave)===2 && has('floch') && has('eren') && !S.flags.jaeger && !S.flags.flochLoyal,
    d:'Floch ha reunido a unos cuantos reclutas alrededor del fuego. Dice que Eren es el único que puede salvar la isla y que los mandos son unos cobardes.',
-   o:[{l:'Darle la razón', d:'Puede abrir otra senda al final de la saga. Floch no la olvidará.', f(){ S.flags.jaeger=1; return 'Floch sonríe. Esa noche, varios reclutas se atan un pañuelo al brazo.'; }},
+   o:[{l:'Darle la razón', d:'Floch no lo olvidará.', f(){ S.flags.jaeger=1; return 'Floch sonríe. Esa noche, varios reclutas se atan un pañuelo al brazo.'; }},
       {l:'Pararle los pies', d:'Floch sube 2 niveles y se queda con vosotros.', f(){ S.flags.flochLoyal=1; levelUp(who('floch')); levelUp(who('floch')); return 'Floch se calla. Al día siguiente es el primero en formar.'; }}]},
   {n:'La tumba de Uri Reiss', prio:true, when:()=>onRoute('reina') && sagaIx(S.wave)===2 && has('historia') && !S.flags.uri,
    d:'Detrás de la capilla hay una tumba sencilla con un nombre: Uri Reiss. Historia nunca ha oído hablar de él.',

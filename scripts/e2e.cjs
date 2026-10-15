@@ -20,7 +20,7 @@ const secs=+(process.argv[2]||90), out=process.argv[3]||'';
     if(st.tip && !seen['tip-'+st.k]){ seen['tip-'+st.k]=1; await shot('tip-'+st.k); }
     if(!seen[st.scr]){ seen[st.scr]=1; await shot(st.scr); }
     if(st.scr==='over'||st.scr==='victory') break;
-    const order=['#sheet:not([hidden]) [data-a=closesheet]','[data-a=tipok]','[data-a=node]','[data-a=titan]','[data-a=sol]','#orders:not([hidden]) [data-a=order][data-i^="pw:"]:not([disabled])','#orders:not([hidden]) [data-a=order][data-i=skill]:not([disabled])','#orders:not([hidden]) [data-a=order][data-i=nape]:not([disabled])','#orders:not([hidden]) [data-a=order][data-i=cut]','[data-a=reward]','[data-a=swap]','[data-a=scn]','[data-a=camp]','[data-a=evopt]','[data-a=evok]','[data-a=item]'];
+    const order=['#sheet:not([hidden]) [data-a=closesheet]','[data-a=tipok]','[data-a=node]','[data-a=titan]','[data-a=sol]','#orders:not([hidden]) [data-a=order][data-i^="pw:"]:not([disabled])','#orders:not([hidden]) [data-a=order][data-i=skill]:not([disabled])','#orders:not([hidden]) [data-a=order][data-i=nape]:not([disabled])','#orders:not([hidden]) [data-a=order][data-i=cut]','[data-a=reward]','[data-a=swap]','[data-a=scn]','[data-a=camp]','[data-a=evopt]','[data-a=evok]','[data-a=item]','[data-a=petate]','[data-a=buy]:not([disabled])','[data-a=shopleave]'];
     for(const s of order){ const e=await p.$(s); if(e){ await e.click({timeout:1500}).catch(()=>{}); break; } }
     steps++; await p.waitForTimeout(40);
   }
