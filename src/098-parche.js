@@ -1,5 +1,8 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-15.14', t:'La saga 4 aprieta', items:[
+    'Los titanes y cambiantes de la saga 4 (y de lo que la sustituya) pegan más fuerte y aguantan más. Llegar al final ya no basta: el último jefe es el examen de verdad.'
+  ]},
   {v:'2026-10-15.13', t:'Fichas en rejilla, pantallas renovadas y récords validados', items:[
     'Fichas de personaje: todo el plantel en una rejilla con su mejor nota y su historial. Toca a cualquiera y su ficha se abre encima; con las flechas pasas de uno a otro y con Esc la cierras.',
     'Recompensas, campamento, eventos, mercader, escenas e Intendencia con la nueva línea: cabecera ilustrada con el arte de la zona, viñeta de narración y opciones numeradas (en escritorio, las teclas 1-9 eligen).',

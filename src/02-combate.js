@@ -23,7 +23,7 @@ const zoneOf = w => sagaOf(w).zones[Math.floor(((clampW(w)-1)%PER)/5)];
 const dayOf = w => (clampW(w)-1)%PER + 1;
 const curNode = () => S.map.pos ? S.map.rows[S.map.pos[0]][S.map.pos[1]] : null;
 const nm = s => ROSTER[s.id].n;
-const SAGA_MUL = [1.03, 1.17, 1.65, 1.85];
+const SAGA_MUL = [1.03, 1.17, 1.65, 2.05];
 // dificultad: multiplicador de PV y ataque enemigos, gas recuperado tras cada combate
 const DIFF = {recluta:{n:'Recluta', m:.85, gas:4, d:'Enemigos un 15 % más débiles y 4 de gas tras cada combate. No puntúa en la clasificación.'},
   explorador:{n:'Explorador', m:1, gas:3, d:'El juego tal y como está pensado.'},
