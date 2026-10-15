@@ -295,3 +295,12 @@ async function cloudXpSync(){
     render();
   }catch(e){}
 }
+
+function cloudClaim(pass, n){ if(!CLOUD.user || !CLOUD.xpReady) return; CLOUD.sb.rpc('claim_tier', {p_pass:pass, p_tier:n}).then(()=>{}, ()=>{}); }
+// escalones reclamados sin conexión (o antes de entrar): se mandan al servidor si ya llegan a ese escalón
+async function cloudClaimPending(){
+  if(!CLOUD.user) return; const st=((meta().pass||{}).p1)||{claimed:[]};
+  const pp = await CLOUD.sb.from('pass_progress').select('claimed').eq('user_id', CLOUD.user.id).eq('pass_id','p1').maybeSingle();
+  const srv = (pp.data && pp.data.claimed) || [];
+  for(const n of (st.claimed||[]).filter(n=>!srv.includes(n))) await CLOUD.sb.rpc('claim_tier', {p_pass:'p1', p_tier:n}).then(()=>{}, ()=>{});
+}

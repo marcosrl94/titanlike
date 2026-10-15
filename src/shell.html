@@ -738,7 +738,7 @@ button.mi::after{content:"";position:absolute;right:16px;top:50%;width:8px;heigh
 /* fichas, avisos, consejos */
 .sheet-in{border-radius:16px 16px var(--r) var(--r);box-shadow:0 -10px 40px -10px rgba(0,0,0,.7);animation:sheetup .22s var(--ease)}
 @keyframes sheetup{from{transform:translateY(24px);opacity:.4}}
-.toast{box-shadow:0 12px 40px -12px rgba(0,0,0,.8);top:calc(70px + env(safe-area-inset-top,0px))}
+.toast{box-shadow:0 12px 40px -12px rgba(0,0,0,.8);top:calc(70px + env(safe-area-inset-top,0px));bottom:auto;height:auto}
 .tip{border-left-width:1px;border-color:rgba(216,180,95,.5);background:linear-gradient(135deg,rgba(216,180,95,.1),var(--stone-2) 50%)}
 .tip b{font-size:20px}
 .card h3{font-size:22px}
@@ -1041,6 +1041,34 @@ body.calm .shero .sl,body.calm .sh-art svg,body.calm .fire,body.calm .embers{ani
 .lvside .sl{inset:-40%;opacity:.6;-webkit-mask:radial-gradient(circle,transparent 40%,#000 56%,transparent 74%);mask:radial-gradient(circle,transparent 40%,#000 56%,transparent 74%)}
 .frow .lvb{margin-right:4px}
 @media (max-width:620px){.lvside{width:120px;height:120px;align-self:center} .lvb.xl{width:88px;height:88px} .lvb.xl b{font-size:36px}}
+/* ---- 15.17: Pase 1 ---- */
+.shero.pass{min-height:190px;align-items:center}
+.ptrack .xpbar{height:8px;--rk:var(--gold)}
+.tiers{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px}
+.tier{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px 12px 12px;border-radius:14px;background:linear-gradient(165deg,#262c27,#1a1e1b);border:1px solid rgba(255,255,255,.07);min-height:176px}
+.tier .tn{position:absolute;top:8px;right:10px;font-family:var(--label);font-weight:800;font-style:italic;font-size:22px;color:rgba(255,255,255,.18);transform:skewX(-8deg)}
+.tier .tart{height:58px;display:flex;align-items:center}
+.tier .tart .pt{width:52px;height:52px} .tier .tart .banner{height:58px;width:auto} .tier .tart .ch-ic{width:44px;height:44px}
+.tier b{font-weight:600;font-size:14px;line-height:1.25} .tier small{font-size:12px;color:var(--muted);line-height:1.35}
+.tier>.btn,.tier>.lbl:last-child{margin-top:auto}
+.tier.lock{opacity:.55} .tier.lock .tart{filter:grayscale(.8)}
+.tier.can{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 10px 30px -18px rgba(216,180,95,.8);animation:tierglow 2.4s ease-in-out infinite}
+.tier.got{border-color:rgba(124,192,143,.45)} .tier .tok{color:var(--cloak-hi)}
+.tier.k-documento.got{background:linear-gradient(165deg,#2d2a20,#1a1e1b)}
+@keyframes tierglow{50%{box-shadow:0 0 0 1px var(--gold),0 10px 34px -10px rgba(216,180,95,.95)}}
+.banner{display:block;height:64px;width:auto;filter:drop-shadow(0 4px 8px rgba(0,0,0,.5))} .banner.anim{animation:sway 3.6s ease-in-out infinite;transform-origin:50% 0}
+.fthumb{display:block;width:96px;height:58px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.1)} .fthumb svg{width:100%;height:100%}
+.cprev{display:block;width:58px;height:58px;border-radius:10px;background:#141714;border:1px solid rgba(255,255,255,.08)} .cprev svg{width:100%;height:100%}
+.eqp{display:flex;flex-direction:column;gap:10px} .eqrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px} .eqrow .lbl{min-width:130px}
+.lvbn{display:block;flex:none} .lvbn .banner{height:58px} .lvtt{color:var(--gold)!important;font-style:italic}
+.lvb.ley{box-shadow:0 0 0 2px #ffd36a,0 0 18px rgba(255,211,106,.55)} .lvb.ley::before{content:'';position:absolute;inset:-9px;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(255,211,106,.5) 0deg 3deg,transparent 3deg 15deg);-webkit-mask:radial-gradient(circle,transparent 62%,#000 66%,transparent 72%);mask:radial-gradient(circle,transparent 62%,#000 66%,transparent 72%);animation:slspin 14s linear infinite}
+body.corte-azul .slash,.corte-azul .slash{stroke:#9fd8ff;filter:drop-shadow(0 0 6px rgba(159,216,255,.8))} body.corte-azul .slash.crit{stroke:#e6f6ff}
+body.corte-carmesi .slash,.corte-carmesi .slash{stroke:#ff7a6a;filter:drop-shadow(0 0 6px rgba(255,122,106,.8))} body.corte-carmesi .slash.crit{stroke:#ffd0c8}
+.cprev .slash{stroke:var(--bone);stroke-width:6;stroke-dasharray:none}
+body.dice-hueso .d20 .f,body.dice-hueso .d20 .in,.d20.sk-hueso .f,.d20.sk-hueso .in{fill:#e8dfc8;stroke:#7a6a4e} body.dice-hueso .d20 b,.d20.sk-hueso b{color:#3a2f22;text-shadow:none} body.dice-hueso .d20 .e,.d20.sk-hueso .e{stroke:#7a6a4e}
+body.dice-retumbar .d20 .f,body.dice-retumbar .d20 .in,.d20.sk-retumbar .f,.d20.sk-retumbar .in{fill:#2a1f1a;stroke:#ffcf9a} body.dice-retumbar .d20 b,.d20.sk-retumbar b{color:#ffcf9a} body.dice-retumbar .d20,.d20.sk-retumbar{filter:drop-shadow(0 0 12px rgba(255,160,90,.65))}
+body.frame-hierro .sol .pt,body.frame-hierro .spr .pt,.fprev.fr-hierro .pt{border:2px solid #8a949a;box-shadow:0 0 0 2px #2f3438,inset 0 0 0 1px #c9d3d8}
+@media (max-width:620px){.tiers{grid-template-columns:repeat(2,minmax(0,1fr))} .eqrow .lbl{min-width:100%}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
 </style>
 <div id="bgart" aria-hidden="true"></div>

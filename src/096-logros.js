@@ -28,7 +28,7 @@ const ACH = [
   {k:'jefe_s',       n:'Sin despeinarse',         d:'Saca una S o más contra un cambiante.'}
 ];
 const BASE_STARTERS = ['eren','mikasa','armin'];
-const starters = () => BASE_STARTERS.concat(ACH.filter(a=>a.unlock && meta().ach.includes(a.k)).map(a=>a.unlock));
+const starters = () => [...new Set(BASE_STARTERS.concat(ACH.filter(a=>a.unlock && meta().ach.includes(a.k)).map(a=>a.unlock)).concat(typeof passStarters==='function' ? passStarters() : []))];
 function ach(k){
   const m = meta(); if(m.ach.includes(k)) return;
   const A = ACH.find(a=>a.k===k); if(!A) return;

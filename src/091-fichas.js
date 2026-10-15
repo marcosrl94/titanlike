@@ -162,12 +162,12 @@ V.arbol = function(){
 // ---- Intendencia: insignias, de dónde salen y en qué se gastan ----
 V.intendencia = function(){
   const src=insigniaSources(), sh=shopOf(), have=insignias();
-  const card = k => { const it=SHOP[k], own=sh.own.includes(k), eq=sh.eq[it.kind]===k, poor=!own && have<it.p;
+  const card = k => { const it=SHOP[k], own=owns(k), eq=sh.eq[it.kind]===k, poor=!own && !it.pass && have<it.p;
     const art = it.kind==='dado' ? `<span class="dprev d20 sk-${k.slice(2)}">${D20}<b>20</b></span>` : it.kind==='marco' ? `<span class="fprev fr-${k.slice(2)}">${portrait('eren')}</span>` : `<span class="ch-ic">${UIC.bag}</span>`;
     return `<div class="card ishop k-${it.kind} ${own?'own':''} ${eq?'eq':''}">${own?`<span class="ribbon">${eq?'Equipado':'Tuyo'}</span>`:''}${art}
       <span class="lbl kind">${it.kind==='exp'?'Para la expedición':it.kind==='dado'?'Dado':'Marco'}</span><h3>${it.n}</h3><p>${it.d}</p>
       ${own ? (it.kind==='exp' ? '' : `<button class="btn ${eq?'':'ghost'} sm" data-a="shopeq" data-i="${k}">${eq?'Quitar':'Equipar'}</button>`)
-            : `<button class="btn sm price-b" data-a="shopbuy" data-i="${k}" ${poor?'disabled':''}><span class="ins-ic"></span>${it.p}${poor?` <small>· te faltan ${it.p-have}</small>`:''}</button>`}</div>`; };
+            : it.pass ? `<span class="lbl" style="color:var(--gold)">Pase 1 · escalón ${it.pass}</span>` : `<button class="btn sm price-b" data-a="shopbuy" data-i="${k}" ${poor?'disabled':''}><span class="ins-ic"></span>${it.p}${poor?` <small>· te faltan ${it.p-have}</small>`:''}</button>`}</div>`; };
   return `<div class="row"><button class="btn ghost" data-a="home">Volver</button></div>
     ${hero('Intendencia', 'Insignias del Cuerpo', 'Salen de lo que has conseguido y no se pierden. Se cambian por ventajas para empezar mejor y por estética; nada sube las estadísticas en bruto. Las monedas de cada expedición son aparte y se gastan en el mercader del mapa.',
       {cls:'intd', art:'', side:`<div class="sh-side medal"><i class="sl"></i><b class="num">${have}</b><span class="lbl">insignias</span><small class="num">${insigniasEarned()} ganadas · ${sh.spent} gastadas</small></div>`})}
@@ -189,6 +189,7 @@ V.amigos = function(){
     return `<tr><td>${new Date(d.created_at).toLocaleDateString('es-ES',{day:'numeric',month:'short'})}</td><td>${d.i_challenged?'Retaste a':'Te retó'} <b>${esc(other)}</b></td><td class="${won?'okt':'kot'}">${won?'Victoria':'Derrota'}</td><td>${d.grade?gradeChip(d.grade):''} <span class="dim">${d.rounds} rondas</span></td><td>${again?`<button class="btn ghost sm" data-a="retar" data-i="${again}">Revancha</button>`:''}</td></tr>`; }).join('');
   return `<div><h2>Amigos y duelos</h2><p class="dim">Reta a tus amigos con un escuadrón de leyenda: el que terminó una campaña, con sus niveles, poderes y mejoras. Tú mandas a los tuyos; los suyos pelean solos.</p></div>
     <div class="row"><button class="btn ghost" data-a="home">Volver</button>${on?`<button class="btn ghost sm" data-a="amigos">Actualizar</button>`:''}</div>
+    ${typeof modeOpen==='function' && !modeOpen('vet') ? `<section class="panel note"><p>Los duelos se abren en el escalón ${tierFor('modo','vet')} del Pase 1. Mientras tanto puedes añadir amigos y ver sus leyendas.</p></section>` : ''}
     ${!cloudOn() ? '<section class="panel"><p>Los duelos con amigos necesitan la versión con cuentas.</p></section>' : !CLOUD.user ? `<section class="panel"><p>Inicia sesión para tener código de amigo y retar a otros.</p>${accountHTML('end')}</section>` : `
     <section class="panel fr-top"><div><span class="lbl">Tu código de amigo</span><div class="fcode num">${F&&F.code?esc(F.code):'…'}</div><span class="dim" style="font-size:13px">Pásaselo a quien quieras retar.</span></div>
       <div><label class="lbl" for="fcode">Añadir por código</label><div class="row"><input id="fcode" maxlength="8" placeholder="ABC123" autocomplete="off" style="text-transform:uppercase"><button class="btn sm" data-a="addfriend">Añadir</button></div>${F&&F.msg?`<span class="lbl" style="color:var(--gold)">${esc(F.msg)}</span>`:''}</div></section>
@@ -224,7 +225,7 @@ V.nivel = function(){
   const log = (M.xpLog||[]).slice(0,12).map(g=>`<tr><td>${esc(g.n)}</td><td class="num" style="text-align:right"><b>+${g.v}</b></td></tr>`).join('');
   return `<div class="row"><button class="btn ghost" data-a="home">Volver</button></div>
     ${hero('Nivel de cuenta', `Nivel ${L.lv} · ${r.n}`, `${L.into.toLocaleString('es-ES')} de ${L.need.toLocaleString('es-ES')} XP para el siguiente nivel · ${xp.toLocaleString('es-ES')} XP en total${tl.length?` · Título: «${tl[tl.length-1]}»`:''}`,
-      {cls:'lvhero rk-'+r.k, art:'', side:`<div class="sh-side lvside"><i class="sl"></i>${lvBadge(xp,'xl')}</div>`})}
+      {cls:'lvhero rk-'+r.k, art:'', side:`<div class="sh-side lvside"><i class="sl"></i>${lvBadge(xp,'xl',true)}</div>`})}
     <span class="lbl sect">Órdenes de hoy</span><div class="ords">${N.daily.map(x=>ord(x, ORD_XP.d)).join('')}</div>
     <span class="lbl sect">Órdenes de la semana</span><div class="ords">${N.weekly.map(x=>ord(x, ORD_XP.s)).join('')}</div>
     <span class="lbl sect">Rangos</span><div class="ladder">${ladder}</div>

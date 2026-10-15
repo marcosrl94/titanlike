@@ -117,14 +117,15 @@ function orderEvent(ev, n){
 const ORD_DONE = [];   // órdenes completadas pendientes de anunciar
 
 // ---- piezas visuales ----
-function lvBadge(xp, size){
-  const L=levelOf(xp), r=rankOf(L.lv), pct=Math.round(L.into/L.need*100);
-  return `<span class="lvb rk-${r.k} ${size||''}" title="Nivel ${L.lv} · ${r.n}" style="--p:${pct}"><i class="lvr"></i><b class="num">${L.lv}</b></span>`;
+function lvBadge(xp, size, own){
+  const L=levelOf(xp), r=rankOf(L.lv), pct=Math.round(L.into/L.need*100), ley = own && typeof hasReward==='function' && hasReward('titulo','leyenda');
+  return `<span class="lvb rk-${r.k} ${size||''} ${ley?'ley':''}" title="Nivel ${L.lv} · ${r.n}" style="--p:${pct}"><i class="lvr"></i><b class="num">${L.lv}</b></span>`;
 }
 function lvCard(){
   ensureXp(); const xp=xpTotal(), L=levelOf(xp), r=rankOf(L.lv), N=ordersNow(), od=N.daily.filter(x=>x.done).length;
   const p1=(meta().pass||{}).p1||{xp:0}, tier=Math.floor((p1.xp||0)/800);
-  return `<button class="lvcard rk-${r.k}" data-a="nivel">${lvBadge(xp,'lg')}<span class="lvc-t"><b>Nivel ${L.lv} · ${r.n}</b>
+  const tt = typeof titleNow==='function' ? titleNow() : '', bn = typeof cosEq==='function' && cosEq('estandarte') && hasReward('estandarte', cosEq('estandarte')) ? bannerSVG(cosEq('estandarte')) : '';
+  return `<button class="lvcard rk-${r.k}" data-a="nivel">${bn?`<span class="lvbn">${bn}</span>`:''}${lvBadge(xp,'lg',true)}<span class="lvc-t"><b>Nivel ${L.lv} · ${r.n}</b>${tt?`<small class="lvtt">«${tt}»</small>`:''}
     <span class="xpbar"><i style="width:${Math.round(L.into/L.need*100)}%"></i></span><small class="num">${L.into.toLocaleString('es-ES')} / ${L.need.toLocaleString('es-ES')} XP · órdenes de hoy ${od}/3${typeof PASS1!=='undefined'?` · Pase 1: escalón ${Math.min(30,tier)}/30`:''}</small></span></button>`;
 }
 // tira de experiencia ganada en la recompensa
@@ -139,7 +140,7 @@ function maybeLevelUp(){
   const {from, to}=LVUP; LVUP=null; saveMeta({lvSeen:to});
   const r=rankOf(to), newRank = rankIx(to)>rankIx(from), tl=Object.keys(LV_TITLES).map(Number).filter(l=>l>from && l<=to);
   const el=document.createElement('div'); el.className='lvup'; el.setAttribute('role','status');
-  el.innerHTML=`<div class="lvup-in rk-${r.k}"><i class="sl"></i>${lvBadge(xpTotal(),'xl')}<b class="sfx">¡Nivel ${to}!</b>${newRank?`<span class="lbl">Nuevo rango: ${r.n}</span>`:''}${tl.length?`<span class="lbl">Título: «${LV_TITLES[tl[tl.length-1]]}»</span>`:''}<small>+${5*(to-from)} insignias</small></div>`;
+  el.innerHTML=`<div class="lvup-in rk-${r.k}"><i class="sl"></i>${lvBadge(xpTotal(),'xl',true)}<b class="sfx">¡Nivel ${to}!</b>${newRank?`<span class="lbl">Nuevo rango: ${r.n}</span>`:''}${tl.length?`<span class="lbl">Título: «${LV_TITLES[tl[tl.length-1]]}»</span>`:''}<small>+${5*(to-from)} insignias</small></div>`;
   document.body.appendChild(el); if(typeof sfx==='function') sfx('win');
   const close=()=>{ el.classList.add('out'); setTimeout(()=>el.remove(), 300); };
   el.addEventListener('click', close); setTimeout(close, 2800);

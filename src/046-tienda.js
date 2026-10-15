@@ -21,7 +21,7 @@ const SHOP = {
   m_verde: {n:'Marco del Cuerpo de Exploración', p:15, kind:'marco', d:'Marco verde con las alas de la libertad… en espíritu.'}
 };
 const shopOf = () => Object.assign({spent:0, own:[], eq:{}}, statsOf().shop || {});
-const owns = k => shopOf().own.includes(k);
+const owns = k => shopOf().own.includes(k) || !!(SHOP[k] && SHOP[k].pass && typeof hasReward==='function' && hasReward(SHOP[k].kind, k));
 // de dónde salen las insignias (es la tabla de recompensas que se enseña en la Intendencia)
 function insigniaSources(){
   const M=meta(), st=statsOf(), g=st.g||{};
@@ -40,11 +40,11 @@ function insigniaSources(){
 const insigniasEarned = () => insigniaSources().reduce((a,x)=>a+x.v,0);
 const insignias = () => insigniasEarned() - shopOf().spent;
 function buyShop(k){
-  const it=SHOP[k], sh=shopOf(); if(!it || sh.own.includes(k) || insignias()<it.p) return false;
+  const it=SHOP[k], sh=shopOf(); if(!it || it.pass || sh.own.includes(k) || insignias()<it.p) return false;
   sh.own.push(k); sh.spent+=it.p; if(it.kind!=='exp') sh.eq[it.kind]=k;
   const st=statsOf(); st.shop=sh; saveMeta({stats:st}); applyCosmetics(); return true;
 }
-function equipShop(k){ const it=SHOP[k], sh=shopOf(); if(!it || !sh.own.includes(k)) return; sh.eq[it.kind] = sh.eq[it.kind]===k ? null : k; const st=statsOf(); st.shop=sh; saveMeta({stats:st}); applyCosmetics(); }
+function equipShop(k){ const it=SHOP[k], sh=shopOf(); if(!it || !owns(k)) return; sh.eq[it.kind] = sh.eq[it.kind]===k ? null : k; const st=statsOf(); st.shop=sh; saveMeta({stats:st}); applyCosmetics(); }
 function applyCosmetics(){
   if(typeof document==='undefined') return; const eq=shopOf().eq||{};
   document.body.className = document.body.className.replace(/\b(dice|frame)-\S+/g,'').trim();

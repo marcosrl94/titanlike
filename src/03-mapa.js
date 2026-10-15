@@ -67,7 +67,7 @@ function enterNode(r, j){
   S.map.pos=[r,j]; S.map.path.push(j);
   const t = curNode().t;
   if(t==='b'){ const boss=zoneOf(S.wave).boss, b=betrayer(boss); if(b) return startBetrayal(b, boss); }
-  if(t==='v'){ const ok=EVENTS.map((e,i)=>i).filter(i=>!EVENTS[i].when || EVENTS[i].when()); const pr=ok.filter(i=>EVENTS[i].prio); S.pend={k:'event', i:pr.length ? pr[0] : seeded('ev'+S.wave+'-'+r+'-'+j, ()=>pick(ok.filter(i=>!EVENTS[i].prio))), res:null}; scr='event'; }
+  if(t==='v'){ const ok=EVENTS.map((e,i)=>i).filter(i=>(!EVENTS[i].when || EVENTS[i].when()) && !(typeof eventLocked==='function' && eventLocked(i))); const pr=ok.filter(i=>EVENTS[i].prio); S.pend={k:'event', i:pr.length ? pr[0] : seeded('ev'+S.wave+'-'+r+'-'+j, ()=>pick(ok.filter(i=>!EVENTS[i].prio))), res:null}; scr='event'; }
   else if(t==='k'){ S.pend={k:'camp'}; scr='camp'; }
   else if(t==='t'){ S.pend={k:'shop'}; S.shop={offers:seeded('shop'+S.wave+'-'+r+'-'+j, shopOffers)}; scr='shop'; }
   else S.pend={k:'fight'};

@@ -138,6 +138,7 @@ const FX = {
     const dx=50*(Math.random()<.5?-1:1);
     line({x:b.x-dx,y:b.y-38},{x:b.x+dx,y:b.y+38},'slash'+(e.crit?' crit':''));
     if(e.crit) setTimeout(()=>line({x:b.x+dx,y:b.y-30},{x:b.x-dx,y:b.y+34},'slash crit'), 70);
+    if(e.roll===20 && !e.auto && typeof n20fx==='function') n20fx(b);
     sparks(b, e.crit?16:8, e.crit?'var(--gold)':'var(--bone)', e.crit?110:70);
     if(e.crit){ punch(); flash('var(--gold)',.25); }
     if(e.boom){ flash('var(--gold)',.7); quake(500); ring(b,'var(--gold)',260); steam(b,8,'#cbb68a'); }

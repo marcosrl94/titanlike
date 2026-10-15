@@ -1,10 +1,11 @@
 // ---------- Cabecera, render y entradas ----------
 let lastScr = null, lastBolt = null;
 applyCosmetics();
+if(typeof applyPassCosmetics==='function') applyPassCosmetics();
 function header(){
   $('bmus').classList.toggle('off', !AU.on.m); $('bsfx').classList.toggle('off', !AU.on.s);
   $('bmus').setAttribute('aria-pressed', AU.on.m); $('bsfx').setAttribute('aria-pressed', AU.on.s);
-  const h=$('hacc'); if(h) h.innerHTML = (typeof lvBadge==='function' ? `<button class="ib lvh" data-a="nivel" aria-label="Tu nivel">${lvBadge(xpTotal(),'sm')}</button>` : '') + (!cloudOn() ? '' : CLOUD.user
+  const h=$('hacc'); if(h) h.innerHTML = (typeof lvBadge==='function' ? `<button class="ib lvh" data-a="nivel" aria-label="Tu nivel">${lvBadge(xpTotal(),'sm',true)}</button>` : '') + (!cloudOn() ? '' : CLOUD.user
     ? `<button class="ib av-b" data-a="acct" aria-label="Tu cuenta: ${esc(userName())}" title="${esc(userName())}">${avatar('sm')}</button>`
     : `<button class="btn sm ghost hin" data-a="acct" aria-label="Entrar o crear cuenta"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Entrar</span></button>`);
   const on = S && !S.pvp && !['title','starter','gallery','sagas','board','codex','settings','intendencia','ficha','comps','arbol','amigos','duelpick','duelres','howto','nivel','pase'].includes(scr) && S.map;
@@ -48,7 +49,7 @@ function act(a, i){
   if(a==='sagas'){ picked=[]; pendingNg=false; relicPick=[]; scr='sagas'; return render(); }
   if(a==='ngstart'){ pendingAlt=null; pendingSaga=0; pendingNg=true; picked=[]; relicPick=[]; scr='starter'; return render(); }
   if(a==='relic'){ relicPick = relicPick.includes(i) ? relicPick.filter(x=>x!==i) : relicPick.length<relicsMax(ngLevel()) ? relicPick.concat(i) : relicPick; return render(); }
-  if(a==='diff'){ if(DIFF[i]) setCfg('diff', i); return render(); }
+  if(a==='diff'){ if(DIFF[i] && !(i==='veterano' && typeof modeOpen==='function' && !modeOpen('vet'))) setCfg('diff', i); return render(); }
   if(a==='saga'){ const [g,alt]=String(i).split(':'); pendingSaga=+g; pendingAlt=alt||null; picked=[]; relicPick=[]; scr='starter'; return render(); }
   if(a==='gallery' || a==='home'){ scr = a==='home' ? 'title' : 'gallery'; return render(); }
   if(a==='rm'){ delete CUSTOM[i]; store.set('img', CUSTOM); return render(); }
@@ -58,7 +59,7 @@ function act(a, i){
   if(a==='rmall'){ CUSTOM={}; store.set('img', CUSTOM); NAMES={}; store.del('names'); applyNames(); packMsg=''; cloudDeletePack(); return render(); }
   if(a==='pespack'){ packMsg='Cargando el paquete…'; render(); fetch('titanlike-pes.json').then(r=>r.text()).then(t=>{ const n=mergePack(t); packMsg = n ? `Paquete «sin licencia» cargado: ${n} elementos. Tukasa, Patasha y Lavi se presentan.` : 'No se pudo leer el paquete.'; render(); if(n && typeof cloudUploadPack==='function' && CLOUD.user) cloudUploadPack(); }).catch(()=>{ packMsg='No se pudo descargar el paquete.'; render(); }); return; }
   if(a==='rmnames'){ NAMES={}; store.del('names'); applyNames(); packMsg='Nombres originales restaurados.'; if(typeof cloudUploadPack==='function' && CLOUD.user) cloudUploadPack(); return render(); }
-  if(a==='daily'){ if(dailyDone()) return; newDaily(); return render(); }
+  if(a==='daily'){ if(dailyDone() || (typeof modeOpen==='function' && !modeOpen('daily'))) return; newDaily(); return render(); }
   if(a==='codex'){ scr='codex'; return render(); }
   if(a==='login') return cloudLogin();
   if(a.startsWith('mail') && mailAct(a, i)) return;
@@ -75,6 +76,7 @@ function act(a, i){
   if(a==='amigos'){ scr='amigos'; window.scrollTo(0,0); saveMeta({duelSeen:Date.now()}); render(); return cloudOn()&&CLOUD.user ? cloudFriendsLoad() : null; }
   if(a==='addfriend'){ const v=($('fcode')||{}).value; return cloudAddFriend((v||'').trim()); }
   if(a==='frok' || a==='frno') return cloudAnswerFriend(i, a==='frok');
+  if((a==='retar' || a==='practica') && typeof modeOpen==='function' && !modeOpen('vet')) return;
   if(a==='retar'){ const L=(CLOUD.fr&&CLOUD.fr.legends||[]).find(l=>l.id===i); if(!L) return; const f=(CLOUD.fr.friends||[]).find(x=>x.friend_id===L.user_id);
     DPICK={foe:L, foeName:f?f.display_name:'tu amigo', foeCloud:L.id}; scr='duelpick'; window.scrollTo(0,0); return render(); }
   if(a==='practica'){ const L=legendsLocal().find(l=>l.lid===i); if(!L) return; DPICK={foe:L, foeName:'tu propia leyenda', foeCloud:null}; scr='duelpick'; return render(); }
@@ -82,6 +84,10 @@ function act(a, i){
   if(a==='duelagain'){ if(DUEL) return startDuel(DUEL.mine, DUEL.foe, DUEL.foeName, DUEL.cloud); return; }
   if(a==='howto'){ scr='howto'; window.scrollTo(0,0); return render(); }
   if(a==='nivel'){ scr='nivel'; window.scrollTo(0,0); return render(); }
+  if(a==='pase'){ scr='pase'; window.scrollTo(0,0); return render(); }
+  if(a==='claim'){ if(claimTier(+i)){ sfx('win'); const T=PASS1.tiers[+i-1]; toast(`Escalón ${i}`, rewardsOf(T).map(r=>r.n).join(' + ')); } return render(); }
+  if(a==='claimall'){ const c=claimable(); c.forEach(claimTier); if(c.length){ sfx('win'); toast(`${c.length} escalones reclamados`, 'Mira tu estética al final del pase.'); } return render(); }
+  if(a==='cos'){ const [k,id]=String(i).split(':'); equipCos(k, id); return render(); }
   if(a==='arbol'){ scr='arbol'; window.scrollTo(0,0); return render(); }
   if(a==='moment') return showMoment(+i, 'Momento', true);
   if(a==='ficha'){ const was=scr==='ficha'; fichaOpen = i && ROSTER[i] ? i : null; if(fichaOpen) fichaId=fichaOpen; scr='ficha'; if(!was) window.scrollTo(0,0); render(); const m=document.querySelector('.fm-in'); if(m){ m.scrollTop=0; const x=m.querySelector('.fm-x'); if(x) x.focus({preventScroll:true}); } return; }

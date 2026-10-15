@@ -1,5 +1,11 @@
 // ---------- Notas del parche: aparecen una vez por jugador tras cada actualización ----------
 const PATCHES = [
+  {v:'2026-10-16.17', t:'Pase 1 · Crónica de los Muros', items:[
+    'Nuevo pase gratuito de 30 escalones que no caduca. Toda la experiencia que ganas lo hace avanzar.',
+    'Trae reclutas, la expedición del día, la dificultad Veterano y los duelos, sucesos nuevos, documentos y estética: títulos, estandartes, color del corte, fondos de portada, efectos para el 20 natural, dados y un marco.',
+    'Si ya jugabas antes, todo lo que el pase escalona sigue abierto para ti; los escalones te dan igualmente su estética.',
+    'Arreglado: los avisos se estiraban hasta el fondo de la pantalla.'
+  ]},
   {v:'2026-10-16.16', t:'Nivel de cuenta y órdenes', items:[
     'Todo lo que juegas da experiencia: cada combate según su nota, sagas, campañas, la expedición del día y los duelos. El primer combate ganado del día da 300 extra.',
     'Tu nivel es permanente y lleva un borde que cambia con el rango: Recluta, Soldado, Veterano, Líder de escuadrón, Capitán y Comandante. Se ve en el menú, en la clasificación, en el tablón de jefes y en amigos.',

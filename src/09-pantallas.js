@@ -93,7 +93,7 @@ const V = {
     const bg = ok ? (zoneOf(run.wave).mo!==undefined ? zoneOf(run.wave).mo : Math.floor((run.wave-1)/5)) : Math.min(11, Math.floor(Math.max(0,(M.best||1)-1)/5));
     const nd = CLOUD.user && typeof newDuels==='function' ? newDuels() : 0, dd=dailyDone();
     const it = (a, ic, n, d, attrs='') => `<button class="mm-it" data-a="${a}" ${attrs}>${UIC[ic]||''}<span><b>${n}</b>${d?`<small>${d}</small>`:''}</span></button>`;
-    TITLE_BG = bg;
+    TITLE_BG = typeof cosEq==='function' && cosEq('fondo') && FONDOS[cosEq('fondo')] && hasReward('fondo', cosEq('fondo')) ? FONDOS[cosEq('fondo')].mo : bg;
     return `<section class="mm"><div class="mm-main">
         <div class="mm-logo"><h1>Titanlike</h1><p>Cuatro sagas, doce cambiantes y un escuadrón que no vuelve entero.</p></div>
         <div class="mm-cta">
@@ -101,7 +101,8 @@ const V = {
           <button class="btn lg ${ok?'ghost':'mm-play'}" data-a="sagas">${ok?'Nueva expedición':`${UIC.play}<span>Salir de las murallas<small>Elige saga y primer recluta</small></span>`}</button>
         </div>
         <nav class="mm-list" aria-label="Menú principal">
-          ${it('daily','sun','Expedición del día', dd?'Ya la has jugado hoy':`${dailyInfo().mod.n} · misma semilla para todos`, dd?'disabled':'')}
+          ${typeof modeOpen==='function' && !modeOpen('daily') ? it('daily','sun','Expedición del día', `Se abre en el escalón ${tierFor('modo','daily')} del Pase 1`, 'disabled') : it('daily','sun','Expedición del día', dd?'Ya la has jugado hoy':`${dailyInfo().mod.n} · misma semilla para todos`, dd?'disabled':'')}
+          ${typeof PASS1!=='undefined' ? it('pase','flag','Pase 1 · '+PASS1.n, (()=>{ const c=claimable().length; return c ? `<em>${c} escalón${c>1?'es':''} por reclamar</em>` : `Escalón ${tierOf(passState().xp)} de ${PASS1.tier_count}`; })()) : ''}
           ${it('amigos','duel','Amigos y duelos', nd?`<em>${nd} duelo${nd>1?'s':''} nuevo${nd>1?'s':''}</em>`:'Reta con tus leyendas')}
           ${it('board','trophy','Clasificación', CLOUD.user?'Temporada en curso':'Con sesión iniciada', cloudOn()&&CLOUD.user?'':'disabled')}
           ${it('intendencia','bag','Intendencia', `${insignias()} insignias`)}
@@ -141,7 +142,7 @@ const V = {
         <p>Vuelve a empezar desde Trost con ventaja y con más peligro: sales con <b>dos reclutas</b>, llevas hasta <b>${relicsMax(ngLevel())} reliquia${relicsMax(ngLevel())>1?'s':''}</b> (poderes de los Nueve de campañas anteriores) y los enemigos son un <b>${12*ngLevel()} % más fuertes</b>. Encadenando vueltas es como se reúnen los Nueve.</p>
         <div class="row"><button class="btn" data-a="ngstart">Empezar la vuelta ${ngLevel()+1}</button><span class="lbl">Reliquias disponibles: ${(meta().relics||[]).length}</span></div></section>` : ''}
       <section class="panel"><span class="lbl">Dificultad</span>
-        <div class="seg" role="radiogroup" aria-label="Dificultad">${Object.keys(DIFF).map(k=>`<button class="btn sm ${CFG.diff===k?'':'ghost'}" role="radio" aria-checked="${CFG.diff===k}" data-a="diff" data-i="${k}">${DIFF[k].n}</button>`).join('')}</div>
+        <div class="seg" role="radiogroup" aria-label="Dificultad">${Object.keys(DIFF).map(k=>{ const lk = k==='veterano' && typeof modeOpen==='function' && !modeOpen('vet'); return `<button class="btn sm ${CFG.diff===k?'':'ghost'}" role="radio" aria-checked="${CFG.diff===k}" data-a="diff" data-i="${k}" ${lk?`disabled title="Se abre en el escalón ${tierFor('modo','vet')} del Pase 1"`:''}>${DIFF[k].n}${lk?' · escalón '+tierFor('modo','vet'):''}</button>`; }).join('')}</div>
         <p class="dim" style="font-size:13.5px">${DIFF[CFG.diff]?DIFF[CFG.diff].d:DIFF.explorador.d} La expedición del día siempre es Explorador.</p></section>
       <div class="sagas">${SAGAS.map((g,i)=>`<button class="card saga ${i<u?'':'locked'}" data-a="saga" data-i="${i}" ${i<u?'':'disabled'}>
         <span class="thumb">${momentSVG(i*3)}${i<u?'':'<i class="lock" aria-hidden="true"></i>'}${sagaStamp(g.zones[2].boss)}</span><span class="n">SAGA ${i+1}${i<u?'':' · BLOQUEADA'}</span><h3>${g.n}</h3><p>${i<u?g.d:`Vence la saga ${i} para abrirla.`}</p>
@@ -161,7 +162,7 @@ const V = {
         <div class="row">${R.map(k=>`<button class="btn sm ${relicPick.includes(k)?'':'ghost'}" data-a="relic" data-i="${k}" aria-pressed="${relicPick.includes(k)}">${POWERS[k].n}</button>`).join('')||'<span class="dim">Aún no tienes reliquias.</span>'}</div></section>`; }
     if(g===0) return `<div class="saga-head"><span class="thumb">${momentSVG(0)}</span></div><div><span class="lbl">Saga 1 · ${SAGAS[0].n}</span><h2>Elige a tu primer recluta</h2></div>
       <div class="cards">${starters().map(id=>`<button class="card" data-a="start" data-i="${id}">${solCard(id)}</button>`).join('')}
-        ${ACH.filter(a=>a.unlock && !starters().includes(a.unlock)).map(a=>`<div class="card locked"><div class="who">${portrait(a.unlock,true)}<div><h3>${ROSTER[a.unlock].n}</h3><span class="lbl">Bloqueado</span></div></div><p>Se desbloquea con el logro «${a.n}»: ${a.d}</p></div>`).join('')}</div>`;
+        ${ACH.filter(a=>a.unlock && !starters().includes(a.unlock)).map(a=>`<div class="card locked"><div class="who">${portrait(a.unlock,true)}<div><h3>${ROSTER[a.unlock].n}</h3><span class="lbl">Bloqueado</span></div></div><p>Se desbloquea con el logro «${a.n}»: ${a.d}${typeof tierFor==='function' && tierFor('recluta', a.unlock)>0 ? ` O en el escalón ${tierFor('recluta', a.unlock)} del Pase 1.` : ''}</p></div>`).join('')}</div>`;
     const pool=Object.keys(ROSTER).filter(id=>ROSTER[id].sg<=g && (!ROSTER[id].story || codexSeen('s',id))).sort((a,b)=>(ROSTER[b].rare?1:0)-(ROSTER[a].rare?1:0));
     const n=startSize(g), npw=KIT_PW[g];
     return `<div class="saga-head"><span class="thumb">${momentSVG(pendingAlt?ALT_SAGAS[pendingAlt].zones[0].mo:g*3)}</span></div><div><span class="lbl">Saga ${g+1} · ${pendingAlt?ALT_SAGAS[pendingAlt].n+' (senda alternativa)':SAGAS[g].n}</span><h2>Forma un escuadrón de ${n===4?'cuatro':'tres'}</h2>
